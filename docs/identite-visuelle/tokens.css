@@ -1,0 +1,81 @@
+/* ============================================================
+   SUVAC — jetons de design
+   À importer une seule fois, à la racine de l'application.
+   ============================================================ */
+
+:root {
+  /* --- Marque ------------------------------------------------ */
+  --suvac-baobab:        #14432E;  /* couleur principale : navigation, titres, doses faites */
+  --suvac-baobab-fonce:  #0D2E20;  /* survol d'un élément en baobab */
+  --suvac-baobab-clair:  #E4EDE8;  /* fond d'un élément principal */
+  --suvac-cuivre:        #8E4A1E;  /* accent unique : boutons, liens, focus, anneau « due » */
+  --suvac-cuivre-clair:  #F5EBE2;  /* fond d'un élément accentué */
+  --suvac-cuivre-lumiere:#D9924F;  /* cuivre éclairci, à n'utiliser que sur fond baobab */
+
+  /* --- Statuts vaccinaux -------------------------------------
+     La couleur ne porte JAMAIS l'information seule.
+     Chaque statut est aussi distingué par la forme :
+       administré = pastille pleine
+       à venir    = pastille vide
+       due        = pastille pleine + contour
+       en retard  = pastille pleine + icône d'alerte
+     ----------------------------------------------------------- */
+  --statut-administre:  #14432E;  /* la dose est faite — « tampon » sur le carnet */
+  --statut-a-venir:     #B9C4BC;  /* case encore vide */
+  --statut-due:         #8E4A1E;  /* anneau cuivre autour d'une pastille pleine */
+  --statut-due-fond:    #F5EBE2;
+  --statut-retard:      #8C1410;  /* toujours accompagné de l'icône d'alerte */
+  --statut-retard-fond: #F6E7E6;
+  --statut-annule:      #6B7A82;
+
+  /* --- Surfaces et texte ------------------------------------- */
+  --surface:            #FFFFFF;
+  --surface-basse:      #FAFBFA;  /* fond de page, lignes alternées */
+  --bordure:            #D5E0D9;
+  --texte:              #0F2A1E;  /* contraste 14.8:1 sur la surface basse */
+  --texte-faible:       #4F6659;  /* contraste 6.0:1 sur la surface basse */
+  --texte-inverse:      #FFFFFF;
+
+  /* --- Typographie ------------------------------------------- */
+  --police: 'Public Sans', 'Inter', system-ui, -apple-system, sans-serif;
+
+  --taille-xs:   0.75rem;   /* 12px — mentions légales */
+  --taille-sm:   0.875rem;  /* 14px — libellés, tableaux denses */
+  --taille-base: 1rem;      /* 16px — texte courant, minimum sur mobile */
+  --taille-lg:   1.125rem;  /* 18px — sous-titres */
+  --taille-xl:   1.5rem;    /* 24px — titres d'écran */
+  --taille-2xl:  2rem;      /* 32px — nom de l'enfant sur sa fiche */
+
+  /* --- Espacement (base 4px) --------------------------------- */
+  --esp-1: 0.25rem;  --esp-2: 0.5rem;  --esp-3: 0.75rem;
+  --esp-4: 1rem;     --esp-6: 1.5rem;  --esp-8: 2rem;   --esp-12: 3rem;
+
+  /* --- Formes ------------------------------------------------ */
+  --rayon-sm: 4px;   /* pastilles de statut, étiquettes */
+  --rayon:    8px;   /* champs, boutons */
+  --rayon-lg: 12px;  /* cartes */
+
+  /* --- Cible tactile minimale --------------------------------
+     L'agent de santé travaille debout, parfois avec des gants.  */
+  --cible-tactile: 48px;
+}
+
+/* Chiffres alignés : indispensable pour les dates et les doses
+   empilées dans un tableau. */
+table, .tabulaire {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Focus visible au clavier, sur toute la plateforme. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--suvac-cuivre);
+  outline-offset: 2px;
+}
+
+/* Respect du réglage système « réduire les animations ». */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

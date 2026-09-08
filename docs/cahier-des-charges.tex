@@ -1,0 +1,1762 @@
+% =====================================================================
+%  CAHIER DES CHARGES — Plateforme de suivi vaccinal pré et post natal
+%  Compilation : xelatex cahier-des-charges.tex  (2 passes)
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+% ---------- Langue et polices ----------
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{french}
+\setmainfont{TeX Gyre Pagella}
+\setsansfont{TeX Gyre Heros}
+\setmonofont[Scale=0.88]{Latin Modern Mono}
+
+% Pas de motifs de césure français disponibles : on assouplit la justification
+\tolerance=2000
+\emergencystretch=3em
+\hbadness=10000
+
+% ---------- Mise en page ----------
+\usepackage[a4paper,top=2.4cm,bottom=2.4cm,left=2.3cm,right=2.3cm,headheight=23pt]{geometry}
+\usepackage{microtype}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{ragged2e}
+\usepackage{lastpage}
+\usepackage{needspace}
+
+% ---------- Tableaux ----------
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xltabular}
+\usepackage{longtable}
+\usepackage{colortbl}
+\usepackage{multirow}
+\usepackage{makecell}
+
+% ---------- Graphiques ----------
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,shapes.geometric,arrows.meta,calc,fit,backgrounds}
+\usepackage{pgfgantt}
+\usepackage[most]{tcolorbox}
+\usepackage{pifont}
+
+% ---------- Liens ----------
+\usepackage{hyperref}
+\usepackage{bookmark}
+
+% =====================================================================
+%  PALETTE
+% =====================================================================
+% Palette SUVAC — vert baobab et cuivre (voir identite-visuelle.md)
+\definecolor{primary}{HTML}{14432E}      % vert baobab
+\definecolor{primarylight}{HTML}{E4EDE8}
+\definecolor{accent}{HTML}{8E4A1E}       % cuivre, filets et marques
+\definecolor{accentlight}{HTML}{F5EBE2}
+\definecolor{decision}{HTML}{1F6B4A}     % encadrés de décision
+\definecolor{decisionlight}{HTML}{E4EDE8}
+\definecolor{amber}{HTML}{9A6B12}        % encadrés de vigilance
+\definecolor{amberlight}{HTML}{FAF2DF}
+\definecolor{danger}{HTML}{8C1410}       % encadrés d'avertissement
+\definecolor{dangerlight}{HTML}{F6E7E6}
+\definecolor{neutral}{HTML}{5B6B62}
+\definecolor{rulegray}{HTML}{C9D5CE}
+\definecolor{softbg}{HTML}{F4F7F5}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=primary,
+  urlcolor=accent,
+  citecolor=accent,
+  pdftitle={Cahier des charges — Plateforme de suivi vaccinal},
+  pdfauthor={Fallou Diouck},
+  pdfkeywords={vaccination, PEV, Sénégal, wolof, Django, React},
+  pdfsubject={Développement Web Avancé — École Polytechnique de Thiès},
+  bookmarksnumbered=true
+}
+
+% =====================================================================
+%  STYLES DE TITRES
+% =====================================================================
+\titleformat{\section}
+  {\normalfont\sffamily\LARGE\bfseries\color{primary}}
+  {\thesection}{0.8em}{}
+  [\vspace{2pt}{\color{accent}\titlerule[1.4pt]}]
+\titlespacing*{\section}{0pt}{2.4ex plus 1ex minus .2ex}{1.6ex plus .2ex}
+
+\titleformat{\subsection}
+  {\normalfont\sffamily\large\bfseries\color{primary}}
+  {\thesubsection}{0.7em}{}
+\titlespacing*{\subsection}{0pt}{2.2ex plus 1ex minus .2ex}{1.1ex plus .2ex}
+
+\titleformat{\subsubsection}
+  {\normalfont\sffamily\normalsize\bfseries\color{accent}}
+  {\thesubsubsection}{0.6em}{}
+
+% =====================================================================
+%  EN-TÊTES ET PIEDS DE PAGE
+% =====================================================================
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{rulegray}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\footrule}{\hbox to\headwidth{\color{rulegray}\leaders\hrule height \footrulewidth\hfill}}
+\fancyhead[L]{\sffamily\footnotesize\color{primary}\textbf{SUVAC} \textcolor{rulegray}{|} Cahier des charges}
+\fancyhead[R]{\sffamily\footnotesize\color{neutral}\nouppercase{\leftmark}}
+\fancyfoot[L]{\sffamily\scriptsize\color{neutral}Version 1.0 — Septembre 2026}
+\fancyfoot[R]{\sffamily\scriptsize\color{neutral}\thepage\,/\,\pageref{LastPage}}
+\renewcommand{\sectionmark}[1]{\markboth{#1}{}}
+
+% =====================================================================
+%  COMMANDES UTILITAIRES
+% =====================================================================
+
+% --- Badges de priorité MoSCoW ---
+\newcommand{\badge}[3]{%
+  \tikz[baseline=(bx.base)]{\node[fill=#1,text=white,rounded corners=2pt,
+    inner xsep=4pt,inner ysep=1.6pt,font=\sffamily\bfseries\scriptsize](bx){#2\strut};}%
+  \ignorespaces#3}
+\newcommand{\pM}{\badge{danger}{M}{}}
+\newcommand{\pS}{\badge{decision}{S}{}}
+\newcommand{\pC}{\badge{amber}{C}{}}
+\newcommand{\pW}{\badge{neutral}{W}{}}
+
+% --- Référence d'exigence ---
+\newcommand{\rid}[1]{{\sffamily\bfseries\footnotesize\color{primary}#1}}
+
+% --- Cases à cocher ---
+\newcommand{\cbox}{{\color{neutral}\ding{113}}~}
+
+% --- Colonnes ---
+\newcolumntype{L}{>{\strut\RaggedRight\arraybackslash}X}
+\newcolumntype{C}[1]{>{\strut\Centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\strut\RaggedRight\arraybackslash}p{#1}}
+
+% --- En-tête de tableau coloré ---
+\newcommand{\hd}[1]{\textcolor{white}{\sffamily\bfseries\small #1}}
+\newcommand{\rowhead}{\rowcolor{primary}}
+
+\renewcommand{\arraystretch}{1.35}
+\setlength{\tabcolsep}{6pt}
+\arrayrulecolor{rulegray}
+
+% --- Encadrés ---
+\newtcolorbox{avertissement}[1][Avertissement]{
+  enhanced, breakable,
+  colback=dangerlight, colframe=danger, boxrule=0pt,
+  leftrule=3pt, arc=2pt, left=10pt, right=10pt, top=8pt, bottom=8pt,
+  fonttitle=\sffamily\bfseries\small\color{danger},
+  coltitle=danger, title={#1},
+  attach boxed title to top left={yshift=-2mm, xshift=8pt},
+  boxed title style={colback=dangerlight, boxrule=0pt, arc=0pt}
+}
+
+\newtcolorbox{decisionbox}[1][Décision]{
+  enhanced, breakable,
+  colback=decisionlight, colframe=decision, boxrule=0pt,
+  leftrule=3pt, arc=2pt, left=10pt, right=10pt, top=8pt, bottom=8pt,
+  fonttitle=\sffamily\bfseries\small,
+  coltitle=decision, title={#1},
+  attach boxed title to top left={yshift=-2mm, xshift=8pt},
+  boxed title style={colback=decisionlight, boxrule=0pt, arc=0pt}
+}
+
+\newtcolorbox{vigilance}[1][Point de vigilance]{
+  enhanced, breakable,
+  colback=amberlight, colframe=amber, boxrule=0pt,
+  leftrule=3pt, arc=2pt, left=10pt, right=10pt, top=8pt, bottom=8pt,
+  fonttitle=\sffamily\bfseries\small,
+  coltitle=amber, title={#1},
+  attach boxed title to top left={yshift=-2mm, xshift=8pt},
+  boxed title style={colback=amberlight, boxrule=0pt, arc=0pt}
+}
+
+\newtcolorbox{synthese}{
+  enhanced, breakable,
+  colback=softbg, colframe=rulegray, boxrule=0.6pt,
+  arc=2pt, left=10pt, right=10pt, top=8pt, bottom=8pt
+}
+
+% --- Listes ---
+\setlist[itemize]{leftmargin=1.3em, itemsep=2pt, topsep=4pt, label=\textcolor{accent}{\small\ding{110}}}
+\setlist[enumerate]{leftmargin=1.5em, itemsep=2pt, topsep=4pt}
+
+% --- Styles TikZ pour l'architecture ---
+\tikzset{
+  bloc/.style={
+    draw=primary, fill=white, line width=0.7pt, rounded corners=3pt,
+    align=center, font=\sffamily\footnotesize, inner sep=6pt, minimum height=9mm},
+  blocp/.style={bloc, fill=primary, text=white, draw=primary},
+  bloca/.style={bloc, fill=accentlight, draw=accent},
+  bloce/.style={bloc, fill=amberlight, draw=amber},
+  sousbloc/.style={
+    draw=neutral, fill=softbg, line width=0.4pt, rounded corners=2pt,
+    align=center, font=\sffamily\scriptsize, inner sep=4pt, minimum height=7mm},
+  fleche/.style={-{Stealth[length=5pt]}, draw=neutral, line width=0.7pt},
+  etiq/.style={font=\sffamily\scriptsize\itshape, text=neutral, inner sep=2pt}
+}
+
+% =====================================================================
+\begin{document}
+
+% =====================================================================
+%  PAGE DE GARDE
+% =====================================================================
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture, overlay]
+  % Bandeau supérieur
+  \fill[primary] (current page.north west) rectangle
+    ([yshift=-8.5cm]current page.north east);
+  \fill[accent] ([yshift=-8.5cm]current page.north west) rectangle
+    ([yshift=-8.62cm]current page.north east);
+  % Motif discret
+  \foreach \i in {0,...,7}{
+    \fill[white, opacity=0.05]
+      ([xshift=\i*2.6cm+0.6cm, yshift=-1.2cm]current page.north west)
+      circle (0.85cm);
+  }
+  % Bandeau inférieur
+  \fill[primarylight] ([yshift=3.2cm]current page.south west) rectangle
+    (current page.south east);
+  \fill[accent] ([yshift=3.2cm]current page.south west) rectangle
+    ([yshift=3.25cm]current page.south east);
+\end{tikzpicture}
+
+\vspace*{1.1cm}
+{\sffamily\color{white}
+  \hspace*{0.2cm}\fontsize{11}{13}\selectfont
+  ÉCOLE POLYTECHNIQUE DE THIÈS \\[2pt]
+  \hspace*{0.2cm}\color{white!75}Master Ingénierie Logicielle et Intelligence Artificielle \\[1.4cm]
+  \hspace*{0.2cm}\fontsize{30}{34}\selectfont\bfseries CAHIER DES CHARGES \\[10pt]
+  \hspace*{0.2cm}\fontsize{13}{16}\selectfont\mdseries\color{white!85}
+  Projet final — Développement Web Avancé
+}
+
+\vspace{2.6cm}
+
+{\sffamily\color{primary}
+  \fontsize{26}{30}\selectfont\bfseries SUVAC \\[8pt]
+  {\color{accent}\rule{4cm}{2.2pt}} \\[14pt]
+  \fontsize{14}{19}\selectfont\mdseries\color{primary!85}
+  Plateforme de gestion et de suivi de la vaccination \\
+  pré et post natale avec intégration du wolof
+}
+
+\vspace{10pt}
+{\sffamily\footnotesize\color{neutral}
+  \textcolor{accent}{\rule[1.2pt]{10pt}{1.2pt}}\; Les rappels adressés aux mères sont signés
+  \textit{Kaay Ñakku}, « viens te faire vacciner ».
+}
+
+\vfill
+
+\noindent
+\begingroup\renewcommand{\arraystretch}{1.55}%
+\begin{tabular}{@{}>{\sffamily\bfseries\footnotesize\color{primary}}l@{\hspace{1.4cm}}>{\footnotesize}l@{}}
+  Chef de projet   & Fallou Diouck \\
+  Équipe           & \textit{à compléter en réunion de lancement} \\
+  Encadrant        & Professeur Michel Seck \\
+  Version          & 1.0 \\
+  Date             & Septembre 2026 \\
+  Statut           & \textcolor{amber}{\sffamily\bfseries À valider} par l'équipe et l'encadrant \\
+\end{tabular}\endgroup
+
+\vspace{1.4cm}
+{\centering\sffamily\scriptsize\color{neutral}
+  Document de travail — toute évolution du périmètre après validation fait l'objet d'un avenant tracé en annexe D.\par}
+\vspace{1.2cm}
+\end{titlepage}
+
+% =====================================================================
+%  SOMMAIRE
+% =====================================================================
+\pagenumbering{roman}
+\setcounter{page}{1}
+
+\begin{synthese}
+{\sffamily\bfseries\color{primary}En une page.}\;
+Le projet dote les postes de santé sénégalais d'un carnet vaccinal numérique dont
+l'originalité tient à trois choix : un \textbf{moteur de calendrier} qui calcule les
+échéances, détecte les retards et re-planifie le schéma vaccinal ; un \textbf{rappel
+vocal en wolof} diffusé par WhatsApp, accessible aux mères non alphabétisées ; un
+\textbf{fonctionnement hors connexion} pour l'agent de terrain. Le périmètre, les
+exigences, l'architecture, la stratégie de test et l'organisation agile sont fixés
+ci-après et servent de référence contractuelle à l'équipe pour toute la durée du module.
+\end{synthese}
+
+\vspace{4mm}
+{\sffamily\Large\bfseries\color{primary}Sommaire}\\[-2mm]
+{\color{accent}\rule{\textwidth}{1.2pt}}
+\vspace{-2mm}
+\renewcommand{\contentsname}{}
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% =====================================================================
+\section{Contexte et justification}
+% =====================================================================
+
+\subsection{Contexte}
+
+Le Programme Élargi de Vaccination (PEV) du Sénégal repose largement sur un carnet de
+vaccination papier remis à la mère. Ce dispositif présente plusieurs fragilités
+documentées dans la littérature de santé publique.
+
+\begin{itemize}
+  \item \textbf{Perte et détérioration du carnet}, entraînant une reconstitution
+        approximative de l'historique vaccinal, voire une revaccination inutile.
+  \item \textbf{Abandon en cours de schéma}. Une part significative des enfants reçoit
+        la première dose de pentavalent sans terminer la série. L'écart entre couverture
+        Penta-1 et Penta-3 est un indicateur de suivi reconnu.
+  \item \textbf{Rappels absents ou inefficaces}. Les relances reposent sur la mémoire de
+        la mère ou sur des visites à domicile ponctuelles des relais communautaires.
+  \item \textbf{Barrière linguistique et d'alphabétisation}. Une part importante des mères
+        en zone rurale ne lit ni le français ni l'alphabet latin. Un rappel écrit en
+        français est inopérant pour cette population.
+  \item \textbf{Remontée statistique lente}. Le district reçoit des agrégats mensuels sur
+        support papier, ce qui empêche toute réaction rapide à une baisse de couverture
+        ou à une rupture de stock.
+\end{itemize}
+
+\subsection{Justification du projet}
+
+Le projet répond à ces fragilités par une plateforme numérique dont l'originalité tient
+à trois choix structurants.
+
+\vspace{2mm}
+\noindent
+\begin{tikzpicture}
+  \node[bloca, text width=4.6cm] (a) at (0,0)
+    {\textbf{Moteur de calendrier}\\[2pt]
+     Calcule les échéances, détecte\\ les retards, re-planifie le\\ schéma après une dose manquée};
+  \node[bloca, text width=4.6cm, right=5mm of a] (b)
+    {\textbf{Rappel vocal en wolof}\\[2pt]
+     Diffusé par WhatsApp,\\ accessible aux mères\\ non alphabétisées};
+  \node[bloca, text width=4.6cm, right=5mm of b] (c)
+    {\textbf{Mode hors connexion}\\[2pt]
+     L'agent saisit sans réseau,\\ la synchronisation est\\ différée et idempotente};
+\end{tikzpicture}
+
+\subsection{Convention de nommage}
+
+\begin{decisionbox}[Deux noms, deux registres]
+\textbf{SUVAC} — pour « suivi vaccinal » — désigne la plateforme : interface des agents
+de santé et des superviseurs, dépôt de code, documentation et livrables. \\[4pt]
+\textbf{Kaay Ñakku} — « viens te faire vacciner » en wolof — signe les messages adressés
+aux mères. L'impératif est à sa place dans une relance, pas dans le nom d'un outil
+professionnel utilisé quotidiennement. \\[4pt]
+La graphie \textit{ñakk}, sans accent grave, est celle du vaccin ; \textit{ñàkk}
+signifierait « manquer, perdre ». Cette orthographe a été validée par le
+professeur Michel Seck.
+\end{decisionbox}
+
+\subsection{Positionnement académique}
+
+Le projet constitue le livrable final du module de Développement Web Avancé. Il est
+conçu pour couvrir explicitement les quatre axes d'évaluation annoncés.
+
+\vspace{2mm}
+\noindent
+\begin{tabularx}{\textwidth}{@{}R{4.6cm} L@{}}
+\toprule
+\rowhead \hd{Axe d'évaluation} & \hd{Couverture dans le projet} \\
+\midrule
+Développement web avancé & Django et DRF, React et TypeScript, PWA hors connexion, tâches asynchrones \\
+\rowcolor{softbg}
+Qualité, tests, intégration continue & Pyramide de tests complète, typage statique, analyse statique, pipeline GitHub Actions \\
+Agilité et gestion de projet & Scrum, backlog en user stories, sprints, rétrospectives, métriques de vélocité \\
+\rowcolor{softbg}
+Cloud et DevOps & Conteneurisation, orchestration, déploiement automatisé, observabilité \\
+\bottomrule
+\end{tabularx}
+
+% =====================================================================
+\section{Objectifs}
+% =====================================================================
+
+\subsection{Objectif général}
+
+\begin{synthese}
+Concevoir et déployer une plateforme web et mobile permettant aux structures de santé
+de suivre le parcours vaccinal des femmes enceintes et des enfants de 0 à 5 ans, et
+d'informer les mères dans leur langue via un canal qu'elles utilisent déjà.
+\end{synthese}
+
+\subsection{Objectifs spécifiques}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}C{1.4cm} R{5.2cm} L@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Objectif} & \hd{Indicateur de réussite} \\
+\midrule
+\rid{OS-1} & Dématérialiser le carnet vaccinal & Un enfant enregistré possède un historique consultable et exportable \\
+\rowcolor{softbg}
+\rid{OS-2} & Automatiser le calcul des échéances & Le calendrier est généré sans saisie manuelle des dates \\
+\rid{OS-3} & Détecter et relancer les retards & Toute dose en retard déclenche un rappel dans les 24 heures \\
+\rowcolor{softbg}
+\rid{OS-4} & Communiquer en wolof & 100 \% des rappels sortants disposent d'une version audio wolof \\
+\rid{OS-5} & Fonctionner hors connexion & Un agent saisit 20 doses hors ligne et les synchronise sans perte \\
+\rowcolor{softbg}
+\rid{OS-6} & Outiller le pilotage & Le superviseur dispose d'indicateurs de couverture et d'abandon à jour \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Objectifs pédagogiques}
+
+\begin{itemize}
+  \item Mettre en œuvre une architecture client/serveur découplée avec contrat d'API typé
+        de bout en bout.
+  \item Atteindre une couverture de tests d'au moins 80 \% sur le backend et 70 \% sur le
+        frontend.
+  \item Disposer d'un pipeline d'intégration et de déploiement continus entièrement
+        automatisé.
+  \item Documenter et défendre un processus agile appuyé sur des artefacts réels.
+\end{itemize}
+
+% =====================================================================
+\section{Périmètre}
+% =====================================================================
+
+\subsection{Dans le périmètre}
+
+\begin{itemize}
+  \item Gestion des structures de santé et des comptes utilisateurs.
+  \item Suivi des femmes enceintes : vaccination antitétanique et rattachement aux
+        consultations prénatales.
+  \item Suivi des enfants de 0 à 5 ans sur le schéma PEV complet.
+  \item Moteur de calendrier vaccinal paramétrable en base.
+  \item Rappels multicanaux : dans l'application, par WhatsApp en vocal wolof, par SMS
+        en secours.
+  \item Mode hors ligne pour l'agent de santé avec synchronisation différée.
+  \item Tableau de bord de pilotage pour le superviseur de district.
+  \item Gestion élémentaire du stock de vaccins et alertes de seuil.
+  \item Interface bilingue français et wolof.
+\end{itemize}
+
+\subsection{Hors périmètre}
+
+Les éléments suivants sont explicitement exclus de la version 1 et documentés comme
+perspectives d'évolution.
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}R{6.4cm} L@{}}
+\toprule
+\rowhead \hd{Élément exclu} & \hd{Motif} \\
+\midrule
+Application mobile native & Le besoin est couvert par une PWA installable \\
+\rowcolor{softbg}
+Dossier médical complet & Le projet se limite au volet vaccinal \\
+Interopérabilité DHIS2 & Nécessite un cadre institutionnel hors portée académique \\
+\rowcolor{softbg}
+Chaîne du froid et équipements & Domaine logistique distinct \\
+Facturation et prise en charge & Aucun volet financier dans le périmètre \\
+\rowcolor{softbg}
+Pulaar, sereer, diola & Architecture prévue pour les accueillir, non implémentées \\
+Prédiction du risque d'abandon & Réservé à une évolution ultérieure \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Hypothèses de travail}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}C{1.3cm} L@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Hypothèse} \\
+\midrule
+\rid{H-1} & L'agent de santé dispose d'un terminal doté d'un navigateur moderne. \\
+\rowcolor{softbg}
+\rid{H-2} & La mère ou son tuteur possède un numéro accessible sur WhatsApp, ou à défaut recevant des SMS. \\
+\rid{H-3} & Le consentement de la mère aux rappels est recueilli lors de l'enregistrement. \\
+\rowcolor{softbg}
+\rid{H-4} & La connectivité est intermittente mais existe au moins ponctuellement au poste de santé. \\
+\rid{H-5} & Le schéma vaccinal de référence est celui du PEV Sénégal, à valider avant implémentation. \\
+\bottomrule
+\end{tabularx}
+
+% =====================================================================
+\section{Acteurs et parties prenantes}
+% =====================================================================
+
+\subsection{Acteurs du système}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}R{3.2cm} L R{3.1cm}@{}}
+\toprule
+\rowhead \hd{Acteur} & \hd{Description} & \hd{Accès principal} \\
+\midrule
+\textbf{Agent de santé} & Infirmier, sage-femme ou matrone du poste de santé. Enregistre les bénéficiaires et administre les doses. Utilisateur principal, souvent en connectivité dégradée. & PWA, mode hors ligne \\
+\rowcolor{softbg}
+\textbf{Mère ou tuteur} & Bénéficiaire finale. Consulte le carnet de son enfant et reçoit les rappels. Peut être non alphabétisée. & WhatsApp vocal, consultation web légère \\
+\textbf{Superviseur de district} & Responsable du suivi de la couverture sur plusieurs postes. Consulte, n'administre pas de doses. & Web, tableau de bord \\
+\rowcolor{softbg}
+\textbf{Administrateur} & Membre de l'équipe technique. Gère les référentiels, les comptes et le schéma vaccinal. & Interface d'administration \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Systèmes externes}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}R{5.6cm} L@{}}
+\toprule
+\rowhead \hd{Système} & \hd{Rôle} \\
+\midrule
+WhatsApp Business Cloud API & Diffusion des rappels vocaux et interactifs \\
+\rowcolor{softbg}
+Passerelle SMS & Canal de secours en cas d'échec de remise WhatsApp \\
+Moteur de synthèse vocale wolof & Génération de l'audio des rappels \\
+\bottomrule
+\end{tabularx}
+
+% =====================================================================
+\section{Exigences fonctionnelles}
+% =====================================================================
+
+\begin{decisionbox}[Convention de priorité]
+Les exigences sont priorisées selon la méthode MoSCoW :
+\pM~\textit{must have}, incontournable pour la livraison \quad
+\pS~\textit{should have}, important \quad
+\pC~\textit{could have}, souhaitable \quad
+\pW~\textit{won't have}, reporté.\\[3pt]
+Seules les exigences \pM{} conditionnent l'acceptation du projet (section~16).
+\end{decisionbox}
+
+\subsection{Authentification et gestion des accès}
+
+\begin{xltabular}{\textwidth}{@{}C{1.5cm} L C{1.3cm}@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} & \hd{Prio.} \\
+\midrule \endhead
+\rid{EF-01} & Le système authentifie les utilisateurs par identifiant et mot de passe, avec délivrance de jetons JWT. & \pM \\
+\rowcolor{softbg}
+\rid{EF-02} & Le système applique un contrôle d'accès fondé sur les rôles : agent, superviseur, administrateur. & \pM \\
+\rid{EF-03} & Un agent n'accède qu'aux données de son poste de santé de rattachement. & \pM \\
+\rowcolor{softbg}
+\rid{EF-04} & Le système permet le rafraîchissement du jeton d'accès sans nouvelle saisie du mot de passe. & \pM \\
+\rid{EF-05} & Le système impose une politique de mot de passe et permet sa réinitialisation. & \pS \\
+\rowcolor{softbg}
+\rid{EF-06} & Le système journalise les connexions et les actions sensibles. & \pS \\
+\bottomrule
+\end{xltabular}
+
+\subsection{Bénéficiaires}
+
+\begin{xltabular}{\textwidth}{@{}C{1.5cm} L C{1.3cm}@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} & \hd{Prio.} \\
+\midrule \endhead
+\rid{EF-10} & L'agent enregistre une mère : identité, date de naissance, téléphone, langue préférée, poste de rattachement, consentement aux rappels. & \pM \\
+\rowcolor{softbg}
+\rid{EF-11} & L'agent enregistre une grossesse : date des dernières règles ou terme estimé, rang de grossesse. & \pM \\
+\rid{EF-12} & L'agent enregistre un enfant rattaché à une mère : identité, date de naissance, sexe, prématurité éventuelle. & \pM \\
+\rowcolor{softbg}
+\rid{EF-13} & Le système génère pour chaque bénéficiaire un identifiant unique et un QR code d'identification. & \pS \\
+\rid{EF-14} & L'agent recherche un bénéficiaire par nom, téléphone, identifiant ou scan de QR code. & \pM \\
+\rowcolor{softbg}
+\rid{EF-15} & Le système détecte les doublons potentiels à la création. & \pC \\
+\rid{EF-16} & L'agent peut transférer un bénéficiaire vers un autre poste en conservant son historique. & \pC \\
+\bottomrule
+\end{xltabular}
+
+\subsection{Calendrier vaccinal}
+
+\begin{xltabular}{\textwidth}{@{}C{1.5cm} L C{1.3cm}@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} & \hd{Prio.} \\
+\midrule \endhead
+\rid{EF-20} & Le système génère automatiquement le calendrier vaccinal complet à la création d'un enfant, à partir de sa date de naissance. & \pM \\
+\rowcolor{softbg}
+\rid{EF-21} & Le système génère le calendrier antitétanique de la mère à partir du terme estimé et de son historique. & \pM \\
+\rid{EF-22} & Le système calcule pour chaque dose une date cible, une date d'ouverture et une date limite. & \pM \\
+\rowcolor{softbg}
+\rid{EF-23} & Le système re-planifie les doses suivantes lorsqu'une dose est administrée en retard, en respectant l'intervalle minimal. & \pM \\
+\rid{EF-24} & Le système classe chaque échéance : à venir, due, en retard, administrée, annulée. & \pM \\
+\rowcolor{softbg}
+\rid{EF-25} & Le schéma vaccinal de référence est stocké en base et modifiable sans redéploiement. & \pM \\
+\rid{EF-26} & Le système ajuste le calendrier des enfants prématurés selon l'âge corrigé. & \pC \\
+\rowcolor{softbg}
+\rid{EF-27} & L'agent peut annuler une échéance avec motif : contre-indication, décès, déménagement. & \pS \\
+\bottomrule
+\end{xltabular}
+
+\subsection{Administration des doses}
+
+\begin{xltabular}{\textwidth}{@{}C{1.5cm} L C{1.3cm}@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} & \hd{Prio.} \\
+\midrule \endhead
+\rid{EF-30} & L'agent enregistre une dose : vaccin, date, numéro de lot, voie d'administration, agent. & \pM \\
+\rowcolor{softbg}
+\rid{EF-31} & Le système alerte si la dose est administrée avant l'intervalle minimal réglementaire. & \pM \\
+\rid{EF-32} & Le système alerte si une dose est saisie hors de l'ordre du schéma. & \pS \\
+\rowcolor{softbg}
+\rid{EF-33} & L'agent peut enregistrer un événement indésirable post-vaccinal associé à une dose. & \pC \\
+\rid{EF-34} & Toute saisie est horodatée et attribuée à son auteur, sans suppression physique possible. & \pM \\
+\rowcolor{softbg}
+\rid{EF-35} & Le système décrémente le stock du vaccin correspondant à chaque dose administrée. & \pS \\
+\bottomrule
+\end{xltabular}
+
+\subsection{Rappels et notifications}
+
+\begin{xltabular}{\textwidth}{@{}C{1.5cm} L C{1.3cm}@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} & \hd{Prio.} \\
+\midrule \endhead
+\rid{EF-40} & Le système exécute quotidiennement un balayage des échéances et génère les rappels dus. & \pM \\
+\rowcolor{softbg}
+\rid{EF-41} & Le système émet un rappel à J-3, à J-0 et à J+7 en cas de non-présentation. & \pM \\
+\rid{EF-42} & Le système affiche à l'agent la file des bénéficiaires attendus et en retard pour la journée. & \pM \\
+\rowcolor{softbg}
+\rid{EF-43} & Le système envoie un rappel WhatsApp contenant un message vocal en wolof. & \pM \\
+\rid{EF-44} & Le contenu vocal est composé à partir du prénom de l'enfant, du vaccin concerné et de la date. & \pM \\
+\rowcolor{softbg}
+\rid{EF-45} & Le système bascule automatiquement sur le canal SMS en cas d'échec de remise WhatsApp. & \pS \\
+\rid{EF-46} & Le système enregistre le statut de chaque notification via webhook : envoyé, remis, lu, échoué. & \pM \\
+\rowcolor{softbg}
+\rid{EF-47} & Le système n'envoie aucun rappel à un bénéficiaire n'ayant pas consenti. & \pM \\
+\rid{EF-48} & La mère peut confirmer sa venue via un bouton de réponse rapide WhatsApp. & \pC \\
+\rowcolor{softbg}
+\rid{EF-49} & Le système met en cache les fichiers audio générés et les réutilise pour un contenu identique. & \pS \\
+\bottomrule
+\end{xltabular}
+
+\subsection{Hors ligne et synchronisation}
+
+\begin{xltabular}{\textwidth}{@{}C{1.5cm} L C{1.3cm}@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} & \hd{Prio.} \\
+\midrule \endhead
+\rid{EF-50} & L'application est installable en tant que PWA et démarre sans connexion. & \pM \\
+\rowcolor{softbg}
+\rid{EF-51} & L'application met en cache localement les bénéficiaires du poste et les échéances du jour. & \pM \\
+\rid{EF-52} & L'agent peut créer un bénéficiaire et saisir une dose sans connexion. & \pM \\
+\rowcolor{softbg}
+\rid{EF-53} & Les opérations hors ligne sont placées dans une file locale avec identifiant client unique. & \pM \\
+\rid{EF-54} & La file est rejouée automatiquement au retour de la connexion, de manière idempotente. & \pM \\
+\rowcolor{softbg}
+\rid{EF-55} & L'interface affiche l'état de connexion et le nombre d'opérations en attente. & \pM \\
+\rid{EF-56} & En cas de conflit, le système applique une règle documentée et journalise l'incident. & \pS \\
+\bottomrule
+\end{xltabular}
+
+\subsection{Pilotage}
+
+\begin{xltabular}{\textwidth}{@{}C{1.5cm} L C{1.3cm}@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} & \hd{Prio.} \\
+\midrule \endhead
+\rid{EF-60} & Le superviseur consulte le taux de couverture par vaccin, par poste et par période. & \pM \\
+\rowcolor{softbg}
+\rid{EF-61} & Le superviseur consulte le taux d'abandon entre première et dernière dose d'une série. & \pM \\
+\rid{EF-62} & Le superviseur consulte la liste nominative des enfants en retard, filtrable et exportable. & \pM \\
+\rowcolor{softbg}
+\rid{EF-63} & Le système présente l'évolution des indicateurs sous forme graphique. & \pS \\
+\rid{EF-64} & Le superviseur exporte les données agrégées aux formats CSV et PDF. & \pS \\
+\rowcolor{softbg}
+\rid{EF-65} & Le système alerte lorsqu'un stock passe sous un seuil paramétrable. & \pC \\
+\bottomrule
+\end{xltabular}
+
+\subsection{Multilingue}
+
+\begin{xltabular}{\textwidth}{@{}C{1.5cm} L C{1.3cm}@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} & \hd{Prio.} \\
+\midrule \endhead
+\rid{EF-70} & L'interface est disponible en français et en wolof, commutable par l'utilisateur. & \pM \\
+\rowcolor{softbg}
+\rid{EF-71} & La préférence linguistique est mémorisée par utilisateur et par bénéficiaire. & \pM \\
+\rid{EF-72} & Les messages de rappel disposent d'une version textuelle et d'une version audio en wolof. & \pM \\
+\rowcolor{softbg}
+\rid{EF-73} & L'architecture permet l'ajout d'une langue sans modification du code applicatif. & \pS \\
+\rid{EF-74} & Les termes médicaux du wolof sont consignés dans un lexique validé et versionné. & \pS \\
+\bottomrule
+\end{xltabular}
+
+% =====================================================================
+\section{Règles de gestion}
+% =====================================================================
+
+\begin{decisionbox}[Isolation du domaine métier]
+Ces règles constituent le cœur du système. Elles sont implémentées dans un module isolé,
+sans dépendance à Django ni à la base de données, afin d'être testables unitairement de
+façon exhaustive et de rester indépendantes de l'infrastructure.
+\end{decisionbox}
+
+\begin{xltabular}{\textwidth}{@{}C{1.5cm} L@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Règle} \\
+\midrule \endhead
+\rid{RG-01} & Une dose ne peut être administrée avant l'âge minimal défini par le schéma vaccinal. \\
+\rowcolor{softbg}
+\rid{RG-02} & Deux doses consécutives d'une même série respectent un intervalle minimal exprimé en jours. \\
+\rid{RG-03} & Une dose administrée en retard ne réinitialise pas la série : les doses déjà reçues restent acquises. \\
+\rowcolor{softbg}
+\rid{RG-04} & Lorsqu'une dose est administrée après sa date cible, les échéances suivantes sont recalculées à partir de la date réelle d'administration. \\
+\rid{RG-05} & Une échéance passe au statut « en retard » lorsque la date limite est dépassée sans administration. \\
+\rowcolor{softbg}
+\rid{RG-06} & Une série est réputée abandonnée lorsque la dernière dose date de plus de six mois et que la série est incomplète. \\
+\rid{RG-07} & Pour un enfant prématuré, l'âge chronologique reste la référence, sauf paramétrage contraire explicite. \\
+\rowcolor{softbg}
+\rid{RG-08} & Aucun rappel n'est émis pour une échéance annulée ou déjà administrée. \\
+\rid{RG-09} & Un bénéficiaire ne reçoit pas plus d'un rappel par jour : les échéances du jour sont regroupées en un message unique. \\
+\rowcolor{softbg}
+\rid{RG-10} & Un enregistrement de dose est immuable : une correction crée une nouvelle version et conserve la trace de la précédente. \\
+\bottomrule
+\end{xltabular}
+
+\subsection{Illustration : re-planification après une dose manquée}
+
+\vspace{2mm}
+\noindent
+\begin{tikzpicture}[x=1.55cm, y=1cm]
+  % axe
+  \draw[draw=rulegray, line width=1pt] (0,0) -- (9.6,0);
+  \foreach \x/\lab in {0.4/{Naissance}, 2.2/{6 sem.}, 4.0/{10 sem.}, 5.8/{14 sem.}, 8.2/{9 mois}}{
+    \draw[draw=neutral, line width=0.7pt] (\x,-0.14) -- (\x,0.14);
+    \node[etiq, below=3pt] at (\x,-0.1) {\lab};
+  }
+  % planifié
+  \node[bloca, font=\sffamily\scriptsize, minimum height=6mm, inner sep=3pt] at (0.4,0.95) {BCG};
+  \node[bloca, font=\sffamily\scriptsize, minimum height=6mm, inner sep=3pt] at (2.2,0.95) {Penta-1};
+  \node[fill=dangerlight, draw=danger, rounded corners=2pt, font=\sffamily\scriptsize,
+        minimum height=6mm, inner sep=3pt] (manque) at (4.0,0.95) {Penta-2};
+  \node[bloca, font=\sffamily\scriptsize, minimum height=6mm, inner sep=3pt] at (5.8,0.95) {Penta-3};
+  \node[etiq, above=1pt, text=neutral] at (2.9,1.35) {Calendrier initial};
+
+  % réel
+  \node[fill=amberlight, draw=amber, rounded corners=2pt, font=\sffamily\scriptsize,
+        minimum height=6mm, inner sep=3pt] (rattrap) at (5.5,-1.25) {Penta-2 rattrapée};
+  \node[fill=accentlight, draw=accent, rounded corners=2pt, font=\sffamily\scriptsize,
+        minimum height=6mm, inner sep=3pt] (repl) at (8.2,-1.25) {Penta-3 replanifiée};
+  \node[etiq, text=neutral] at (2.0,-1.25) {Après application de \rid{RG-04}};
+
+  \draw[fleche, draw=danger, dashed] (manque.south) .. controls +(0,-0.9) and +(-1.2,0.4) .. (rattrap.north west);
+  \draw[fleche, draw=accent] (rattrap.east) -- node[etiq, above]{intervalle minimal} (repl.west);
+\end{tikzpicture}
+
+% =====================================================================
+\section{Exigences non fonctionnelles}
+% =====================================================================
+
+\subsection{Performance}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}C{1.7cm} L R{4.6cm}@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} & \hd{Cible} \\
+\midrule
+\rid{ENF-01} & Temps de réponse des points d'API de consultation & $<$ 300 ms au 95\textsuperscript{e} centile \\
+\rowcolor{softbg}
+\rid{ENF-02} & Temps de chargement initial de l'application & $<$ 3 s sur connexion 3G \\
+\rid{ENF-03} & Poids du bundle JavaScript initial & $<$ 250 Ko compressé \\
+\rowcolor{softbg}
+\rid{ENF-04} & Traitement du balayage quotidien des échéances & $<$ 5 min pour 10 000 bénéficiaires \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Sécurité}
+
+\begin{xltabular}{\textwidth}{@{}C{1.7cm} L@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} \\
+\midrule \endhead
+\rid{ENF-10} & Toutes les communications transitent en HTTPS avec certificat valide. \\
+\rowcolor{softbg}
+\rid{ENF-11} & Le jeton d'accès est conservé en mémoire ; le jeton de rafraîchissement dans un cookie \texttt{HttpOnly}, \texttt{Secure}, \texttt{SameSite=Strict}. \\
+\rid{ENF-12} & Les mots de passe sont hachés avec l'algorithme par défaut de Django, Argon2 recommandé. \\
+\rowcolor{softbg}
+\rid{ENF-13} & Le système est protégé contre les injections SQL, le XSS et le CSRF. \\
+\rid{ENF-14} & La politique CORS restreint explicitement les origines autorisées. \\
+\rowcolor{softbg}
+\rid{ENF-15} & Un mécanisme de limitation de débit protège les points d'authentification. \\
+\rid{ENF-16} & Aucun secret n'est versionné : configuration par variables d'environnement. \\
+\rowcolor{softbg}
+\rid{ENF-17} & Les dépendances font l'objet d'un scan de vulnérabilités à chaque build. \\
+\bottomrule
+\end{xltabular}
+
+\subsection{Protection des données personnelles}
+
+\begin{vigilance}[Données de santé]
+Le projet manipule des données de santé concernant des femmes enceintes et des nourrissons.
+Cette catégorie appelle une rigueur particulière, y compris dans un cadre académique :
+les jeux de données de démonstration doivent être entièrement fictifs.
+\end{vigilance}
+
+\begin{xltabular}{\textwidth}{@{}C{1.7cm} L@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} \\
+\midrule \endhead
+\rid{ENF-20} & Le traitement respecte la loi sénégalaise n\textsuperscript{o} 2008-12 sur la protection des données à caractère personnel. \\
+\rowcolor{softbg}
+\rid{ENF-21} & Le consentement du bénéficiaire est recueilli, horodaté et révocable à tout moment. \\
+\rid{ENF-22} & Le principe de minimisation s'applique : aucune donnée non nécessaire au suivi vaccinal n'est collectée. \\
+\rowcolor{softbg}
+\rid{ENF-23} & Une durée de conservation est définie et documentée pour chaque catégorie de données. \\
+\rid{ENF-24} & Les données de démonstration et de test sont entièrement fictives ou anonymisées. \\
+\rowcolor{softbg}
+\rid{ENF-25} & Le système journalise les accès aux données de santé. \\
+\bottomrule
+\end{xltabular}
+
+\subsection{Disponibilité et robustesse}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}C{1.7cm} L@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} \\
+\midrule
+\rid{ENF-30} & L'indisponibilité d'un service externe ne rend pas l'application inutilisable. \\
+\rowcolor{softbg}
+\rid{ENF-31} & Les envois échoués sont rejoués selon une politique de reprise avec temporisation exponentielle. \\
+\rid{ENF-32} & Un point de contrôle de santé \texttt{/healthz} est exposé pour la supervision. \\
+\rowcolor{softbg}
+\rid{ENF-33} & Une sauvegarde quotidienne de la base est réalisée et sa restauration testée au moins une fois. \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Utilisabilité et accessibilité}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}C{1.7cm} L@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} \\
+\midrule
+\rid{ENF-40} & L'interface est utilisable sur écran de 360 px de large, conception mobile d'abord. \\
+\rowcolor{softbg}
+\rid{ENF-41} & Les contrastes respectent le niveau AA du référentiel WCAG 2.1. \\
+\rid{ENF-42} & Les parcours critiques sont navigables au clavier. \\
+\rowcolor{softbg}
+\rid{ENF-43} & L'enregistrement d'une dose est réalisable en moins de cinq interactions. \\
+\rid{ENF-44} & Les messages d'erreur sont explicites et rédigés dans la langue de l'utilisateur. \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Maintenabilité}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}C{1.7cm} L@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} \\
+\midrule
+\rid{ENF-50} & Le code est typé statiquement : \texttt{mypy} côté Python, TypeScript en mode strict côté React. \\
+\rowcolor{softbg}
+\rid{ENF-51} & Le code respecte un formatage et des règles de style vérifiés automatiquement. \\
+\rid{ENF-52} & La complexité cyclomatique d'une fonction n'excède pas 10. \\
+\rowcolor{softbg}
+\rid{ENF-53} & Aucune fonctionnalité n'est intégrée sans test associé. \\
+\rid{ENF-54} & La documentation d'API est générée automatiquement à partir du code. \\
+\bottomrule
+\end{tabularx}
+
+% =====================================================================
+\section{Architecture technique}
+% =====================================================================
+
+\subsection{Vue d'ensemble}
+
+\vspace{3mm}
+\begin{center}
+\begin{tikzpicture}[node distance=6mm]
+
+  \node[blocp, text width=12.6cm] (client)
+    {\textbf{Client — React 18 + TypeScript (PWA)}\\[2pt]
+     \footnotesize Service Worker \textbullet{} IndexedDB \textbullet{} File de synchronisation \textbullet{} i18n fr/wo};
+
+  \node[bloc, text width=12.6cm, below=of client] (nginx)
+    {\textbf{Nginx} — service des fichiers statiques et reverse proxy};
+
+  \node[blocp, text width=12.6cm, below=of nginx, minimum height=20mm] (django) {};
+  \node[anchor=north, font=\sffamily\footnotesize\bfseries, text=white]
+    at ([yshift=-4pt]django.north) {Gunicorn $\rightarrow$ Django 5 + Django REST Framework};
+  \node[sousbloc, text width=3.5cm] (dom) at ([xshift=-4.1cm, yshift=-4mm]django.center)
+    {\textbf{domaine}\\ moteur de calendrier\\ (Python pur)};
+  \node[sousbloc, text width=3.5cm] (api) at ([xshift=0cm, yshift=-4mm]django.center)
+    {\textbf{api}\\ sérialiseurs, vues,\\ permissions};
+  \node[sousbloc, text width=3.5cm] (notif) at ([xshift=4.1cm, yshift=-4mm]django.center)
+    {\textbf{notifications}\\ abstraction\\ des canaux};
+
+  \node[bloc, text width=4.1cm, below left=10mm and 0.9cm of django.south] (pg) {\textbf{PostgreSQL 16}};
+  \node[bloc, text width=4.1cm, below right=10mm and 0.9cm of django.south] (redis) {\textbf{Redis} — broker et cache};
+
+  \node[bloc, text width=6.2cm, below=13mm of redis] (celery)
+    {\textbf{Celery + Celery Beat}\\[1pt]\footnotesize balayage quotidien, envois, reprises};
+
+  \node[bloce, text width=3.9cm, below=13mm of celery] (wa) {\textbf{WhatsApp}\\ Cloud API};
+  \node[bloce, text width=3.9cm, left=6mm of wa] (tts) {\textbf{Synthèse}\\ vocale wolof};
+  \node[bloce, text width=3.9cm, right=6mm of wa] (sms) {\textbf{Passerelle}\\ SMS};
+
+  \draw[fleche] (client) -- node[etiq, right]{HTTPS / JSON} (nginx);
+  \draw[fleche] (nginx) -- (django);
+  \draw[fleche] (django.south) -- ++(0,-3mm) -| (pg.north);
+  \draw[fleche] (django.south) -- ++(0,-3mm) -| (redis.north);
+  \draw[fleche] (redis) -- (celery);
+  \draw[fleche] (celery.south) -- ++(0,-4mm) -| (tts.north);
+  \draw[fleche] (celery.south) -- ++(0,-4mm) -| (wa.north);
+  \draw[fleche] (celery.south) -- ++(0,-4mm) -| (sms.north);
+  \draw[fleche, dashed] (wa.west) to[out=185, in=310] node[etiq, below, pos=0.55]{webhooks} (pg.south east);
+
+\end{tikzpicture}
+\end{center}
+
+\subsection{Choix technologiques}
+
+\begin{xltabular}{\textwidth}{@{}R{2.8cm} R{4.3cm} L@{}}
+\toprule
+\rowhead \hd{Couche} & \hd{Technologie} & \hd{Justification} \\
+\midrule \endhead
+Backend & Django 5 + DRF & Maturité de l'ORM, écosystème, administration intégrée, exigence du module \\
+\rowcolor{softbg}
+Base de données & PostgreSQL 16 & Intégrité relationnelle, contraintes, types avancés \\
+Tâches asynchrones & Celery + Beat & Planification du balayage quotidien et des envois \\
+\rowcolor{softbg}
+File de messages & Redis & Broker Celery et cache applicatif \\
+Frontend & React 18 + TypeScript + Vite & Exigence du module ; le typage sert directement la note de qualité \\
+\rowcolor{softbg}
+État serveur & TanStack Query & Cache, reprise sur erreur, gestion de l'état de synchronisation \\
+État local & Zustand & Volume d'état global faible, Redux surdimensionné \\
+\rowcolor{softbg}
+Interface & Tailwind CSS + shadcn/ui & Composants prêts à l'emploi, temps de développement réduit \\
+Hors ligne & Workbox + Dexie & Service worker et base locale structurée \\
+\rowcolor{softbg}
+Internationalisation & \texttt{react-i18next} et \texttt{django.utils.translation} & Séparation nette entre libellés d'interface et contenu métier \\
+Conteneurisation & Docker + Compose & Parité entre environnements \\
+\rowcolor{softbg}
+Intégration continue & GitHub Actions & Intégration native au dépôt \\
+\bottomrule
+\end{xltabular}
+
+\subsection{Contrat d'API typé de bout en bout}
+
+\begin{decisionbox}[Génération du contrat]
+Le schéma OpenAPI est généré côté Django par \texttt{drf-spectacular}, puis converti en
+types TypeScript par \texttt{openapi-typescript}. Le frontend consomme exclusivement
+ces types générés.
+\end{decisionbox}
+
+Conséquence recherchée : une modification de sérialiseur non répercutée côté client
+provoque un échec de compilation en intégration continue, donc avant toute mise en
+recette. Le contrat n'est plus une convention orale entre deux binômes, il devient une
+contrainte vérifiée par la machine.
+
+\vspace{2mm}
+\noindent
+\begin{center}
+\begin{tikzpicture}[node distance=5mm]
+  \node[bloc, text width=3.0cm] (m) {Modèles \& sérialiseurs Django};
+  \node[bloca, text width=3.0cm, right=of m] (o) {Schéma OpenAPI\\ \texttt{drf-spectacular}};
+  \node[bloca, text width=3.0cm, right=of o] (t) {Types TypeScript\\ \texttt{openapi-typescript}};
+  \node[bloc, text width=3.0cm, right=of t] (r) {Composants React typés};
+  \draw[fleche] (m) -- (o);
+  \draw[fleche] (o) -- (t);
+  \draw[fleche] (t) -- (r);
+  \draw[fleche, draw=danger] (r.south) .. controls +(0,-1) and +(0,-1) ..
+    node[etiq, below, text=danger]{rupture de contrat détectée en CI} (m.south);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Organisation du dépôt}
+
+\begin{tcolorbox}[enhanced, colback=softbg, colframe=rulegray, boxrule=0.6pt, arc=2pt,
+  fontupper=\ttfamily\footnotesize, left=10pt, right=10pt, top=8pt, bottom=8pt]
+suvac/\\
+├── backend/\\
+│~~~├── config/\hfill{\rmfamily paramètres, routage, Celery}\\
+│~~~├── apps/\\
+│~~~│~~~├── accounts/\hfill{\rmfamily utilisateurs, rôles, postes}\\
+│~~~│~~~├── beneficiaires/\hfill{\rmfamily mères, grossesses, enfants}\\
+│~~~│~~~├── vaccination/\hfill{\rmfamily schéma, échéances, doses}\\
+│~~~│~~~├── domaine/\hfill{\rmfamily moteur de calendrier — Python pur}\\
+│~~~│~~~├── notifications/\hfill{\rmfamily canaux, rappels, webhooks}\\
+│~~~│~~~└── pilotage/\hfill{\rmfamily indicateurs et exports}\\
+│~~~└── tests/\\
+├── frontend/\\
+│~~~└── src/\\
+│~~~~~~~├── api/\hfill{\rmfamily client généré, hooks de requête}\\
+│~~~~~~~├── features/\hfill{\rmfamily découpage par domaine métier}\\
+│~~~~~~~├── offline/\hfill{\rmfamily Dexie, file de synchronisation}\\
+│~~~~~~~└── i18n/\hfill{\rmfamily fr.json, wo.json}\\
+├── docs/\hfill{\rmfamily cahier des charges, architecture, sprints, ADR}\\
+├── docker-compose.yml\\
+└── .github/workflows/
+\end{tcolorbox}
+
+% =====================================================================
+\section{Modèle de données}
+% =====================================================================
+
+\subsection{Entités principales}
+
+\begin{xltabular}{\textwidth}{@{}R{3.1cm} R{4.4cm} L@{}}
+\toprule
+\rowhead \hd{Entité} & \hd{Description} & \hd{Attributs clés} \\
+\midrule \endhead
+\texttt{PosteSante} & Structure sanitaire & nom, district, région, coordonnées \\
+\rowcolor{softbg}
+\texttt{Utilisateur} & Compte applicatif & rôle, poste de rattachement, langue \\
+\texttt{Mere} & Femme bénéficiaire & identité, naissance, téléphone, langue, consentement \\
+\rowcolor{softbg}
+\texttt{Grossesse} & Épisode de grossesse & mère, terme estimé, rang, statut \\
+\texttt{Enfant} & Enfant bénéficiaire & mère, identité, naissance, sexe, prématurité \\
+\rowcolor{softbg}
+\texttt{Vaccin} & Référentiel des vaccins & code, libellé fr, libellé wo, voie, conditionnement \\
+\texttt{SchemaVaccinal} & Règle du calendrier & vaccin, cible, rang, âge minimal, âge cible, âge limite, intervalle \\
+\rowcolor{softbg}
+\texttt{Echeance} & Rendez-vous planifié & bénéficiaire, vaccin, rang, date cible, date limite, statut \\
+\texttt{DoseAdministree} & Acte vaccinal réalisé & échéance, date réelle, lot, agent, poste, horodatage \\
+\rowcolor{softbg}
+\texttt{Rappel} & Notification émise & échéances, canal, langue, contenu, statut, horodatages \\
+\texttt{FichierAudio} & Audio mis en cache & empreinte du contenu, langue, chemin, durée \\
+\rowcolor{softbg}
+\texttt{StockVaccin} & Inventaire par poste & poste, vaccin, lot, quantité, péremption, seuil \\
+\texttt{Consentement} & Trace du consentement & bénéficiaire, canal, date, statut, auteur du recueil \\
+\rowcolor{softbg}
+\texttt{JournalAudit} & Piste d'audit & utilisateur, action, entité, horodatage, adresse \\
+\bottomrule
+\end{xltabular}
+
+\subsection{Relations structurantes}
+
+\vspace{2mm}
+\begin{center}
+\begin{tikzpicture}[node distance=9mm and 12mm]
+  \node[blocp, text width=2.6cm] (mere) {\texttt{Mere}};
+  \node[bloc, text width=2.6cm, above right=4mm and 14mm of mere] (gross) {\texttt{Grossesse}};
+  \node[bloc, text width=2.6cm, below right=4mm and 14mm of mere] (enfant) {\texttt{Enfant}};
+  \node[bloca, text width=2.6cm, right=14mm of enfant] (ech) {\texttt{Echeance}};
+  \node[bloc, text width=2.7cm, above right=4mm and 14mm of ech] (dose) {\texttt{DoseAdministree}};
+  \node[bloce, text width=2.6cm, below right=4mm and 14mm of ech] (rappel) {\texttt{Rappel}};
+
+  \draw[fleche] (mere) -- node[etiq, above, sloped]{1—n} (gross);
+  \draw[fleche] (mere) -- node[etiq, below, sloped]{1—n} (enfant);
+  \draw[fleche] (enfant) -- node[etiq, above]{1—n} (ech);
+  \draw[fleche] (ech) -- node[etiq, above, sloped]{1—0..1} (dose);
+  \draw[fleche] (ech) -- node[etiq, below, sloped]{n—n} (rappel);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Points d'attention}
+
+\begin{itemize}
+  \item \texttt{SchemaVaccinal} est un référentiel en base, jamais codé en dur : le
+        calendrier doit rester modifiable sans redéploiement (\rid{EF-25}).
+  \item \texttt{DoseAdministree} porte une clé d'idempotence issue du client, indispensable
+        au rejeu de la file hors ligne (\rid{EF-54}).
+  \item Les suppressions sont logiques, jamais physiques, sur toutes les entités de santé
+        (\rid{RG-10}).
+\end{itemize}
+
+% =====================================================================
+\section{Interfaces externes}
+% =====================================================================
+
+\subsection{WhatsApp Business Cloud API}
+
+\begin{avertissement}[Contrainte structurante identifiée]
+Deux règles de la plateforme se combinent défavorablement. Hors de la fenêtre de
+vingt-quatre heures suivant le dernier message du bénéficiaire, seuls des modèles de
+message préalablement approuvés peuvent être envoyés. Or l'audio ne figure pas parmi les
+types acceptés en en-tête de modèle, contrairement à l'image, la vidéo et le document.
+\textbf{Un message vocal envoyé spontanément n'est donc pas réalisable directement.}
+\end{avertissement}
+
+\begin{decisionbox}[Solution retenue — encapsulation vidéo]
+Le rappel vocal est encapsulé dans une vidéo. Un fichier MP4 est assemblé par
+\texttt{ffmpeg} à partir d'une image fixe et de la piste audio wolof, puis envoyé en
+en-tête d'un modèle de catégorie utilitaire. L'envoi est entièrement automatique et ne
+requiert aucune action préalable de la mère.
+\end{decisionbox}
+
+\begin{decisionbox}[Solution complémentaire — bouton de réponse rapide]
+Le modèle comporte un bouton de réponse rapide. Son activation par la mère ouvre la
+fenêtre de vingt-quatre heures, ce qui autorise l'envoi d'une véritable note vocale et
+un échange interactif, notamment la confirmation de venue (\rid{EF-48}).
+\end{decisionbox}
+
+\subsubsection*{Contraintes opérationnelles}
+
+\begin{itemize}
+  \item Compte Meta Business, numéro WhatsApp Business et modèles approuvés requis.
+  \item Pour la démonstration académique, le numéro de test de la Cloud API suffit :
+        gratuit, sans vérification d'entreprise, limité à un petit nombre de destinataires
+        déclarés.
+  \item Le wolof ne figure pas dans la liste des langues de modèles supportées. Les
+        modèles seront déclarés sous le code \texttt{fr} avec un corps rédigé en wolof.
+  \item Le consentement préalable du destinataire est exigé par la plateforme comme par
+        la réglementation (\rid{ENF-21}).
+\end{itemize}
+
+\subsection{Synthèse vocale wolof}
+
+Deux mécanismes complémentaires sont retenus.
+
+\vspace{2mm}
+\noindent
+\begin{tabularx}{\textwidth}{@{}R{4.2cm} L@{}}
+\toprule
+\rowhead \hd{Mécanisme} & \hd{Description et positionnement} \\
+\midrule
+\textbf{Segments pré-enregistrés}\newline\textit{mécanisme principal}
+  & Un corpus de segments est enregistré avec une voix humaine : formules d'accueil, noms de vaccins, chiffres, jours, formules de relance. Le système les concatène selon les variables du message. Voix naturelle, résultat déterministe, aucun coût d'inférence. C'est le mécanisme retenu pour la démonstration. \\
+\rowcolor{softbg}
+\textbf{Synthèse neuronale}\newline\textit{démonstrateur}
+  & Modèle de synthèse vocale wolof issu de l'écosystème sénégalais, notamment les travaux publiés par GalsenAI. Démontre l'extensibilité du système à des messages non prévus au catalogue. \\
+\bottomrule
+\end{tabularx}
+
+\begin{vigilance}[Licence des modèles de synthèse]
+Les modèles dérivés de xTTS v2 sont soumis à une licence non commerciale, restreinte à la
+recherche, l'éducation et les usages à but non lucratif. Le cadre académique du projet est
+conforme, mais la restriction doit être mentionnée dans le rapport et tout usage commercial
+exclu. Des alternatives à licence plus permissive existent et seront évaluées au sprint~3.
+\end{vigilance}
+
+Les fichiers audio sont indexés par empreinte du contenu textuel et réutilisés
+(\rid{EF-49}), les messages étant très répétitifs d'un bénéficiaire à l'autre.
+
+\subsection{Abstraction des canaux de notification}
+
+\begin{decisionbox}[Aucun appel externe dans les tests]
+L'ensemble des canaux dérive d'une interface unique. L'implémentation \texttt{FakeChannel}
+est utilisée en test et en intégration continue : aucun test automatisé n'appelle un
+service externe réel, ce qui rend la suite déterministe et exécutable hors ligne.
+\end{decisionbox}
+
+\vspace{1mm}
+\begin{center}
+\begin{tikzpicture}[node distance=7mm]
+  \node[blocp, text width=5cm] (iface) {\texttt{NotificationChannel}\\[1pt]\footnotesize interface};
+  \node[bloc, text width=3cm, below=12mm of iface, xshift=-5.7cm] (in) {\texttt{InAppChannel}\\[1pt]\scriptsize rappel applicatif};
+  \node[bloc, text width=3cm, below=12mm of iface, xshift=-1.9cm] (wa) {\texttt{WhatsAppChannel}\\[1pt]\scriptsize vidéo + note vocale};
+  \node[bloc, text width=3cm, below=12mm of iface, xshift=1.9cm] (sms) {\texttt{SmsChannel}\\[1pt]\scriptsize secours};
+  \node[bloca, text width=3cm, below=12mm of iface, xshift=5.7cm] (fake) {\texttt{FakeChannel}\\[1pt]\scriptsize tests et CI};
+  \foreach \n in {in,wa,sms,fake}{ \draw[fleche] (iface.south) -- ++(0,-5mm) -| (\n.north); }
+\end{tikzpicture}
+\end{center}
+
+% =====================================================================
+\section{Stratégie de qualité et de test}
+% =====================================================================
+
+\subsection{Pyramide de tests}
+
+\vspace{2mm}
+\begin{center}
+\begin{tikzpicture}[y=1.05cm]
+  \fill[amberlight, draw=amber, rounded corners=2pt] (-1.5,3) -- (1.5,3) -- (2.3,2) -- (-2.3,2) -- cycle;
+  \fill[accentlight, draw=accent, rounded corners=2pt] (-2.4,1.9) -- (2.4,1.9) -- (3.4,0.9) -- (-3.4,0.9) -- cycle;
+  \fill[primarylight, draw=primary, rounded corners=2pt] (-3.5,0.8) -- (3.5,0.8) -- (4.8,-0.4) -- (-4.8,-0.4) -- cycle;
+  \node[font=\sffamily\scriptsize\bfseries, text=amber] at (0,2.5) {Bout en bout — Playwright};
+  \node[font=\sffamily\scriptsize\bfseries, text=accent] at (0,1.4) {Intégration — pytest-django, MSW};
+  \node[font=\sffamily\scriptsize\bfseries, text=primary] at (0,0.2) {Unitaire — pytest, Vitest};
+  \node[font=\sffamily\scriptsize, text=neutral, anchor=west] at (5.1,2.5) {6 parcours critiques};
+  \node[font=\sffamily\scriptsize, text=neutral, anchor=west] at (5.1,1.4) {API, permissions, tâches};
+  \node[font=\sffamily\scriptsize, text=neutral, anchor=west] at (5.1,0.2) {domaine $\geq$ 90 \%};
+\end{tikzpicture}
+\end{center}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}R{2.9cm} L R{3.5cm}@{}}
+\toprule
+\rowhead \hd{Niveau} & \hd{Portée et outillage} & \hd{Cible} \\
+\midrule
+Unitaire backend & Moteur de calendrier, règles de gestion, services. \texttt{pytest}, \texttt{factory\_boy}, \texttt{freezegun} & $\geq$ 90 \% sur le module domaine \\
+\rowcolor{softbg}
+Intégration backend & Points d'API, permissions, sérialisation, tâches Celery. \texttt{pytest-django}, PostgreSQL de test & $\geq$ 80 \% global \\
+Unitaire frontend & Composants, hooks, logique de synchronisation. \texttt{Vitest}, RTL, \texttt{MSW} & $\geq$ 70 \% \\
+\rowcolor{softbg}
+Bout en bout & Parcours critiques. \texttt{Playwright} sur la pile Docker complète & 100 \% des parcours critiques \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Parcours critiques couverts en bout en bout}
+
+\begin{enumerate}
+  \item Authentification d'un agent et accès restreint à son poste de rattachement.
+  \item Enregistrement d'une mère puis d'un enfant, avec génération automatique du calendrier.
+  \item Administration d'une dose, mise à jour du statut, re-planification des échéances suivantes.
+  \item Saisie hors ligne d'une dose, reconnexion, synchronisation sans doublon.
+  \item Génération et envoi d'un rappel sur canal simulé, avec vérification du contenu et du statut.
+  \item Consultation du tableau de bord superviseur et export des données.
+\end{enumerate}
+
+\subsection{Cas de test obligatoires du moteur de calendrier}
+
+Le moteur étant le cœur du projet, les situations suivantes font l'objet de tests
+unitaires explicites et nommés.
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}C{1.3cm} L@{}}
+\toprule
+\rowhead \hd{N\textsuperscript{o}} & \hd{Situation testée} \\
+\midrule
+1 & Enfant vacciné intégralement dans les délais \\
+\rowcolor{softbg}
+2 & Dose administrée en avance, sous l'intervalle minimal — rejet attendu \\
+3 & Dose administrée en retard, avec re-planification correcte des suivantes \\
+\rowcolor{softbg}
+4 & Dose omise puis rattrapée tardivement, sans réinitialisation de la série \\
+5 & Série abandonnée au sens de \rid{RG-06} \\
+\rowcolor{softbg}
+6 & Enfant né prématurément \\
+7 & Mère avec historique antitétanique partiel préexistant \\
+\rowcolor{softbg}
+8 & Modification du schéma de référence sans altération des historiques passés \\
+9 & Changement d'année, année bissextile, passage de mois \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Analyse statique et conventions}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}R{4.6cm} L C{2.6cm}@{}}
+\toprule
+\rowhead \hd{Domaine} & \hd{Outil} & \hd{Bloquant en CI} \\
+\midrule
+Formatage Python & \texttt{black} & oui \\
+\rowcolor{softbg}
+Style et erreurs Python & \texttt{ruff} & oui \\
+Typage Python & \texttt{mypy} & oui \\
+\rowcolor{softbg}
+Style et erreurs TypeScript & \texttt{ESLint} & oui \\
+Typage TypeScript & \texttt{tsc --noEmit} & oui \\
+\rowcolor{softbg}
+Formatage frontend & \texttt{Prettier} & oui \\
+Sécurité des dépendances & \texttt{pip-audit}, \texttt{npm audit}, \texttt{Trivy} & sur vulnérabilité critique \\
+\rowcolor{softbg}
+Qualité globale & \texttt{SonarCloud} & non, suivi de tendance \\
+\bottomrule
+\end{tabularx}
+
+\vspace{2mm}
+Les contrôles sont exécutés localement par \texttt{pre-commit} avant chaque validation,
+puis rejoués en intégration continue.
+
+\subsection{Définition de terminé}
+
+\begin{tcolorbox}[enhanced, colback=white, colframe=accent, boxrule=0.8pt, arc=2pt,
+  left=12pt, right=12pt, top=10pt, bottom=10pt,
+  title={\sffamily\bfseries Definition of Done}, coltitle=white, colbacktitle=accent,
+  fonttitle=\sffamily\bfseries]
+Une user story est considérée terminée lorsque, et seulement lorsque :
+\begin{itemize}[label={}, leftmargin=1.6em, itemsep=3pt]
+  \item \cbox le code est fusionné dans \texttt{main} via une pull request revue par au moins un coéquipier ;
+  \item \cbox les critères d'acceptation de la story sont tous vérifiés ;
+  \item \cbox les tests unitaires et d'intégration associés sont écrits et passent ;
+  \item \cbox la couverture globale n'a pas régressé ;
+  \item \cbox tous les contrôles automatiques du pipeline sont au vert ;
+  \item \cbox la documentation d'API est à jour si le contrat a évolué ;
+  \item \cbox les libellés d'interface introduits sont traduits en français et en wolof ;
+  \item \cbox la fonctionnalité est déployée et vérifiée sur l'environnement de recette.
+\end{itemize}
+\end{tcolorbox}
+
+% =====================================================================
+\section{Intégration continue et déploiement}
+% =====================================================================
+
+\subsection{Stratégie de branches}
+
+\texttt{main} est protégée : aucune écriture directe. Les branches de fonctionnalité sont
+nommées \texttt{feat/}, \texttt{fix/}, \texttt{docs/}, \texttt{chore/}. Toute fusion passe
+par une pull request avec au moins une revue approuvée et l'ensemble des contrôles au vert.
+Les messages de commit suivent le format Conventional Commits.
+
+\subsection{Pipeline sur pull request}
+
+\vspace{2mm}
+\begin{center}
+\begin{tikzpicture}[node distance=8mm]
+  \node[bloc, text width=6.1cm] (be)
+    {\textbf{backend}\\[1pt]\scriptsize black \textbullet{} ruff \textbullet{} mypy \textbullet{} pytest + PostgreSQL \textbullet{} couverture};
+  \node[bloc, text width=6.1cm, right=10mm of be] (fe)
+    {\textbf{frontend}\\[1pt]\scriptsize eslint \textbullet{} prettier \textbullet{} tsc \textbullet{} vitest \textbullet{} build de production};
+  \node[etiq, above=1mm] at ($(be.north)!0.5!(fe.north)$) {exécutés en parallèle};
+
+  \node[bloca, text width=8cm, below=11mm of $(be)!0.5!(fe)$] (e2e)
+    {\textbf{bout en bout}\\[1pt]\scriptsize docker compose up \textbullet{} playwright};
+  \node[bloce, text width=8cm, below=8mm of e2e] (sec)
+    {\textbf{sécurité}\\[1pt]\scriptsize pip-audit \textbullet{} npm audit \textbullet{} Trivy};
+
+  \draw[fleche] (be.south) -- ++(0,-4mm) -| (e2e.north);
+  \draw[fleche] (fe.south) -- ++(0,-4mm) -| (e2e.north);
+  \draw[fleche] (e2e) -- (sec);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Pipeline sur \texttt{main}}
+
+Construction des images Docker en multi-stage, publication sur GitHub Container Registry
+avec étiquetage par empreinte de commit, exécution des migrations, déploiement automatique
+sur l'environnement de recette, vérification du point de santé, et retour à la version
+précédente en cas d'échec.
+
+\subsection{Environnements}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}R{3.2cm} L R{4.6cm}@{}}
+\toprule
+\rowhead \hd{Environnement} & \hd{Usage} & \hd{Hébergement} \\
+\midrule
+Local & Développement quotidien & Docker Compose \\
+\rowcolor{softbg}
+Recette & Validation continue et démonstration & Render, Railway ou Fly.io \\
+Production & \textit{hors périmètre académique} & — \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Observabilité}
+
+\begin{itemize}
+  \item Journalisation structurée au format JSON, niveau paramétrable par environnement.
+  \item Suivi des erreurs applicatives via Sentry, côté backend et côté frontend.
+  \item Point de contrôle \texttt{/healthz} vérifiant base de données, Redis et worker Celery.
+  \item Tableau de bord de suivi des envois : volumes et taux d'échec par canal.
+\end{itemize}
+
+% =====================================================================
+\section{Organisation et méthodologie}
+% =====================================================================
+
+\subsection{Cadre méthodologique}
+
+Scrum adapté au contexte académique : sprints de deux semaines, cérémonies allégées mais
+systématiquement tracées.
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}R{3.6cm} R{2.6cm} C{1.6cm} L@{}}
+\toprule
+\rowhead \hd{Cérémonie} & \hd{Fréquence} & \hd{Durée} & \hd{Artefact produit} \\
+\midrule
+Planification de sprint & Début de sprint & 1 h 30 & Sprint backlog engagé \\
+\rowcolor{softbg}
+Point quotidien & Quotidien & 15 min & — \\
+Revue de sprint & Fin de sprint & 1 h & Démonstration et retours \\
+\rowcolor{softbg}
+Rétrospective & Fin de sprint & 45 min & Compte rendu et actions d'amélioration \\
+Affinage du backlog & Mi-sprint & 1 h & Stories estimées et prêtes \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Rôles}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}R{4.2cm} L@{}}
+\toprule
+\rowhead \hd{Rôle} & \hd{Responsabilités} \\
+\midrule
+Product Owner & Priorisation du backlog, arbitrage du périmètre, validation des critères d'acceptation \\
+\rowcolor{softbg}
+Scrum Master & Animation des cérémonies, levée des obstacles, tenue des artefacts \\
+Référent backend & Cohérence du domaine métier, du modèle de données et de l'API \\
+\rowcolor{softbg}
+Référent frontend & Cohérence de l'interface, du mode hors ligne et de l'internationalisation \\
+Référent DevOps et qualité & Pipeline, environnements, suivi des métriques de qualité \\
+\bottomrule
+\end{tabularx}
+
+\vspace{2mm}
+Les rôles sont cumulables. Chaque membre développe : ces responsabilités sont des rôles
+de garant, non des périmètres exclusifs.
+
+\subsection{Découpage prévisionnel en sprints}
+
+\vspace{3mm}
+\begin{center}
+\begin{ganttchart}[
+  hgrid, vgrid={*1{draw=rulegray, line width=0.4pt}},
+  canvas/.style={draw=rulegray, line width=0.6pt},
+  x unit=0.92cm, y unit chart=0.8cm, y unit title=0.62cm,
+  title/.style={fill=primary, draw=none},
+  title label font=\sffamily\bfseries\scriptsize\color{white},
+  title label node/.append style={below=-1.4ex},
+  bar/.style={fill=accent, draw=none, rounded corners=2pt},
+  bar height=0.5,
+  bar label font=\sffamily\scriptsize\color{primary},
+  bar label node/.append style={align=right, text width=4.1cm},
+  milestone/.style={fill=amber, draw=none},
+  milestone label font=\sffamily\scriptsize\color{amber},
+  group/.style={fill=primary, draw=none},
+  today label font=\sffamily\scriptsize
+]{1}{12}
+\gantttitle{Semaines}{12} \\
+\gantttitlelist{1,...,12}{1} \\
+\ganttbar[bar/.append style={fill=primary}]{Sprint 0 — Cadrage}{1}{2} \\
+\ganttbar{Sprint 1 — Socle}{3}{4} \\
+\ganttbar{Sprint 2 — Cœur métier}{5}{6} \\
+\ganttbar{Sprint 3 — Communication}{7}{8} \\
+\ganttbar{Sprint 4 — Hors ligne}{9}{10} \\
+\ganttbar[bar/.append style={fill=amber}]{Sprint 5 — Consolidation}{11}{12}
+\end{ganttchart}
+\end{center}
+
+\vspace{2mm}
+\noindent
+\begin{tabularx}{\textwidth}{@{}C{1.6cm} R{3.4cm} L@{}}
+\toprule
+\rowhead \hd{Sprint} & \hd{Thème} & \hd{Résultat attendu} \\
+\midrule
+\rid{S-0} & Cadrage & Cahier des charges validé, dépôt initialisé, Docker Compose fonctionnel, pipeline au vert sur un squelette \\
+\rowcolor{softbg}
+\rid{S-1} & Socle & Authentification, rôles, modèle de données, référentiels, écrans de base \\
+\rid{S-2} & Cœur métier & Moteur de calendrier et sa suite de tests, enregistrement des bénéficiaires, saisie des doses \\
+\rowcolor{softbg}
+\rid{S-3} & Communication & Celery Beat, génération audio wolof, intégration WhatsApp, internationalisation complète \\
+\rid{S-4} & Hors ligne et pilotage & PWA, file de synchronisation, tableau de bord superviseur, gestion du stock \\
+\rowcolor{softbg}
+\rid{S-5} & Consolidation & Tests de bout en bout, dette technique, sécurité, déploiement, documentation, soutenance \\
+\bottomrule
+\end{tabularx}
+
+\begin{vigilance}[Calendrier indicatif]
+Le découpage ci-dessus suppose douze semaines. Le calendrier réel sera arrêté en réunion
+de lancement en fonction de la durée effective du module, sans modifier l'ordre des
+thèmes : le sprint~0 conditionne tous les suivants et le sprint~2 porte la valeur
+principale du projet.
+\end{vigilance}
+
+\subsection{Outils de gestion}
+
+\begin{itemize}
+  \item \textbf{GitHub Projects} : backlog, sprints, tableau kanban, liaison automatique
+        avec les pull requests.
+  \item \textbf{Format des user stories} : \textit{en tant que [rôle], je veux [action]
+        afin de [bénéfice]}, assortie de critères d'acceptation au format Gherkin
+        (\textit{étant donné / quand / alors}).
+  \item \textbf{Estimation} : Planning Poker en points de story, suite de Fibonacci.
+  \item \textbf{Suivi} : diagramme d'avancement par sprint, vélocité cumulée.
+\end{itemize}
+
+\subsection{Artefacts conservés pour l'évaluation}
+
+\begin{decisionbox}[Le processus est évalué autant que le produit]
+Les éléments suivants sont archivés dans \texttt{docs/sprints/} au fil de l'eau, et non
+reconstitués la veille de la soutenance.
+\end{decisionbox}
+
+\begin{itemize}
+  \item Backlog initial et son évolution.
+  \item Comptes rendus de planification et de rétrospective de chaque sprint.
+  \item Diagrammes d'avancement et courbe de vélocité.
+  \item Historique des pull requests et des revues de code.
+  \item Journal des décisions d'architecture, au format ADR.
+\end{itemize}
+
+% =====================================================================
+\section{Analyse des risques}
+% =====================================================================
+
+\subsection{Matrice de criticité}
+
+\vspace{3mm}
+\begin{center}
+\begin{tikzpicture}[x=3.05cm, y=1.6cm]
+  \foreach \i/\j/\c in {
+    0/0/{accentlight}, 1/0/{accentlight}, 2/0/{amberlight},
+    0/1/{accentlight}, 1/1/{amberlight},   2/1/{danger!14},
+    0/2/{amberlight},  1/2/{danger!14},    2/2/{danger!28}}{
+      \fill[\c, draw=white, line width=1.6pt] (\i,\j) rectangle ++(1,1);
+  }
+  \node[font=\sffamily\scriptsize\bfseries, text=primary, align=center] at (0.5,1.5) {R-07};
+  \node[font=\sffamily\scriptsize\bfseries, text=primary, align=center] at (1.5,0.5) {R-10};
+  \node[font=\sffamily\scriptsize\bfseries, text=primary, align=center] at (1.5,1.5) {R-03\\ R-09};
+  \node[font=\sffamily\scriptsize\bfseries, text=primary, align=center] at (1.5,2.5) {R-05};
+  \node[font=\sffamily\scriptsize\bfseries, text=primary, align=center] at (2.5,1.5) {R-02\\ R-06 \quad R-08};
+  \node[font=\sffamily\scriptsize\bfseries, text=primary, align=center] at (2.5,2.5) {R-01 \quad R-04};
+
+  \node[rotate=90, font=\sffamily\footnotesize\bfseries, text=primary] at (-0.62,1.5) {Probabilité};
+  \node[font=\sffamily\footnotesize\bfseries, text=primary] at (1.5,-0.52) {Impact};
+  \foreach \j/\lab in {0/Faible, 1/Moyenne, 2/Élevée}{
+    \node[font=\sffamily\scriptsize, text=neutral, anchor=east] at (-0.08,\j+0.5) {\lab};}
+  \foreach \i/\lab in {0/Faible, 1/Moyen, 2/Élevé}{
+    \node[font=\sffamily\scriptsize, text=neutral] at (\i+0.5,-0.2) {\lab};}
+\end{tikzpicture}
+\end{center}
+
+\subsection{Registre des risques}
+
+\begin{xltabular}{\textwidth}{@{}C{1.3cm} R{4.2cm} L@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Risque} & \hd{Mitigation} \\
+\midrule \endhead
+\rid{R-01} & Délais d'approbation des modèles WhatsApp ou de vérification du compte Meta & Utiliser le numéro de test dès le sprint 0 ; rappels applicatifs comme repli garanti \\
+\rowcolor{softbg}
+\rid{R-02} & Rendu du modèle vidéo insatisfaisant sur terminaux d'entrée de gamme & Test réel dès la première semaine, avant tout développement dépendant \\
+\rid{R-03} & Qualité insuffisante de la synthèse vocale wolof & Segments pré-enregistrés en mécanisme principal, synthèse en démonstrateur \\
+\rowcolor{softbg}
+\rid{R-04} & Dérive de périmètre, effort excessif sur l'interface au détriment du cœur métier & Composants shadcn/ui sans personnalisation, aucune animation, revue de périmètre à chaque revue de sprint \\
+\rid{R-05} & Complexité sous-estimée du mode hors ligne & Périmètre restreint à la saisie de doses et à la file du jour \\
+\rowcolor{softbg}
+\rid{R-06} & Conflits de synchronisation mal gérés & Idempotence par clé client, règle de résolution documentée, tests dédiés \\
+\rid{R-07} & Indisponibilité ou coût d'une passerelle SMS & Canal de secours optionnel, export CSV pour envoi manuel \\
+\rowcolor{softbg}
+\rid{R-08} & Schéma vaccinal de référence inexact & Validation auprès d'une source officielle du PEV avant le sprint 2, schéma paramétrable en base \\
+\rid{R-09} & Charge de travail concentrée sur un membre & Revue de code croisée obligatoire, rotation sur les modules \\
+\rowcolor{softbg}
+\rid{R-10} & Pipeline d'intégration instable ou lent & Mise en place dès le sprint 0, mise en cache des dépendances, jobs parallèles \\
+\bottomrule
+\end{xltabular}
+
+% =====================================================================
+\section{Livrables}
+% =====================================================================
+
+\subsection{Livrables logiciels}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}C{1.5cm} L@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Livrable} \\
+\midrule
+\rid{L-01} & Code source complet, versionné, dans un dépôt Git unique \\
+\rowcolor{softbg}
+\rid{L-02} & Application déployée et accessible par une URL publique \\
+\rid{L-03} & Images Docker publiées et exécutables en une commande \\
+\rowcolor{softbg}
+\rid{L-04} & Jeu de données de démonstration, entièrement fictif \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Livrables documentaires}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}C{1.5cm} L@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Livrable} \\
+\midrule
+\rid{L-10} & Le présent cahier des charges, à jour de ses avenants \\
+\rowcolor{softbg}
+\rid{L-11} & Dossier d'architecture : diagrammes de contexte, de composants, de séquence \\
+\rid{L-12} & Modèle conceptuel et physique de données \\
+\rowcolor{softbg}
+\rid{L-13} & Documentation d'API générée, OpenAPI et Swagger \\
+\rid{L-14} & Manuel d'installation et d'exploitation \\
+\rowcolor{softbg}
+\rid{L-15} & Guide d'utilisation par rôle \\
+\rid{L-16} & Rapport de tests : couverture, résultats, stratégie \\
+\rowcolor{softbg}
+\rid{L-17} & Journal de projet : sprints, rétrospectives, métriques, ADR \\
+\rid{L-18} & Rapport de projet et support de soutenance \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Scénario de démonstration}
+
+Un scénario est préparé et répété. Il déroule le cas d'usage le plus démonstratif du
+projet, celui qui articule les trois choix structurants.
+
+\vspace{2mm}
+\begin{center}
+\begin{tikzpicture}[node distance=4mm]
+  \foreach \txt [count=\n] in {
+    {Enregistrement mère\\ et nourrisson},
+    {Génération du\\ calendrier},
+    {Premières doses,\\ temps simulé},
+    {Détection du retard\\ sur Penta-2}}{
+      \node[bloc, text width=3.05cm, minimum height=13mm] (a\n) at ({(\n-1)*3.42},0) {\footnotesize\txt};
+  }
+  \foreach \txt [count=\n] in {
+    {Rappel vocal wolof\\ reçu sur téléphone},
+    {Rattrapage et\\ re-planification},
+    {Saisie hors ligne\\ puis synchronisation},
+    {Tableau de bord\\ mis à jour}}{
+      \node[bloca, text width=3.05cm, minimum height=13mm] (b\n) at ({(\n-1)*3.42},-2.1) {\footnotesize\txt};
+  }
+  \draw[fleche] (a1) -- (a2);
+  \draw[fleche] (a2) -- (a3);
+  \draw[fleche] (a3) -- (a4);
+  \draw[fleche] (b1) -- (b2);
+  \draw[fleche] (b2) -- (b3);
+  \draw[fleche] (b3) -- (b4);
+  \draw[fleche] (a4.south) .. controls +(0,-0.7) and +(0,0.7) .. (b1.north);
+\end{tikzpicture}
+\end{center}
+
+% =====================================================================
+\section{Critères d'acceptation}
+% =====================================================================
+
+Le projet sera considéré comme atteint si l'ensemble des critères suivants est vérifié.
+
+\subsection{Fonctionnel}
+
+\begin{itemize}[label={}, leftmargin=1.6em]
+  \item \cbox Toutes les exigences de priorité \pM{} sont implémentées et démontrables.
+  \item \cbox Le moteur de calendrier traite correctement les neuf cas de test de la section 11.3.
+  \item \cbox Un rappel vocal en wolof est effectivement reçu sur un téléphone lors de la démonstration.
+  \item \cbox Une saisie hors connexion est synchronisée sans perte ni doublon.
+\end{itemize}
+
+\subsection{Qualité}
+
+\begin{itemize}[label={}, leftmargin=1.6em]
+  \item \cbox Couverture de tests backend $\geq$ 80 \%, frontend $\geq$ 70 \%.
+  \item \cbox Aucune erreur de typage, de style ou de formatage sur \texttt{main}.
+  \item \cbox Aucune vulnérabilité critique non traitée dans les dépendances.
+  \item \cbox Les six parcours critiques sont couverts en bout en bout.
+\end{itemize}
+
+\subsection{Industrialisation}
+
+\begin{itemize}[label={}, leftmargin=1.6em]
+  \item \cbox Le pipeline s'exécute intégralement et automatiquement sur chaque pull request.
+  \item \cbox Un déploiement sur l'environnement de recette est déclenché automatiquement depuis \texttt{main}.
+  \item \cbox L'application démarre en une commande depuis un poste vierge.
+  \item \cbox Le point de contrôle de santé et la remontée d'erreurs sont opérationnels.
+\end{itemize}
+
+\subsection{Processus}
+
+\begin{itemize}[label={}, leftmargin=1.6em]
+  \item \cbox Chaque sprint dispose d'un compte rendu de planification et de rétrospective.
+  \item \cbox Toute modification de \texttt{main} est passée par une pull request revue.
+  \item \cbox Le backlog reflète l'état réel du projet à la date de soutenance.
+\end{itemize}
+
+% =====================================================================
+\appendix
+% Le numéro reste court (A, B, C) pour la table des matières ;
+% le mot « Annexe » n'apparaît que dans le titre composé.
+\renewcommand{\thesection}{\Alph{section}}
+\titleformat{\section}
+  {\normalfont\sffamily\Large\bfseries\color{primary}\raggedright}
+  {Annexe~\thesection\ ---}{0.5em}{}
+  [\vspace{2pt}{\color{accent}\titlerule[1.4pt]}]
+\setcounter{section}{0}
+
+% =====================================================================
+\section{Schéma vaccinal de référence}
+% =====================================================================
+
+\begin{avertissement}[À valider impérativement]
+Le tableau ci-dessous est une base de travail reconstituée, non une source officielle. Il
+doit être confronté à un document du PEV Sénégal en vigueur et validé par une personne
+compétente en santé publique \textbf{avant le sprint 2}. Le calendrier étant paramétrable
+en base (\rid{EF-25}), une correction ultérieure n'entraîne aucune modification du code.
+\end{avertissement}
+
+\subsection*{Enfant}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}R{3.4cm} L@{}}
+\toprule
+\rowhead \hd{Âge} & \hd{Vaccins} \\
+\midrule
+Naissance & BCG, VPO-0 \\
+\rowcolor{softbg}
+6 semaines & Penta-1, VPO-1, Pneumo-1, Rota-1 \\
+10 semaines & Penta-2, VPO-2, Pneumo-2, Rota-2 \\
+\rowcolor{softbg}
+14 semaines & Penta-3, VPO-3, Pneumo-3, VPI \\
+9 mois & Rougeole-Rubéole-1, Fièvre jaune \\
+\rowcolor{softbg}
+15 mois & Rougeole-Rubéole-2 \\
+\bottomrule
+\end{tabularx}
+
+\subsection*{Femme enceinte}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}R{3.4cm} L@{}}
+\toprule
+\rowhead \hd{Rang} & \hd{Moment d'administration} \\
+\midrule
+Td-1 & Premier contact prénatal \\
+\rowcolor{softbg}
+Td-2 & 4 semaines après Td-1 \\
+Td-3 & 6 mois après Td-2 \\
+\rowcolor{softbg}
+Td-4 & 1 an après Td-3 \\
+Td-5 & 1 an après Td-4 \\
+\bottomrule
+\end{tabularx}
+
+% =====================================================================
+\section{Glossaire}
+% =====================================================================
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}R{3.4cm} L@{}}
+\toprule
+\rowhead \hd{Terme} & \hd{Définition} \\
+\midrule
+\textbf{PEV} & Programme Élargi de Vaccination \\
+\rowcolor{softbg}
+\textbf{CPN} & Consultation prénatale \\
+\textbf{Penta} & Vaccin pentavalent, DTC-HepB-Hib \\
+\rowcolor{softbg}
+\textbf{VPO / VPI} & Vaccin polio oral / injectable \\
+\textbf{Td} & Vaccin antitétanique et antidiphtérique \\
+\rowcolor{softbg}
+\textbf{Taux d'abandon} & Proportion de bénéficiaires ayant reçu la première dose d'une série sans recevoir la dernière \\
+\textbf{Échéance} & Rendez-vous vaccinal planifié par le moteur de calendrier \\
+\rowcolor{softbg}
+\textbf{PWA} & \textit{Progressive Web App}, application web installable fonctionnant hors ligne \\
+\textbf{Idempotence} & Propriété d'une opération produisant le même résultat qu'elle soit exécutée une ou plusieurs fois \\
+\rowcolor{softbg}
+\textbf{DoD} & \textit{Definition of Done}, critères de complétude d'une user story \\
+\textbf{ADR} & \textit{Architecture Decision Record}, fiche de décision d'architecture \\
+\bottomrule
+\end{tabularx}
+
+% =====================================================================
+\section{Points à trancher en réunion de lancement}
+% =====================================================================
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}C{1.3cm} L C{3.2cm}@{}}
+\toprule
+\rowhead \hd{N\textsuperscript{o}} & \hd{Point à trancher} & \hd{Échéance} \\
+\midrule
+1 & Application de l'identité visuelle aux écrans et aux icônes & Sprint 0 \\
+\rowcolor{softbg}
+2 & Composition de l'équipe et attribution des rôles de garant & Sprint 0 \\
+3 & Durée du module et nombre effectif de sprints & Sprint 0 \\
+\rowcolor{softbg}
+4 & Fournisseur d'hébergement de recette & Sprint 0 \\
+5 & Choix du modèle de synthèse vocale au regard des licences & Sprint 3 \\
+\rowcolor{softbg}
+6 & Recrutement de la voix pour l'enregistrement des segments wolof & Sprint 2 \\
+7 & Validation du schéma vaccinal auprès d'une source officielle & Sprint 2 \\
+\rowcolor{softbg}
+8 & Périmètre exact du mode hors ligne & Sprint 1 \\
+\bottomrule
+\end{tabularx}
+
+% =====================================================================
+\section{Suivi des versions}
+% =====================================================================
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}C{1.6cm} R{3cm} R{3.4cm} L@{}}
+\toprule
+\rowhead \hd{Version} & \hd{Date} & \hd{Auteur} & \hd{Modifications} \\
+\midrule
+1.0 & Septembre 2026 & Fallou Diouck & Version initiale \\
+\rowcolor{softbg}
+ &  &  &  \\
+ &  &  &  \\
+\rowcolor{softbg}
+ &  &  &  \\
+\bottomrule
+\end{tabularx}
+
+\vspace{1.4cm}
+\begin{center}
+{\color{rulegray}\rule{0.35\textwidth}{0.6pt}}\\[6pt]
+{\sffamily\footnotesize\color{neutral}
+Fin du document — \textbf{SUVAC}, cahier des charges, version 1.0}
+\end{center}
+
+\end{document}
