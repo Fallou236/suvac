@@ -7,9 +7,7 @@ from apps.accounts.models import PosteSante, Role, Utilisateur
 
 @pytest.fixture
 def poste(db):
-    return PosteSante.objects.create(
-        nom="Poste de Ngaparou", district="Mbour", region="Thies"
-    )
+    return PosteSante.objects.create(nom="Poste de Ngaparou", district="Mbour", region="Thies")
 
 
 @pytest.fixture

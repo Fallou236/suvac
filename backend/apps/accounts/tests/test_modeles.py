@@ -19,7 +19,8 @@ def test_agent_sans_poste_est_refuse_par_la_base(db):
 
 def test_administrateur_peut_ne_pas_avoir_de_poste(db):
     admin = Utilisateur.objects.create_user(
-        username="admin.suvac", password="motdepasse-de-test-123",
+        username="admin.suvac",
+        password="motdepasse-de-test-123",
         role=Role.ADMINISTRATEUR,
     )
     assert admin.est_administrateur
