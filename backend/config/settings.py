@@ -1,12 +1,12 @@
 """Configuration Django pour SUVAC."""
 
 import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 
-from dotenv import load_dotenv
-
 from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
@@ -135,9 +135,7 @@ STORAGES = {
 }
 
 if not DEBUG:
-    STORAGES["staticfiles"] = {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
-    }
+    STORAGES["staticfiles"] = {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"}
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -205,7 +203,5 @@ if not DEBUG:
 
 # Hachage rapide en test : Argon2 est volontairement lent, ce qui multiplie
 # la durée de la suite par quatre sans rien apporter à ce qu'on vérifie.
-import sys
-
 if "pytest" in sys.modules or "test" in sys.argv:
     PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
