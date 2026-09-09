@@ -52,8 +52,12 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "drf_spectacular",
-    # Locales — ajoutées au fil des sprints
+    # Locales
+    "apps.commun",
+    "apps.accounts",
 ]
+
+AUTH_USER_MODEL = "accounts.Utilisateur"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
