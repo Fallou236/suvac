@@ -201,7 +201,15 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Hachage rapide en test : Argon2 est volontairement lent, ce qui multiplie
-# la durée de la suite par quatre sans rien apporter à ce qu'on vérifie.
-if "pytest" in sys.modules or "test" in sys.argv:
+EN_TEST = "pytest" in sys.modules or "test" in sys.argv
+
+# Argon2 est volontairement lent : en test, il multiplie par quatre la durée
+# de la suite sans rien apporter à ce qu'on vérifie.
+if EN_TEST:
     PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+# Les compteurs de débit vivent dans le cache, qui persiste d'un test à
+# l'autre alors que la base est réinitialisée : le trente-et-unième test qui
+# se connecte recevrait un 429.
+if EN_TEST or env_bool("DESACTIVER_LIMITATION_DEBIT", False):
+    REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {"anon": None, "user": None}

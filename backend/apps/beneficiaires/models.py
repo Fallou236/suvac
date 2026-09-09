@@ -173,7 +173,7 @@ class Enfant(ModeleHorodate, ModeleSuppressionLogique, ModeleIdentifiantPublic):
         null=True,
         blank=True,
     )
-    prenom = models.CharField(_("prénom"), max_length=100)
+    prenom = models.CharField(_("prénom"), max_length=100, blank=True)
     nom = models.CharField(_("nom"), max_length=100, blank=True)
     date_naissance = models.DateField(_("date de naissance"))
     sexe = models.CharField(_("sexe"), max_length=1, choices=Sexe.choices)
