@@ -72,16 +72,14 @@ def test_le_moteur_consomme_le_schema_charge(schema_charge):
     naissance = date(2026, 1, 1)
     schema = charger_schema(Cible.ENFANT)
 
-    calendrier = generer_calendrier(
-        date_reference=naissance, regles=schema, aujourdhui=naissance
-    )
+    calendrier = generer_calendrier(date_reference=naissance, regles=schema, aujourdhui=naissance)
 
     par_cle = {(e.code_vaccin, e.rang): e for e in calendrier}
 
     assert par_cle[("BCG", 1)].date_cible == naissance
     assert par_cle[("PENTA", 1)].date_cible == date(2026, 2, 12)  # 42 jours
     assert par_cle[("PENTA", 2)].date_cible == date(2026, 3, 12)  # 70 jours
-    assert par_cle[("PENTA", 3)].date_cible == date(2026, 4, 9)   # 98 jours
+    assert par_cle[("PENTA", 3)].date_cible == date(2026, 4, 9)  # 98 jours
     assert par_cle[("BCG", 1)].statut is Statut.DUE
     assert par_cle[("RR", 1)].statut is Statut.A_VENIR
 
@@ -105,6 +103,8 @@ def test_une_regle_incoherente_est_refusee_par_la_base(schema_charge):
     with pytest.raises(IntegrityError):
         RegleVaccinale.objects.create(
             vaccin=Vaccin.objects.get(code="BCG"),
-            cible=Cible.ENFANT, rang=9,
-            age_min_jours=100, age_cible_jours=50,  # minimum après la cible
+            cible=Cible.ENFANT,
+            rang=9,
+            age_min_jours=100,
+            age_cible_jours=50,  # minimum après la cible
         )

@@ -72,20 +72,20 @@ class RegleVaccinale(ModeleHorodate, ModeleSuppressionLogique):
     vaccin = models.ForeignKey(
         Vaccin, verbose_name=_("vaccin"), on_delete=models.PROTECT, related_name="regles"
     )
-    cible = models.CharField(
-        _("cible"), max_length=10, choices=Cible.choices, default=Cible.ENFANT
-    )
-    rang = models.PositiveSmallIntegerField(
-        _("rang de la dose"), validators=[MinValueValidator(1)]
-    )
+    cible = models.CharField(_("cible"), max_length=10, choices=Cible.choices, default=Cible.ENFANT)
+    rang = models.PositiveSmallIntegerField(_("rang de la dose"), validators=[MinValueValidator(1)])
     age_min_jours = models.PositiveIntegerField(_("âge minimal (jours)"))
     age_cible_jours = models.PositiveIntegerField(_("âge cible (jours)"))
     age_limite_jours = models.PositiveIntegerField(
-        _("âge limite (jours)"), null=True, blank=True,
+        _("âge limite (jours)"),
+        null=True,
+        blank=True,
         help_text=_("Fin de la fenêtre de rattrapage. Vide si sans limite."),
     )
     intervalle_min_jours = models.PositiveIntegerField(
-        _("intervalle minimal (jours)"), null=True, blank=True,
+        _("intervalle minimal (jours)"),
+        null=True,
+        blank=True,
         help_text=_("Délai minimal depuis la dose précédente. Vide pour la première dose."),
     )
     actif = models.BooleanField(_("actif"), default=True)
