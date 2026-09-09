@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     # Locales
     "apps.commun",
     "apps.accounts",
+    "apps.vaccination",
 ]
 
 AUTH_USER_MODEL = "accounts.Utilisateur"
