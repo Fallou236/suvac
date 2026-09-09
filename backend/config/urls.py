@@ -1,29 +1,32 @@
-"""
-URL configuration for config project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
+from apps.accounts.api import (
+    ChangementMotDePasseView,
+    ConnexionView,
+    PosteSanteViewSet,
+    ProfilView,
+)
 from config.health import healthz
+
+routeur = DefaultRouter()
+routeur.register("postes", PosteSanteViewSet, basename="poste")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("healthz", healthz, name="healthz"),
+    # Authentification
+    path("api/auth/connexion/", ConnexionView.as_view(), name="connexion"),
+    path("api/auth/rafraichir/", TokenRefreshView.as_view(), name="rafraichir"),
+    path("api/auth/verifier/", TokenVerifyView.as_view(), name="verifier"),
+    path("api/auth/profil/", ProfilView.as_view(), name="profil"),
+    path("api/auth/mot-de-passe/", ChangementMotDePasseView.as_view(), name="mot-de-passe"),
+    # Ressources
+    path("api/", include(routeur.urls)),
+    # Documentation
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
 ]
