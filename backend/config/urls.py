@@ -10,10 +10,14 @@ from apps.accounts.api import (
     PosteSanteViewSet,
     ProfilView,
 )
+from apps.beneficiaires.api import EnfantViewSet, GrossesseViewSet, MereViewSet
 from config.health import healthz
 
 routeur = DefaultRouter()
 routeur.register("postes", PosteSanteViewSet, basename="poste")
+routeur.register("meres", MereViewSet, basename="mere")
+routeur.register("enfants", EnfantViewSet, basename="enfant")
+routeur.register("grossesses", GrossesseViewSet, basename="grossesse")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
