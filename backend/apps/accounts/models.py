@@ -1,13 +1,11 @@
 """Postes de santé et comptes utilisateurs."""
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.commun.models import ModeleHorodate, ModeleIdentifiantPublic, ModeleSuppressionLogique
-
-from django.contrib.auth.models import AbstractUser, UserManager
 
 validateur_telephone = RegexValidator(
     regex=r"^\+?[0-9]{7,15}$",
@@ -55,6 +53,7 @@ class PosteSante(ModeleHorodate, ModeleSuppressionLogique, ModeleIdentifiantPubl
     def __str__(self) -> str:
         return f"{self.nom} ({self.district})"
 
+
 class GestionnaireUtilisateur(UserManager):
     """Gestionnaire des comptes.
 
@@ -67,6 +66,7 @@ class GestionnaireUtilisateur(UserManager):
     def create_superuser(self, username, email=None, password=None, **champs):
         champs.setdefault("role", Role.ADMINISTRATEUR)
         return super().create_superuser(username, email, password, **champs)
+
 
 class Utilisateur(AbstractUser, ModeleHorodate, ModeleIdentifiantPublic):
     """Compte applicatif.
@@ -92,7 +92,6 @@ class Utilisateur(AbstractUser, ModeleHorodate, ModeleIdentifiantPublic):
     )
 
     objects = GestionnaireUtilisateur()
-
 
     class Meta:
         verbose_name = _("utilisateur")

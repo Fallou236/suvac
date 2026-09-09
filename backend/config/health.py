@@ -1,10 +1,9 @@
 """Point de contrôle de santé — exigence ENF-32."""
 
+import redis
+from django.conf import settings
 from django.db import connection
 from django.http import JsonResponse
-import redis
-
-from django.conf import settings
 
 
 def healthz(request):
@@ -26,5 +25,4 @@ def healthz(request):
         etat["redis"] = f"erreur: {erreur.__class__.__name__}"
         ok = False
 
-    return JsonResponse({"statut": "ok" if ok else "degrade", **etat},
-                        status=200 if ok else 503)
+    return JsonResponse({"statut": "ok" if ok else "degrade", **etat}, status=200 if ok else 503)

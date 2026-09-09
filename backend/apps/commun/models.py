@@ -26,17 +26,19 @@ class GestionnaireNonSupprimes(models.Manager):
 `objects` masque les enregistrements supprimés, `tous` les expose.
 Toujours passer par `objects` dans le code métier.
 """
+
+
 class ModeleSuppressionLogique(models.Model):
     """Suppression logique : rien n'est jamais effacé (RG-10, ENF-25).
 
-    `objets` masque les enregistrements supprimés, `tous` les expose.
-    Toujours passer par `objets` dans le code métier.
+    `objects` masque les enregistrements supprimés, `tous` les expose.
+    Toujours passer par `objects` dans le code métier.
     """
 
     supprime_le = models.DateTimeField(null=True, blank=True, db_index=True)
 
     objects = GestionnaireNonSupprimes()
-    tous = models.Manager()
+    tous = models.Manager()  # noqa: DJ012 — ordre conforme, faux positif sur modèle abstrait
 
     class Meta:
         abstract = True
