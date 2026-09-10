@@ -30,7 +30,11 @@ urlpatterns = [
     path("api/auth/rafraichir/", TokenRefreshView.as_view(), name="rafraichir"),
     path("api/auth/verifier/", TokenVerifyView.as_view(), name="verifier"),
     path("api/auth/profil/", ProfilView.as_view(), name="profil"),
-    path("api/auth/mot-de-passe/", ChangementMotDePasseView.as_view(), name="mot-de-passe"),
+    path(
+        "api/auth/mot-de-passe/",
+        ChangementMotDePasseView.as_view(),
+        name="mot-de-passe",
+    ),
     # Ressources
     path("api/", include(routeur.urls)),
     # Documentation

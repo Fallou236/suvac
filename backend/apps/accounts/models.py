@@ -5,7 +5,11 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.commun.models import ModeleHorodate, ModeleIdentifiantPublic, ModeleSuppressionLogique
+from apps.commun.models import (
+    ModeleHorodate,
+    ModeleIdentifiantPublic,
+    ModeleSuppressionLogique,
+)
 
 validateur_telephone = RegexValidator(
     regex=r"^\+?[0-9]{7,15}$",

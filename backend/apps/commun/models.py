@@ -38,7 +38,7 @@ class ModeleSuppressionLogique(models.Model):
     supprime_le = models.DateTimeField(null=True, blank=True, db_index=True)
 
     objects = GestionnaireNonSupprimes()
-    tous = models.Manager()  # noqa: DJ012 — ordre conforme, faux positif sur modèle abstrait
+    tous = models.Manager()  # noqa: DJ012 — faux positif sur modèle abstrait
 
     class Meta:
         abstract = True

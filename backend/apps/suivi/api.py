@@ -20,7 +20,11 @@ from .serializers import (
 )
 from .services import AdministrationRefusee, enregistrer_dose
 
-STATUTS_EN_ATTENTE = [StatutEcheance.A_VENIR, StatutEcheance.DUE, StatutEcheance.EN_RETARD]
+STATUTS_EN_ATTENTE = [
+    StatutEcheance.A_VENIR,
+    StatutEcheance.DUE,
+    StatutEcheance.EN_RETARD,
+]
 
 
 class EcheanceViewSet(viewsets.ReadOnlyModelViewSet):
@@ -61,7 +65,9 @@ class EcheanceViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                "date", str, description="Jour ciblé (AAAA-MM-JJ). " "Par défaut : aujourd'hui."
+                "date",
+                str,
+                description="Jour ciblé (AAAA-MM-JJ). " "Par défaut : aujourd'hui.",
             ),
         ],
         responses=EcheanceFileSerializer(many=True),
@@ -149,7 +155,7 @@ class DoseViewSet(viewsets.GenericViewSet):
                 date_administration=donnees["date_administration"],
                 agent=request.user,
                 numero_lot=donnees["numero_lot"],
-                cle_idempotence=donnees["cle_idempotence"],
+                cle_idempotence=donnees.get("cle_idempotence"),
             )
         except AdministrationRefusee as refus:
             return Response(

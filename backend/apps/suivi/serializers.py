@@ -1,7 +1,5 @@
 """Sérialiseurs des échéances et des doses."""
 
-import uuid
-
 from rest_framework import serializers
 
 from .models import DoseAdministree, Echeance, MotifAnnulation
@@ -105,12 +103,11 @@ class CreationDoseSerializer(serializers.Serializer):
     numero_lot = serializers.CharField(required=False, allow_blank=True, default="")
     cle_idempotence = serializers.UUIDField(
         required=False,
+        allow_null=True,
+        default=None,
         help_text="Générée par le client. Permet de rejouer sans doublon (EF-54).",
     )
     evenement_indesirable = serializers.CharField(required=False, allow_blank=True, default="")
-
-    def validate_cle_idempotence(self, valeur: uuid.UUID | None) -> uuid.UUID:
-        return valeur or uuid.uuid4()
 
 
 class AnnulationSerializer(serializers.Serializer):

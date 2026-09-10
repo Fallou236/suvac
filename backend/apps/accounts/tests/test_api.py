@@ -131,7 +131,10 @@ def test_mot_de_passe_trop_faible_refuse(client, agent):
     connecter(client, "awa.ndiaye")
     reponse = client.post(
         "/api/auth/mot-de-passe/",
-        {"ancien_mot_de_passe": "motdepasse-de-test-123", "nouveau_mot_de_passe": "1234"},
+        {
+            "ancien_mot_de_passe": "motdepasse-de-test-123",
+            "nouveau_mot_de_passe": "1234",
+        },
         format="json",
     )
     assert reponse.status_code == 400

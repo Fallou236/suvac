@@ -18,19 +18,34 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("cree_le", models.DateTimeField(auto_now_add=True, db_index=True)),
                 ("modifie_le", models.DateTimeField(auto_now=True)),
-                ("supprime_le", models.DateTimeField(blank=True, db_index=True, null=True)),
-                ("code", models.CharField(max_length=20, unique=True, verbose_name="code")),
-                ("libelle_fr", models.CharField(max_length=100, verbose_name="libellé français")),
+                (
+                    "supprime_le",
+                    models.DateTimeField(blank=True, db_index=True, null=True),
+                ),
+                (
+                    "code",
+                    models.CharField(max_length=20, unique=True, verbose_name="code"),
+                ),
+                (
+                    "libelle_fr",
+                    models.CharField(max_length=100, verbose_name="libellé français"),
+                ),
                 (
                     "libelle_wo",
                     models.CharField(blank=True, max_length=100, verbose_name="libellé wolof"),
                 ),
-                ("description", models.TextField(blank=True, verbose_name="description")),
+                (
+                    "description",
+                    models.TextField(blank=True, verbose_name="description"),
+                ),
                 (
                     "voie",
                     models.CharField(
@@ -63,12 +78,18 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("cree_le", models.DateTimeField(auto_now_add=True, db_index=True)),
                 ("modifie_le", models.DateTimeField(auto_now=True)),
-                ("supprime_le", models.DateTimeField(blank=True, db_index=True, null=True)),
+                (
+                    "supprime_le",
+                    models.DateTimeField(blank=True, db_index=True, null=True),
+                ),
                 (
                     "cible",
                     models.CharField(
@@ -85,8 +106,14 @@ class Migration(migrations.Migration):
                         verbose_name="rang de la dose",
                     ),
                 ),
-                ("age_min_jours", models.PositiveIntegerField(verbose_name="âge minimal (jours)")),
-                ("age_cible_jours", models.PositiveIntegerField(verbose_name="âge cible (jours)")),
+                (
+                    "age_min_jours",
+                    models.PositiveIntegerField(verbose_name="âge minimal (jours)"),
+                ),
+                (
+                    "age_cible_jours",
+                    models.PositiveIntegerField(verbose_name="âge cible (jours)"),
+                ),
                 (
                     "age_limite_jours",
                     models.PositiveIntegerField(
