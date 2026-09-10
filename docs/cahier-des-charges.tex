@@ -108,7 +108,7 @@
 \renewcommand{\footrule}{\hbox to\headwidth{\color{rulegray}\leaders\hrule height \footrulewidth\hfill}}
 \fancyhead[L]{\sffamily\footnotesize\color{primary}\textbf{SUVAC} \textcolor{rulegray}{|} Cahier des charges}
 \fancyhead[R]{\sffamily\footnotesize\color{neutral}\nouppercase{\leftmark}}
-\fancyfoot[L]{\sffamily\scriptsize\color{neutral}Version 1.0 — Septembre 2026}
+\fancyfoot[L]{\sffamily\scriptsize\color{neutral}Version 1.1 — Septembre 2026}
 \fancyfoot[R]{\sffamily\scriptsize\color{neutral}\thepage\,/\,\pageref{LastPage}}
 \renewcommand{\sectionmark}[1]{\markboth{#1}{}}
 
@@ -262,7 +262,7 @@
   Chef de projet   & Fallou Diouck \\
   Équipe           & \textit{à compléter en réunion de lancement} \\
   Encadrant        & Professeur Michel Seck \\
-  Version          & 1.0 \\
+  Version          & 1.1 \\
   Date             & Septembre 2026 \\
   Statut           & \textcolor{amber}{\sffamily\bfseries À valider} par l'équipe et l'encadrant \\
 \end{tabular}\endgroup
@@ -557,7 +557,7 @@ Seules les exigences \pM{} conditionnent l'acceptation du projet (section~16).
 \rid{EF-10} & L'agent enregistre une mère : identité, date de naissance, téléphone, langue préférée, poste de rattachement, consentement aux rappels. & \pM \\
 \rowcolor{softbg}
 \rid{EF-11} & L'agent enregistre une grossesse : date des dernières règles ou terme estimé, rang de grossesse. & \pM \\
-\rid{EF-12} & L'agent enregistre un enfant rattaché à une mère : identité, date de naissance, sexe, prématurité éventuelle. & \pM \\
+\rid{EF-12} & L'agent enregistre un enfant rattaché à une mère : identité, date de naissance, sexe, prématurité éventuelle. Le prénom peut être absent — au Sénégal, il est souvent donné au baptême, après le BCG ; le rattachement à la mère suffit à identifier le bénéficiaire. & \pM \\
 \rowcolor{softbg}
 \rid{EF-13} & Le système génère pour chaque bénéficiaire un identifiant unique et un QR code d'identification. & \pS \\
 \rid{EF-14} & L'agent recherche un bénéficiaire par nom, téléphone, identifiant ou scan de QR code. & \pM \\
@@ -785,6 +785,14 @@ façon exhaustive et de rester indépendantes de l'infrastructure.
 \rid{ENF-17} & Les dépendances font l'objet d'un scan de vulnérabilités à chaque build. \\
 \bottomrule
 \end{xltabular}
+
+\begin{vigilance}[Vérification manuelle d'ENF-15]
+La limitation de débit est neutralisée pendant les tests : les compteurs de
+DRF résident dans un cache partagé entre les cas de test, alors que la base
+est réinitialisée à chaque fois. Elle est donc vérifiée manuellement. Deux
+tentatives d'automatisation ont été écartées, l'une butant sur ce cache,
+l'autre sur la configuration mise en cache par DRF.
+\end{vigilance}
 
 \subsection{Protection des données personnelles}
 
@@ -1227,7 +1235,7 @@ unitaires explicites et nommés.
 Formatage Python & \texttt{black} & oui \\
 \rowcolor{softbg}
 Style et erreurs Python & \texttt{ruff} & oui \\
-Typage Python & \texttt{mypy} & oui \\
+Typage Python & \texttt{mypy} & progressif, bloquant à partir du sprint 3 \\
 \rowcolor{softbg}
 Style et erreurs TypeScript & \texttt{ESLint} & oui \\
 Typage TypeScript & \texttt{tsc --noEmit} & oui \\
@@ -1393,8 +1401,8 @@ de garant, non des périmètres exclusifs.
 \gantttitle{Semaines}{12} \\
 \gantttitlelist{1,...,12}{1} \\
 \ganttbar[bar/.append style={fill=primary}]{Sprint 0 — Cadrage}{1}{2} \\
-\ganttbar{Sprint 1 — Socle}{3}{4} \\
-\ganttbar{Sprint 2 — Cœur métier}{5}{6} \\
+\ganttbar{Sprint 1 — Backend et API}{3}{4} \\
+\ganttbar{Sprint 2 — Frontend React}{5}{6} \\
 \ganttbar{Sprint 3 — Communication}{7}{8} \\
 \ganttbar{Sprint 4 — Hors ligne}{9}{10} \\
 \ganttbar[bar/.append style={fill=amber}]{Sprint 5 — Consolidation}{11}{12}
@@ -1409,9 +1417,9 @@ de garant, non des périmètres exclusifs.
 \midrule
 \rid{S-0} & Cadrage & Cahier des charges validé, dépôt initialisé, Docker Compose fonctionnel, pipeline au vert sur un squelette \\
 \rowcolor{softbg}
-\rid{S-1} & Socle & Authentification, rôles, modèle de données, référentiels, écrans de base \\
-\rid{S-2} & Cœur métier & Moteur de calendrier et sa suite de tests, enregistrement des bénéficiaires, saisie des doses \\
+\rid{S-1} & Backend métier et API & Modèle de données, moteur de calendrier et sa suite de tests, référentiel vaccinal, API REST complète \\
 \rowcolor{softbg}
+\rid{S-2} & Frontend React & Socle, authentification, écrans bénéficiaires, consultation des calendriers, saisie des doses \\
 \rid{S-3} & Communication & Celery Beat, génération audio wolof, intégration WhatsApp, internationalisation complète \\
 \rid{S-4} & Hors ligne et pilotage & PWA, file de synchronisation, tableau de bord superviseur, gestion du stock \\
 \rowcolor{softbg}
@@ -1743,9 +1751,9 @@ Td-5 & 1 an après Td-4 \\
 \toprule
 \rowhead \hd{Version} & \hd{Date} & \hd{Auteur} & \hd{Modifications} \\
 \midrule
-1.0 & Septembre 2026 & Fallou Diouck & Version initiale \\
+1.1 & Septembre 2026 & Fallou Diouck & Version initiale \\
 \rowcolor{softbg}
- &  &  &  \\
+1.1 & Septembre 2026 & Fallou Diouck & Découpage des sprints révisé (13.3) ; \texttt{mypy} rendu progressif (11.4) ; vérification manuelle d'ENF-15 (7.2) ; prénom facultatif pour l'enfant (EF-12) \\
  &  &  &  \\
 \rowcolor{softbg}
  &  &  &  \\
@@ -1756,7 +1764,7 @@ Td-5 & 1 an après Td-4 \\
 \begin{center}
 {\color{rulegray}\rule{0.35\textwidth}{0.6pt}}\\[6pt]
 {\sffamily\footnotesize\color{neutral}
-Fin du document — \textbf{SUVAC}, cahier des charges, version 1.0}
+Fin du document — \textbf{SUVAC}, cahier des charges, version 1.1}
 \end{center}
 
 \end{document}
