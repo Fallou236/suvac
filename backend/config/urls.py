@@ -11,6 +11,7 @@ from apps.accounts.api import (
     ProfilView,
 )
 from apps.beneficiaires.api import EnfantViewSet, GrossesseViewSet, MereViewSet
+from apps.suivi.api import DoseViewSet, EcheanceViewSet
 from config.health import healthz
 
 routeur = DefaultRouter()
@@ -18,6 +19,8 @@ routeur.register("postes", PosteSanteViewSet, basename="poste")
 routeur.register("meres", MereViewSet, basename="mere")
 routeur.register("enfants", EnfantViewSet, basename="enfant")
 routeur.register("grossesses", GrossesseViewSet, basename="grossesse")
+routeur.register("echeances", EcheanceViewSet, basename="echeance")
+routeur.register("doses", DoseViewSet, basename="dose")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
