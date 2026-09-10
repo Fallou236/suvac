@@ -11,7 +11,11 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import Langue, PosteSante, validateur_telephone
-from apps.commun.models import ModeleHorodate, ModeleIdentifiantPublic, ModeleSuppressionLogique
+from apps.commun.models import (
+    ModeleHorodate,
+    ModeleIdentifiantPublic,
+    ModeleSuppressionLogique,
+)
 
 
 class Sexe(models.TextChoices):
@@ -87,7 +91,10 @@ class Consentement(ModeleHorodate):
     """
 
     mere = models.ForeignKey(
-        Mere, verbose_name=_("mère"), on_delete=models.CASCADE, related_name="consentements"
+        Mere,
+        verbose_name=_("mère"),
+        on_delete=models.CASCADE,
+        related_name="consentements",
     )
     canal = models.CharField(
         _("canal accepté"),
@@ -127,7 +134,10 @@ class Grossesse(ModeleHorodate, ModeleSuppressionLogique, ModeleIdentifiantPubli
     """
 
     mere = models.ForeignKey(
-        Mere, verbose_name=_("mère"), on_delete=models.PROTECT, related_name="grossesses"
+        Mere,
+        verbose_name=_("mère"),
+        on_delete=models.PROTECT,
+        related_name="grossesses",
     )
     rang = models.PositiveSmallIntegerField(_("rang de la grossesse"), default=1)
     date_reference = models.DateField(_("date du premier contact prénatal"))

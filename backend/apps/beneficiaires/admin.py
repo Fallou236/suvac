@@ -19,7 +19,13 @@ class EnfantInline(admin.TabularInline):
 
 @admin.register(Mere)
 class MereAdmin(admin.ModelAdmin):
-    list_display = ("nom_complet", "telephone", "poste", "village", "accepte_les_rappels")
+    list_display = (
+        "nom_complet",
+        "telephone",
+        "poste",
+        "village",
+        "accepte_les_rappels",
+    )
     list_filter = ("poste", "langue")
     search_fields = ("prenom", "nom", "telephone")
     inlines = [ConsentementInline, EnfantInline]
@@ -27,7 +33,14 @@ class MereAdmin(admin.ModelAdmin):
 
 @admin.register(Enfant)
 class EnfantAdmin(admin.ModelAdmin):
-    list_display = ("nom_complet", "date_naissance", "sexe", "mere", "poste", "est_premature")
+    list_display = (
+        "nom_complet",
+        "date_naissance",
+        "sexe",
+        "mere",
+        "poste",
+        "est_premature",
+    )
     list_filter = ("poste", "sexe")
     search_fields = ("prenom", "nom", "mere__prenom", "mere__nom")
     date_hierarchy = "date_naissance"

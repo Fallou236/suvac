@@ -95,7 +95,11 @@ def test_le_poste_est_celui_de_l_agent_pas_celui_envoye(client, agent, autre_pos
     connecter(client, "awa.ndiaye")
     reponse = client.post(
         "/api/meres/",
-        {"prenom": "Bineta", "nom": "Diop", "poste": str(autre_poste.identifiant_public)},
+        {
+            "prenom": "Bineta",
+            "nom": "Diop",
+            "poste": str(autre_poste.identifiant_public),
+        },
         format="json",
     )
 

@@ -58,7 +58,10 @@ class Echeance(ModeleHorodate, ModeleIdentifiantPublic):
         blank=True,
     )
     vaccin = models.ForeignKey(
-        Vaccin, verbose_name=_("vaccin"), on_delete=models.PROTECT, related_name="echeances"
+        Vaccin,
+        verbose_name=_("vaccin"),
+        on_delete=models.PROTECT,
+        related_name="echeances",
     )
     rang = models.PositiveSmallIntegerField(_("rang de la dose"))
 
@@ -135,7 +138,12 @@ class Echeance(ModeleHorodate, ModeleIdentifiantPublic):
         self.motif_annulation = motif
         self.commentaire_annulation = commentaire
         self.save(
-            update_fields=["statut", "motif_annulation", "commentaire_annulation", "modifie_le"]
+            update_fields=[
+                "statut",
+                "motif_annulation",
+                "commentaire_annulation",
+                "modifie_le",
+            ]
         )
 
 

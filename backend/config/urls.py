@@ -11,6 +11,7 @@ from apps.accounts.api import (
     ProfilView,
 )
 from apps.beneficiaires.api import EnfantViewSet, GrossesseViewSet, MereViewSet
+from apps.suivi.api import DoseViewSet, EcheanceViewSet
 from config.health import healthz
 
 routeur = DefaultRouter()
@@ -18,6 +19,8 @@ routeur.register("postes", PosteSanteViewSet, basename="poste")
 routeur.register("meres", MereViewSet, basename="mere")
 routeur.register("enfants", EnfantViewSet, basename="enfant")
 routeur.register("grossesses", GrossesseViewSet, basename="grossesse")
+routeur.register("echeances", EcheanceViewSet, basename="echeance")
+routeur.register("doses", DoseViewSet, basename="dose")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -27,7 +30,11 @@ urlpatterns = [
     path("api/auth/rafraichir/", TokenRefreshView.as_view(), name="rafraichir"),
     path("api/auth/verifier/", TokenVerifyView.as_view(), name="verifier"),
     path("api/auth/profil/", ProfilView.as_view(), name="profil"),
-    path("api/auth/mot-de-passe/", ChangementMotDePasseView.as_view(), name="mot-de-passe"),
+    path(
+        "api/auth/mot-de-passe/",
+        ChangementMotDePasseView.as_view(),
+        name="mot-de-passe",
+    ),
     # Ressources
     path("api/", include(routeur.urls)),
     # Documentation

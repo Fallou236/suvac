@@ -196,7 +196,11 @@ def rafraichir_statuts(aujourdhui: date | None = None) -> int:
     modifiees = 0
 
     en_attente = Echeance.objects.filter(
-        statut__in=[StatutEcheance.A_VENIR, StatutEcheance.DUE, StatutEcheance.EN_RETARD]
+        statut__in=[
+            StatutEcheance.A_VENIR,
+            StatutEcheance.DUE,
+            StatutEcheance.EN_RETARD,
+        ]
     )
 
     for echeance in en_attente.iterator(chunk_size=500):

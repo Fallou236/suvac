@@ -32,7 +32,13 @@ VACCINS = [
     ("ROTA", "Rotavirus", "", VoieAdministration.ORALE, 1),
     ("RR", "Rougeole-Rubéole", "", VoieAdministration.SOUS_CUTANEE, 10),
     ("VAA", "Fièvre jaune", "", VoieAdministration.SOUS_CUTANEE, 10),
-    ("TD", "Antitétanique et antidiphtérique", "", VoieAdministration.INTRAMUSCULAIRE, 10),
+    (
+        "TD",
+        "Antitétanique et antidiphtérique",
+        "",
+        VoieAdministration.INTRAMUSCULAIRE,
+        10,
+    ),
 ]
 
 # (code, cible, rang, age_min, age_cible, age_limite, intervalle_min)

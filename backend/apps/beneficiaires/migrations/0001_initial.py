@@ -24,12 +24,18 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("cree_le", models.DateTimeField(auto_now_add=True, db_index=True)),
                 ("modifie_le", models.DateTimeField(auto_now=True)),
-                ("supprime_le", models.DateTimeField(blank=True, db_index=True, null=True)),
+                (
+                    "supprime_le",
+                    models.DateTimeField(blank=True, db_index=True, null=True),
+                ),
                 (
                     "identifiant_public",
                     models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
@@ -91,12 +97,18 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("cree_le", models.DateTimeField(auto_now_add=True, db_index=True)),
                 ("modifie_le", models.DateTimeField(auto_now=True)),
-                ("supprime_le", models.DateTimeField(blank=True, db_index=True, null=True)),
+                (
+                    "supprime_le",
+                    models.DateTimeField(blank=True, db_index=True, null=True),
+                ),
                 (
                     "identifiant_public",
                     models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
@@ -150,18 +162,27 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("cree_le", models.DateTimeField(auto_now_add=True, db_index=True)),
                 ("modifie_le", models.DateTimeField(auto_now=True)),
-                ("supprime_le", models.DateTimeField(blank=True, db_index=True, null=True)),
+                (
+                    "supprime_le",
+                    models.DateTimeField(blank=True, db_index=True, null=True),
+                ),
                 (
                     "identifiant_public",
                     models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
                 ),
                 ("prenom", models.CharField(max_length=100, verbose_name="prénom")),
-                ("nom", models.CharField(blank=True, max_length=100, verbose_name="nom")),
+                (
+                    "nom",
+                    models.CharField(blank=True, max_length=100, verbose_name="nom"),
+                ),
                 ("date_naissance", models.DateField(verbose_name="date de naissance")),
                 (
                     "sexe",
@@ -228,7 +249,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("cree_le", models.DateTimeField(auto_now_add=True, db_index=True)),
@@ -292,7 +316,8 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name="enfant",
             index=models.Index(
-                fields=["poste", "date_naissance"], name="beneficiair_poste_i_43b837_idx"
+                fields=["poste", "date_naissance"],
+                name="beneficiair_poste_i_43b837_idx",
             ),
         ),
         migrations.AddIndex(

@@ -24,7 +24,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("cree_le", models.DateTimeField(auto_now_add=True, db_index=True)),
@@ -33,9 +36,15 @@ class Migration(migrations.Migration):
                     "identifiant_public",
                     models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
                 ),
-                ("rang", models.PositiveSmallIntegerField(verbose_name="rang de la dose")),
+                (
+                    "rang",
+                    models.PositiveSmallIntegerField(verbose_name="rang de la dose"),
+                ),
                 ("date_ouverture", models.DateField(verbose_name="date d'ouverture")),
-                ("date_cible", models.DateField(db_index=True, verbose_name="date cible")),
+                (
+                    "date_cible",
+                    models.DateField(db_index=True, verbose_name="date cible"),
+                ),
                 (
                     "date_limite",
                     models.DateField(
@@ -121,7 +130,10 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
                     ),
                 ),
                 ("cree_le", models.DateTimeField(auto_now_add=True, db_index=True)),
@@ -232,7 +244,8 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name="doseadministree",
             index=models.Index(
-                fields=["poste", "date_administration"], name="suivi_dosea_poste_i_ae82e3_idx"
+                fields=["poste", "date_administration"],
+                name="suivi_dosea_poste_i_ae82e3_idx",
             ),
         ),
     ]

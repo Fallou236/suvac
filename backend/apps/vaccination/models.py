@@ -70,7 +70,10 @@ class RegleVaccinale(ModeleHorodate, ModeleSuppressionLogique):
     """
 
     vaccin = models.ForeignKey(
-        Vaccin, verbose_name=_("vaccin"), on_delete=models.PROTECT, related_name="regles"
+        Vaccin,
+        verbose_name=_("vaccin"),
+        on_delete=models.PROTECT,
+        related_name="regles",
     )
     cible = models.CharField(_("cible"), max_length=10, choices=Cible.choices, default=Cible.ENFANT)
     rang = models.PositiveSmallIntegerField(_("rang de la dose"), validators=[MinValueValidator(1)])

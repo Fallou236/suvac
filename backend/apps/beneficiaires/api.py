@@ -93,6 +93,36 @@ class EnfantViewSet(FiltrageParPoste, viewsets.ModelViewSet):
     def get_serializer_class(self):
         return EnfantListeSerializer if self.action == "list" else EnfantSerializer
 
+    @extend_schema(
+        responses={200: None},
+        description="Calendrier vaccinal complet de l'enfant (EF-20, EF-22, EF-24).",
+    )
+    @action(detail=True, methods=["get"])
+    def calendrier(self, request, id=None):
+        # Import local : le module `suivi` importe `beneficiaires`, un import
+        # en tête de fichier créerait un cycle.
+        from apps.suivi.api import EcheanceViewSet
+        from apps.suivi.serializers import EcheanceSerializer
+
+        enfant = self.get_object()
+
+        vue = EcheanceViewSet()
+        vue.request = request
+        echeances = (
+            vue.get_queryset().filter(enfant=enfant).order_by("date_cible", "vaccin__code", "rang")
+        )
+
+        return Response(
+            {
+                "beneficiaire_id": str(enfant.identifiant_public),
+                "beneficiaire_nom": enfant.nom_complet,
+                "date_reference": enfant.date_naissance,
+                "echeances": EcheanceSerializer(
+                    echeances, many=True, context={"request": request}
+                ).data,
+            }
+        )
+
     def perform_destroy(self, instance: Enfant) -> None:
         instance.supprimer()
 
@@ -109,6 +139,32 @@ class GrossesseViewSet(FiltrageParPoste, viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Grossesse.objects.select_related("mere", "mere__poste")
         return self.filtrer_par_poste(queryset)
+
+    @extend_schema(
+        responses={200: None},
+        description="Calendrier antitétanique de la grossesse (EF-21).",
+    )
+    @action(detail=True, methods=["get"])
+    def calendrier(self, request, id=None):
+        from apps.suivi.api import EcheanceViewSet
+        from apps.suivi.serializers import EcheanceSerializer
+
+        grossesse = self.get_object()
+
+        vue = EcheanceViewSet()
+        vue.request = request
+        echeances = vue.get_queryset().filter(grossesse=grossesse).order_by("date_cible", "rang")
+
+        return Response(
+            {
+                "beneficiaire_id": str(grossesse.identifiant_public),
+                "beneficiaire_nom": grossesse.mere.nom_complet,
+                "date_reference": grossesse.date_reference,
+                "echeances": EcheanceSerializer(
+                    echeances, many=True, context={"request": request}
+                ).data,
+            }
+        )
 
     def perform_destroy(self, instance: Grossesse) -> None:
         instance.supprimer()
