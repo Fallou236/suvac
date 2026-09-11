@@ -43,7 +43,7 @@ jobs:
           --health-retries 10
 
     env:
-      DJANGO_SECRET_KEY: cle-de-test-sans-valeur
+      DJANGO_SECRET_KEY: cle-de-test-sans-valeur-mais-suffisamment-longue-pour-hmac-sha256
       DJANGO_DEBUG: "True"
       POSTGRES_DB: suvac_test
       POSTGRES_USER: suvac
@@ -95,6 +95,47 @@ jobs:
           path: backend/coverage.xml
           if-no-files-found: ignore
 
+  frontend:
+    name: Frontend — qualité et tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Typage — tsc
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npx vitest run --passWithNoTests --coverage
+
+      - name: Build de production
+        run: npm run build
+
+      - name: Archiver le rapport de couverture
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: couverture-frontend
+          path: frontend/coverage/lcov.info
+          if-no-files-found: ignore
+
+      - name: Style et erreurs — oxlint
+        run: npx oxlint
+
   securite:
     name: Sécurité des dépendances
     runs-on: ubuntu-latest
@@ -109,4 +150,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip pip-audit
           pip-audit -r backend/requirements.txt --strict
+        continue-on-error: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Audit des dépendances Node
+        working-directory: frontend
+        run: npm audit --audit-level=high
         continue-on-error: true
