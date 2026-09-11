@@ -37,16 +37,3 @@ jobs:
           name: cahier-des-charges
           path: docs/cahier-des-charges.pdf
           if-no-files-found: error
-
-      - name: Committer le PDF à jour
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet docs/cahier-des-charges.pdf; then
-            echo "PDF inchangé."
-          else
-            git add docs/cahier-des-charges.pdf
-            git commit -m "docs: recompiler le cahier des charges [skip ci]"
-            git push
-          fi
