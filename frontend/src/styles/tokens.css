@@ -1,0 +1,139 @@
+/* ============================================================
+   SUVAC — jetons de design
+   Importé une seule fois, à la racine de l'application.
+   ============================================================ */
+
+@import "tailwindcss";
+
+/* Tailwind 4 génère les classes utilitaires depuis ce bloc :
+   bg-baobab, text-cuivre, min-h-tactile deviennent disponibles. */
+@theme {
+  --color-baobab:          #14432E;
+  --color-baobab-fonce:    #0D2E20;
+  --color-baobab-clair:    #E4EDE8;
+  --color-cuivre:          #8E4A1E;
+  --color-cuivre-clair:    #F5EBE2;
+  --color-cuivre-lumiere:  #D9924F;
+
+  --color-administre:      #14432E;
+  --color-avenir:          #B9C4BC;
+  --color-due:             #8E4A1E;
+  --color-due-fond:        #F5EBE2;
+  --color-retard:          #8C1410;
+  --color-retard-fond:     #F6E7E6;
+  --color-annule:          #6B7A82;
+
+  --color-surface:         #FFFFFF;
+  --color-surface-basse:   #FAFBFA;
+  --color-bordure:         #D5E0D9;
+  --color-texte:           #0F2A1E;
+  --color-texte-faible:    #4F6659;
+
+  --font-sans: "Public Sans Variable", "Public Sans", system-ui, sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --spacing-tactile: 48px;
+}
+
+:root {
+  /* --- Marque ------------------------------------------------ */
+  --suvac-baobab:        #14432E;  /* principale : navigation, titres, doses faites */
+  --suvac-baobab-fonce:  #0D2E20;  /* survol d'un élément en baobab */
+  --suvac-baobab-clair:  #E4EDE8;  /* fond d'un élément principal */
+  --suvac-cuivre:        #8E4A1E;  /* accent unique : boutons, liens, focus, anneau « due » */
+  --suvac-cuivre-clair:  #F5EBE2;  /* fond d'un élément accentué */
+  --suvac-cuivre-lumiere:#D9924F;  /* cuivre éclairci, uniquement sur fond baobab */
+
+  /* --- Statuts vaccinaux -------------------------------------
+     La couleur ne porte JAMAIS l'information seule.
+     Chaque statut est aussi distingué par la forme :
+       administré = pastille pleine
+       à venir    = pastille vide
+       due        = pastille pleine + anneau
+       en retard  = pastille pleine + icône d'alerte
+     ----------------------------------------------------------- */
+  --statut-administre:  #14432E;  /* la dose est faite — « tampon » sur le carnet */
+  --statut-a-venir:     #B9C4BC;  /* case encore vide */
+  --statut-due:         #8E4A1E;
+  --statut-due-fond:    #F5EBE2;
+  --statut-retard:      #8C1410;
+  --statut-retard-fond: #F6E7E6;
+  --statut-annule:      #6B7A82;
+
+  /* --- Surfaces et texte ------------------------------------- */
+  --surface:            #FFFFFF;
+  --surface-basse:      #FAFBFA;  /* fond de page, lignes alternées */
+  --bordure:            #D5E0D9;
+  --texte:              #0F2A1E;  /* contraste 14,8:1 sur la surface basse */
+  --texte-faible:       #4F6659;  /* contraste 6,0:1 sur la surface basse */
+  --texte-inverse:      #FFFFFF;
+
+  /* --- Typographie ------------------------------------------- */
+  --police: "Public Sans Variable", "Public Sans", system-ui, sans-serif;
+
+  --taille-xs:   0.75rem;   /* 12px — mentions */
+  --taille-sm:   0.875rem;  /* 14px — libellés, tableaux denses */
+  --taille-base: 1rem;      /* 16px — texte courant, minimum sur mobile */
+  --taille-lg:   1.125rem;  /* 18px — sous-titres */
+  --taille-xl:   1.5rem;    /* 24px — titres d'écran */
+  --taille-2xl:  2rem;      /* 32px — nom de l'enfant sur sa fiche */
+
+  /* --- Espacement (base 4px) --------------------------------- */
+  --esp-1: 0.25rem;  --esp-2: 0.5rem;  --esp-3: 0.75rem;
+  --esp-4: 1rem;     --esp-6: 1.5rem;  --esp-8: 2rem;   --esp-12: 3rem;
+
+  /* --- Formes ------------------------------------------------ */
+  --rayon-sm: 4px;   /* pastilles de statut, étiquettes */
+  --rayon:    8px;   /* champs, boutons */
+  --rayon-lg: 12px;  /* cartes */
+
+  /* --- Mouvement ---------------------------------------------
+     Plafond volontaire : aucune animation au-delà de 200 ms.
+     L'agent consulte sa file vingt fois par jour ; une transition
+     qui s'admire une fois agace les dix-neuf suivantes. */
+  --duree-courte:  120ms;
+  --duree-moyenne: 200ms;
+  --courbe: cubic-bezier(0.2, 0, 0.2, 1);
+
+  /* --- Cible tactile minimale --------------------------------
+     L'agent travaille debout, parfois avec des gants. */
+  --cible-tactile: 48px;
+}
+
+/* Réglages de base ------------------------------------------- */
+
+html {
+  font-family: var(--police);
+  color: var(--texte);
+  background: var(--surface-basse);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+/* Chiffres alignés : indispensable pour les dates et les rangs
+   de dose empilés dans un tableau. */
+table, .tabulaire {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Focus visible au clavier, sur toute la plateforme (ENF-42). */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--suvac-cuivre);
+  outline-offset: 2px;
+}
+
+/* Respect du réglage système « réduire les animations ». */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
