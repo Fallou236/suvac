@@ -37,10 +37,3 @@ jobs:
           name: cahier-des-charges
           path: docs/cahier-des-charges.pdf
           if-no-files-found: error
-
-      - name: Publier le PDF comme artefact
-        uses: actions/upload-artifact@v4
-        with:
-          name: cahier-des-charges
-          path: docs/cahier-des-charges.pdf
-          if-no-files-found: error
