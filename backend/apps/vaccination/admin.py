@@ -22,6 +22,7 @@ class VaccinAdmin(admin.ModelAdmin):
     list_display = ("code", "libelle_fr", "libelle_wo", "voie", "actif")
     list_filter = ("actif", "voie")
     search_fields = ("code", "libelle_fr", "libelle_wo")
+    readonly_fields = ("supprime_le", "cree_le", "modifie_le")
     inlines = [RegleInline]
 
 
@@ -38,3 +39,4 @@ class RegleVaccinaleAdmin(admin.ModelAdmin):
     )
     list_filter = ("cible", "actif", "vaccin")
     ordering = ("cible", "age_cible_jours")
+    readonly_fields = ("supprime_le", "cree_le", "modifie_le")

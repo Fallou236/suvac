@@ -40,3 +40,12 @@ def test_suppression_du_poste_est_logique(poste):
     poste.supprimer()
     assert PosteSante.objects.count() == 0
     assert PosteSante.tous.count() == 1
+
+
+def test_un_objet_cree_n_est_pas_deja_supprime(db):
+    """Régression : un poste créé depuis l'interface d'administration
+    ressortait avec `supprime_le` renseigné, donc invisible partout."""
+    poste = PosteSante.objects.create(nom="Poste de Thiénaba", district="Thiès", region="Thiès")
+
+    assert poste.supprime_le is None
+    assert PosteSante.objects.filter(pk=poste.pk).exists()
