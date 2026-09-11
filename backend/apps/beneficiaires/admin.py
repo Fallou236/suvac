@@ -19,30 +19,19 @@ class EnfantInline(admin.TabularInline):
 
 @admin.register(Mere)
 class MereAdmin(admin.ModelAdmin):
-    list_display = (
-        "nom_complet",
-        "telephone",
-        "poste",
-        "village",
-        "accepte_les_rappels",
-    )
+    list_display = ("nom_complet", "telephone", "poste", "village", "accepte_les_rappels")
     list_filter = ("poste", "langue")
     search_fields = ("prenom", "nom", "telephone")
+    readonly_fields = ("supprime_le", "identifiant_public", "cree_le", "modifie_le")
     inlines = [ConsentementInline, EnfantInline]
 
 
 @admin.register(Enfant)
 class EnfantAdmin(admin.ModelAdmin):
-    list_display = (
-        "nom_complet",
-        "date_naissance",
-        "sexe",
-        "mere",
-        "poste",
-        "est_premature",
-    )
+    list_display = ("nom_complet", "date_naissance", "sexe", "mere", "poste", "est_premature")
     list_filter = ("poste", "sexe")
     search_fields = ("prenom", "nom", "mere__prenom", "mere__nom")
+    readonly_fields = ("supprime_le", "identifiant_public", "cree_le", "modifie_le")
     date_hierarchy = "date_naissance"
 
 
@@ -50,9 +39,11 @@ class EnfantAdmin(admin.ModelAdmin):
 class GrossesseAdmin(admin.ModelAdmin):
     list_display = ("mere", "rang", "date_reference", "terme_estime", "statut")
     list_filter = ("statut",)
+    readonly_fields = ("supprime_le", "identifiant_public", "cree_le", "modifie_le")
 
 
 @admin.register(Consentement)
 class ConsentementAdmin(admin.ModelAdmin):
     list_display = ("mere", "canal", "accorde_le", "revoque_le", "recueilli_par")
     list_filter = ("canal",)
+    readonly_fields = ("cree_le", "modifie_le")

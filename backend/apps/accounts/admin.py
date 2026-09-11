@@ -10,6 +10,8 @@ class PosteSanteAdmin(admin.ModelAdmin):
     list_display = ("nom", "district", "region", "actif", "supprime_le")
     list_filter = ("region", "district", "actif")
     search_fields = ("nom", "district", "region")
+    # La suppression logique passe par `supprimer()`, jamais par une saisie.
+    readonly_fields = ("supprime_le", "identifiant_public", "cree_le", "modifie_le")
 
 
 @admin.register(Utilisateur)
@@ -17,6 +19,7 @@ class UtilisateurAdmin(UserAdminBase):
     list_display = ("username", "get_full_name", "role", "poste", "is_active")
     list_filter = ("role", "poste", "is_active")
     search_fields = ("username", "first_name", "last_name", "telephone")
+    readonly_fields = ("identifiant_public", "cree_le", "modifie_le")
     fieldsets = UserAdminBase.fieldsets + (
         (_("Profil SUVAC"), {"fields": ("role", "poste", "telephone", "langue")}),
     )

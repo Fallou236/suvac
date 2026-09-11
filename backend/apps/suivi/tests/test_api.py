@@ -134,9 +134,30 @@ def test_la_file_du_jour_liste_les_echeances_dues(client, agent, enfant):
     reponse = client.get("/api/echeances/file-du-jour/?date=2026-02-12")
 
     codes = {(e["vaccin_code"], e["rang"]) for e in reponse.data}
-    assert ("BCG", 1) in codes
-    assert ("PENTA", 1) in codes
-    assert ("RR", 1) not in codes  # prévue à 9 mois
+    assert ("PENTA", 1) in codes  # cible au 12 février, dû ce jour
+    assert ("RR", 1) not in codes  # prévu à 9 mois, hors horizon
+
+
+def test_la_file_ecarte_le_rattrapage_ancien(client, agent, enfant):
+    """Une échéance dont la cible remonte à plus de 30 jours sans être
+    en retard relève du rattrapage, pas de la file du jour : elle
+    encombrerait l'écran sans appeler d'action immédiate."""
+    connecter(client, "awa.ndiaye")
+    reponse = client.get("/api/echeances/file-du-jour/?date=2026-02-12")
+
+    codes = {(e["vaccin_code"], e["rang"]) for e in reponse.data}
+    # BCG était dû à la naissance, 42 jours plus tôt, mais sa fenêtre de
+    # rattrapage court jusqu'à 12 mois : il n'est pas « en retard ».
+    assert ("BCG", 1) not in codes
+
+
+def test_l_horizon_est_ajustable(client, agent, enfant):
+    connecter(client, "awa.ndiaye")
+
+    court = client.get("/api/echeances/file-du-jour/?date=2026-02-12&horizon=0")
+    large = client.get("/api/echeances/file-du-jour/?date=2026-02-12&horizon=90")
+
+    assert len(large.data) > len(court.data)
 
 
 def test_la_file_expose_le_beneficiaire_sans_requete_supplementaire(client, agent, enfant):

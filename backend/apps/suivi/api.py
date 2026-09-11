@@ -1,5 +1,7 @@
 """Points d'accès du suivi vaccinal."""
 
+from datetime import date, timedelta
+
 from django.db.models import Prefetch, Q
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -67,21 +69,47 @@ class EcheanceViewSet(viewsets.ReadOnlyModelViewSet):
             OpenApiParameter(
                 "date",
                 str,
-                description="Jour ciblé (AAAA-MM-JJ). " "Par défaut : aujourd'hui.",
+                description="Jour ciblé (AAAA-MM-JJ). Par défaut : aujourd'hui.",
+            ),
+            OpenApiParameter(
+                "horizon",
+                int,
+                description="Nombre de jours à venir inclus. Défaut : 7.",
             ),
         ],
         responses=EcheanceFileSerializer(many=True),
-        description="File du jour : bénéficiaires attendus et en retard (EF-42).",
+        description=(
+            "File du jour (EF-42) : échéances en retard, plus celles dues "
+            "dans les prochains jours. Une échéance dont la date cible est "
+            "dépassée mais qui reste dans sa fenêtre de rattrapage n'encombre "
+            "pas la file tant qu'elle n'est pas proche de sa limite."
+        ),
     )
     @action(detail=False, methods=["get"], url_path="file-du-jour")
     def file_du_jour(self, request):
         jour = request.query_params.get("date")
-        jour = timezone.datetime.fromisoformat(jour).date() if jour else timezone.localdate()
+        jour = date.fromisoformat(jour) if jour else timezone.localdate()
+
+        try:
+            horizon = int(request.query_params.get("horizon", 7))
+        except ValueError:
+            horizon = 7
+        horizon = max(0, min(horizon, 90))
+
+        limite_haute = jour + timedelta(days=horizon)
+        # Une échéance dont la cible remonte à plus d'un mois n'est plus
+        # « attendue aujourd'hui » : c'est du rattrapage, qui relève de la
+        # fiche du bénéficiaire et non de la file du jour.
+        borne_basse = jour - timedelta(days=30)
 
         echeances = (
             self.get_queryset()
-            .filter(statut__in=STATUTS_EN_ATTENTE, date_cible__lte=jour)
-            .order_by("date_cible")
+            .filter(statut__in=STATUTS_EN_ATTENTE)
+            .filter(
+                Q(statut=StatutEcheance.EN_RETARD)
+                | Q(date_cible__gte=borne_basse, date_cible__lte=limite_haute)
+            )
+            .order_by("date_cible", "vaccin__code", "rang")
         )
 
         serializer = EcheanceFileSerializer(echeances, many=True, context={"request": request})

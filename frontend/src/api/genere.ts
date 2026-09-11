@@ -183,7 +183,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description File du jour : bénéficiaires attendus et en retard (EF-42). */
+        /** @description File du jour (EF-42) : échéances en retard, plus celles dues dans les prochains jours. Une échéance dont la date cible est dépassée mais qui reste dans sa fenêtre de rattrapage n'encombre pas la file tant qu'elle n'est pas proche de sa limite. */
         get: operations["echeances_file_du_jour_list"];
         put?: never;
         post?: never;
@@ -1232,6 +1232,8 @@ export interface operations {
             query?: {
                 /** @description Jour ciblé (AAAA-MM-JJ). Par défaut : aujourd'hui. */
                 date?: string;
+                /** @description Nombre de jours à venir inclus. Défaut : 7. */
+                horizon?: number;
                 /** @description Un numéro de page de l'ensemble des résultats. */
                 page?: number;
             };
