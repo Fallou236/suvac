@@ -133,6 +133,9 @@ jobs:
           path: frontend/coverage/lcov.info
           if-no-files-found: ignore
 
+      - name: Style et erreurs — oxlint
+        run: npx oxlint
+
   securite:
     name: Sécurité des dépendances
     runs-on: ubuntu-latest

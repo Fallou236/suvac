@@ -34,13 +34,14 @@ export function surPerteDeSession(rappel: () => void): void {
 }
 
 export class ErreurApi extends Error {
-  constructor(
-    readonly statut: number,
-    readonly donnees: unknown,
-    message?: string,
-  ) {
+  readonly statut: number;
+  readonly donnees: unknown;
+
+  constructor(statut: number, donnees: unknown, message?: string) {
     super(message ?? `Erreur ${statut}`);
     this.name = "ErreurApi";
+    this.statut = statut;
+    this.donnees = donnees;
   }
 }
 
