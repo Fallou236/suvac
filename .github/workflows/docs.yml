@@ -1,0 +1,52 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**.tex"
+      - ".github/workflows/docs.yml"
+  pull_request:
+    paths:
+      - "docs/**.tex"
+      - ".github/workflows/docs.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  cahier-des-charges:
+    name: Compiler le cahier des charges
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compiler avec XeLaTeX
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: cahier-des-charges.tex
+          working_directory: docs
+          latexmk_use_xelatex: true
+          # Les polices TeX Gyre et les paquets utilisés par le document.
+          extra_system_packages: "fontconfig"
+
+      - name: Publier le PDF comme artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cahier-des-charges
+          path: docs/cahier-des-charges.pdf
+          if-no-files-found: error
+
+      - name: Committer le PDF à jour
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet docs/cahier-des-charges.pdf; then
+            echo "PDF inchangé."
+          else
+            git add docs/cahier-des-charges.pdf
+            git commit -m "docs: recompiler le cahier des charges [skip ci]"
+            git push
+          fi
