@@ -5,21 +5,32 @@ export type GroupeBeneficiaire = {
   nom: string;
   type: string;
   telephone: string;
-  echeances: EcheanceFile[];
+  /** Tout le calendrier, pour la frise de progression. */
+  calendrier: EcheanceFile[];
+  /** Ce qui appelle une action : dû ou en retard, jamais périmé. */
+  aFaire: EcheanceFile[];
   retardMaximal: number;
-  aDuRetard: boolean;
+  section: "aujourdhui" | "retard" | "rattrapage";
+  dosesFaites: number;
+  mereNom: string;
 };
 
 /**
- * Un bénéficiaire vient une fois et reçoit plusieurs vaccins : la file doit
- * refléter cette réalité plutôt que d'aligner une ligne par dose.
+ * Trois sections plutôt qu'une liste indifférenciée :
+ *   — aujourd'hui : une dose tombe précisément ce jour ;
+ *   — en retard   : la fenêtre de rattrapage se referme ;
+ *   — à rattraper : due depuis longtemps, sans urgence du jour.
+ *
+ * Les échéances périmées sont écartées côté serveur : elles ne sont plus
+ * administrables.
  */
 export function grouperParBeneficiaire(
-  echeances: EcheanceFile[],
+  calendriers: EcheanceFile[],
+  jour: string,
 ): GroupeBeneficiaire[] {
   const index = new Map<string, GroupeBeneficiaire>();
 
-  for (const echeance of echeances) {
+  for (const echeance of calendriers) {
     const cle = echeance.beneficiaire_id;
     let groupe = index.get(cle);
 
@@ -29,33 +40,47 @@ export function grouperParBeneficiaire(
         nom: echeance.beneficiaire_nom,
         type: echeance.beneficiaire_type,
         telephone: echeance.telephone ?? "",
-        echeances: [],
+        calendrier: [],
+        aFaire: [],
         retardMaximal: 0,
-        aDuRetard: false,
+        section: "rattrapage",
+        dosesFaites: 0,
+        mereNom: echeance.mere_nom ?? "",
       };
       index.set(cle, groupe);
     }
 
-    groupe.echeances.push(echeance);
+    groupe.calendrier.push(echeance);
+    if (echeance.statut === "administree") groupe.dosesFaites += 1;
 
-    const retard = echeance.retard_jours ?? 0;
-    if (retard > groupe.retardMaximal) groupe.retardMaximal = retard;
-    if (echeance.statut === "en_retard") groupe.aDuRetard = true;
+    if (echeance.statut === "due" || echeance.statut === "en_retard") {
+      groupe.aFaire.push(echeance);
+      const retard = echeance.retard_jours ?? 0;
+      if (retard > groupe.retardMaximal) groupe.retardMaximal = retard;
+    }
   }
 
-    // Les retards d'abord à l'intérieur de chaque carte.
   for (const groupe of index.values()) {
-    groupe.echeances.sort((a, b) => {
-      const ra = a.retard_jours ?? 0;
-      const rb = b.retard_jours ?? 0;
-      if (ra !== rb) return rb - ra;
-      return a.date_cible.localeCompare(b.date_cible);
-    });
+    groupe.calendrier.sort((a, b) => a.date_cible.localeCompare(b.date_cible));
+    groupe.aFaire.sort((a, b) => (b.retard_jours ?? 0) - (a.retard_jours ?? 0));
+
+    const duAujourdhui = groupe.aFaire.some((e) => e.date_cible === jour);
+    const enRetard = groupe.aFaire.some((e) => e.statut === "en_retard");
+
+    groupe.section = duAujourdhui
+      ? "aujourdhui"
+      : enRetard
+        ? "retard"
+        : "rattrapage";
   }
 
-  // Les retards les plus anciens d'abord : c'est là que l'action presse.
-  return [...index.values()].sort((a, b) => {
-    if (a.aDuRetard !== b.aDuRetard) return a.aDuRetard ? -1 : 1;
-    return b.retardMaximal - a.retardMaximal;
-  });
+  return [...index.values()]
+    .filter((g) => g.aFaire.length > 0)
+    .sort((a, b) => b.retardMaximal - a.retardMaximal);
 }
+
+export const SECTIONS = [
+  { cle: "aujourdhui", titre: "Aujourd'hui", ton: "accent" },
+  { cle: "retard", titre: "En retard", ton: "alerte" },
+  { cle: "rattrapage", titre: "À rattraper", ton: "neutre" },
+] as const;

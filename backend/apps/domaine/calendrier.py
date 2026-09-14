@@ -27,14 +27,14 @@ class Statut(StrEnum):
     A_VENIR = "a_venir"
     DUE = "due"
     EN_RETARD = "en_retard"
+    PERIMEE = "perimee"
     ADMINISTREE = "administree"
     ANNULEE = "annulee"
 
 
 class Violation(StrEnum):
-    """Motif de refus d'une administration."""
-
     AGE_MINIMAL_NON_ATTEINT = "age_minimal_non_atteint"
+    AGE_LIMITE_DEPASSE = "age_limite_depasse"
     INTERVALLE_MINIMAL_NON_RESPECTE = "intervalle_minimal_non_respecte"
     DOSE_PRECEDENTE_MANQUANTE = "dose_precedente_manquante"
     DOSE_DEJA_ADMINISTREE = "dose_deja_administree"
@@ -120,15 +120,31 @@ def _statut(
     annulees: frozenset[CleDose],
     aujourdhui: date,
 ) -> Statut:
+    """RG-05, étendue.
+
+    Trois états distincts après la date cible :
+      — due, dans le premier tiers de la fenêtre de rattrapage ;
+      — en retard, au-delà, tant que la fenêtre reste ouverte ;
+      — périmée, une fois la fenêtre close : la dose n'est plus administrable.
+
+    Le seuil suit la fenêtre propre à chaque vaccin plutôt qu'un délai fixe :
+    un vaccin dont le rattrapage court sur douze mois ne devient pas « en
+    retard » au même rythme qu'un vaccin à quatre semaines.
+    """
     if cle in annulees:
         return Statut.ANNULEE
     if cle in doses:
         return Statut.ADMINISTREE
     if aujourdhui < date_cible:
         return Statut.A_VENIR
-    if date_limite is None or aujourdhui <= date_limite:
+    if date_limite is None:
         return Statut.DUE
-    return Statut.EN_RETARD
+    if aujourdhui > date_limite:
+        return Statut.PERIMEE
+
+    fenetre = (date_limite - date_cible).days
+    seuil = date_cible + timedelta(days=max(1, fenetre // 3))
+    return Statut.DUE if aujourdhui <= seuil else Statut.EN_RETARD
 
 
 def generer_calendrier(
@@ -226,6 +242,9 @@ def valider_administration(
     if age_jours < regle.age_min_jours:
         violations.append(Violation.AGE_MINIMAL_NON_ATTEINT)
 
+    if regle.age_limite_jours is not None and age_jours > regle.age_limite_jours:
+        violations.append(Violation.AGE_LIMITE_DEPASSE)
+
     if regle.rang > 1:
         if date_dose_precedente is None:
             violations.append(Violation.DOSE_PRECEDENTE_MANQUANTE)
@@ -259,7 +278,11 @@ def serie_abandonnee(
     if not administrees:
         return False
 
-    restantes = [e for e in serie if e.statut in {Statut.A_VENIR, Statut.DUE, Statut.EN_RETARD}]
+    restantes = [
+        e
+        for e in serie
+        if e.statut in {Statut.A_VENIR, Statut.DUE, Statut.EN_RETARD, Statut.PERIMEE}
+    ]
     if not restantes:
         return False
 

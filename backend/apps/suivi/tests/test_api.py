@@ -108,7 +108,7 @@ def test_le_calendrier_expose_les_statuts(client, agent, enfant):
     reponse = client.get(f"/api/enfants/{enfant.identifiant_public}/calendrier/")
 
     statuts = {e["statut"] for e in reponse.data["echeances"]}
-    assert statuts <= {"a_venir", "due", "en_retard", "administree", "annulee"}
+    assert statuts <= {"a_venir", "due", "en_retard", "perimee", "administree", "annulee"}
 
 
 def test_calendrier_d_un_enfant_d_un_autre_poste_refuse(client, agent, enfant_ailleurs):
@@ -138,24 +138,13 @@ def test_la_file_du_jour_liste_les_echeances_dues(client, agent, enfant):
     assert ("RR", 1) not in codes  # prévu à 9 mois, hors horizon
 
 
-def test_la_file_ecarte_le_rattrapage_ancien(client, agent, enfant):
-    """Une échéance dont la cible remonte à plus de 30 jours sans être
-    en retard relève du rattrapage, pas de la file du jour : elle
-    encombrerait l'écran sans appeler d'action immédiate."""
-    connecter(client, "awa.ndiaye")
-    reponse = client.get("/api/echeances/file-du-jour/?date=2026-02-12")
-
-    codes = {(e["vaccin_code"], e["rang"]) for e in reponse.data}
-    # BCG était dû à la naissance, 42 jours plus tôt, mais sa fenêtre de
-    # rattrapage court jusqu'à 12 mois : il n'est pas « en retard ».
-    assert ("BCG", 1) not in codes
-
-
 def test_l_horizon_est_ajustable(client, agent, enfant):
+    """Au 1er juillet 2026, RR-1 et VAA-1 sont prévus au 28 septembre : hors
+    d'un horizon de 7 jours, dans un horizon de 90."""
     connecter(client, "awa.ndiaye")
 
-    court = client.get("/api/echeances/file-du-jour/?date=2026-02-12&horizon=0")
-    large = client.get("/api/echeances/file-du-jour/?date=2026-02-12&horizon=90")
+    court = client.get("/api/echeances/file-du-jour/?date=2026-07-01&horizon=7")
+    large = client.get("/api/echeances/file-du-jour/?date=2026-07-01&horizon=90")
 
     assert len(large.data) > len(court.data)
 
@@ -199,6 +188,21 @@ def test_la_file_sans_date_utilise_aujourd_hui(client, agent, enfant):
     connecter(client, "awa.ndiaye")
     reponse = client.get("/api/echeances/file-du-jour/")
     assert reponse.status_code == 200
+
+
+def test_la_file_ecarte_les_echeances_perimees(client, agent, enfant):
+    """Une dose dont la fenêtre de rattrapage est close ne peut plus être
+    administrée : elle n'a rien à faire dans la file du jour.
+
+    Au 15 avril 2026, VPO-1 est périmé — sa fenêtre s'est close le 9 avril,
+    98 jours après la naissance — alors que Penta-1 reste rattrapable
+    jusqu'à douze mois."""
+    connecter(client, "awa.ndiaye")
+    reponse = client.get("/api/echeances/file-du-jour/?date=2026-04-15")
+
+    codes = {(e["vaccin_code"], e["rang"]) for e in reponse.data}
+    assert ("VPO", 1) not in codes
+    assert ("PENTA", 1) in codes
 
 
 # --- EF-30 : enregistrement d'une dose --------------------------------------

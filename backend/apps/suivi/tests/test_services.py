@@ -229,15 +229,24 @@ def test_deux_cles_distinctes_creent_deux_doses(enfant, agent):
 # --- RG-05 : rafraîchissement des statuts -----------------------------------
 
 
-def test_une_echeance_devient_due_puis_en_retard(enfant):
+def test_une_echeance_devient_due_puis_en_retard_puis_perimee(enfant):
+    """Penta-1 : cible au 12 février 2026 (42 j), limite au 27 décembre (360 j).
+    La fenêtre fait 318 jours ; le seuil due/en retard tombe au tiers, soit le
+    29 mai."""
     generer_echeances(enfant, aujourdhui=date(2026, 2, 11))
     assert echeance_de(enfant, "PENTA", 1).statut == StatutEcheance.A_VENIR
 
     rafraichir_statuts(aujourdhui=date(2026, 2, 12))
     assert echeance_de(enfant, "PENTA", 1).statut == StatutEcheance.DUE
 
-    rafraichir_statuts(aujourdhui=date(2027, 6, 1))
+    rafraichir_statuts(aujourdhui=date(2026, 5, 29))
+    assert echeance_de(enfant, "PENTA", 1).statut == StatutEcheance.DUE
+
+    rafraichir_statuts(aujourdhui=date(2026, 5, 30))
     assert echeance_de(enfant, "PENTA", 1).statut == StatutEcheance.EN_RETARD
+
+    rafraichir_statuts(aujourdhui=date(2026, 12, 28))
+    assert echeance_de(enfant, "PENTA", 1).statut == StatutEcheance.PERIMEE
 
 
 def test_le_rafraichissement_ignore_les_doses_administrees(enfant, agent):

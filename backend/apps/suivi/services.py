@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 
 from django.db import transaction
 from django.utils import timezone
@@ -26,6 +26,7 @@ CORRESPONDANCE_STATUTS = {
     moteur.Statut.A_VENIR: StatutEcheance.A_VENIR,
     moteur.Statut.DUE: StatutEcheance.DUE,
     moteur.Statut.EN_RETARD: StatutEcheance.EN_RETARD,
+    moteur.Statut.PERIMEE: StatutEcheance.PERIMEE,
     moteur.Statut.ADMINISTREE: StatutEcheance.ADMINISTREE,
     moteur.Statut.ANNULEE: StatutEcheance.ANNULEE,
 }
@@ -49,7 +50,7 @@ class Contexte:
     annulees: frozenset[moteur.CleDose]
 
 
-def _contexte(beneficiaire: Enfant | Grossesse) -> Contexte:
+def contexte_beneficiaire(beneficiaire: Enfant | Grossesse) -> Contexte:
     if isinstance(beneficiaire, Enfant):
         reference, cible, filtre = (
             beneficiaire.date_naissance,
@@ -87,7 +88,7 @@ def generer_echeances(beneficiaire: Enfant | Grossesse, aujourdhui: date | None 
     Relancer après une dose ou un changement de schéma est donc sans risque.
     """
     aujourdhui = aujourdhui or timezone.localdate()
-    contexte = _contexte(beneficiaire)
+    contexte = contexte_beneficiaire(beneficiaire)
     schema = charger_schema(contexte.cible)
 
     if not schema:
@@ -152,7 +153,7 @@ def enregistrer_dose(
             return existante
 
     beneficiaire = echeance.beneficiaire
-    contexte = _contexte(beneficiaire)
+    contexte = contexte_beneficiaire(beneficiaire)
     schema = charger_schema(contexte.cible)
     regle = regle_pour(schema, echeance.vaccin.code, echeance.rang)
 
@@ -188,9 +189,8 @@ def enregistrer_dose(
 def rafraichir_statuts(aujourdhui: date | None = None) -> int:
     """Réévalue les statuts en attente (RG-05).
 
-    Une échéance due hier peut être en retard aujourd'hui sans qu'aucune
-    écriture n'ait eu lieu. Cette fonction est appelée par le balayage
-    quotidien (EF-40).
+    Une échéance due hier peut être en retard aujourd'hui, et une échéance
+    en retard peut devenir périmée, sans qu'aucune écriture n'ait eu lieu.
     """
     aujourdhui = aujourdhui or timezone.localdate()
     modifiees = 0
@@ -206,10 +206,16 @@ def rafraichir_statuts(aujourdhui: date | None = None) -> int:
     for echeance in en_attente.iterator(chunk_size=500):
         if aujourdhui < echeance.date_cible:
             nouveau = StatutEcheance.A_VENIR
-        elif echeance.date_limite is None or aujourdhui <= echeance.date_limite:
+        elif echeance.date_limite is None:
+            # Sans fenêtre définie, l'échéance reste indéfiniment administrable.
             nouveau = StatutEcheance.DUE
+        elif aujourdhui > echeance.date_limite:
+            nouveau = StatutEcheance.PERIMEE
         else:
-            nouveau = StatutEcheance.EN_RETARD
+            # Le seuil suit la fenêtre propre au vaccin plutôt qu'un délai fixe.
+            fenetre = (echeance.date_limite - echeance.date_cible).days
+            seuil = echeance.date_cible + timedelta(days=max(1, fenetre // 3))
+            nouveau = StatutEcheance.DUE if aujourdhui <= seuil else StatutEcheance.EN_RETARD
 
         if nouveau != echeance.statut:
             echeance.statut = nouveau
