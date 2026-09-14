@@ -29,6 +29,11 @@
   --color-texte:           #0F2A1E;
   --color-texte-faible:    #4F6659;
 
+  --spacing-laterale: 240px;
+  --spacing-liste: 400px;
+  --spacing-ligne: 64px;
+  --spacing-barre: 56px;
+
   --font-sans: "Public Sans Variable", "Public Sans", system-ui, sans-serif;
 
   --radius-sm: 4px;
@@ -74,12 +79,12 @@
   /* --- Typographie ------------------------------------------- */
   --police: "Public Sans Variable", "Public Sans", system-ui, sans-serif;
 
-  --taille-xs:   0.75rem;   /* 12px — mentions */
-  --taille-sm:   0.875rem;  /* 14px — libellés, tableaux denses */
-  --taille-base: 1rem;      /* 16px — texte courant, minimum sur mobile */
-  --taille-lg:   1.125rem;  /* 18px — sous-titres */
-  --taille-xl:   1.5rem;    /* 24px — titres d'écran */
-  --taille-2xl:  2rem;      /* 32px — nom de l'enfant sur sa fiche */
+  --taille-xs:   0.6875rem; /* 11px — métadonnées, étiquettes */
+  --taille-sm:   0.8125rem; /* 13px — libellés, cellules */
+  --taille-base: 0.875rem;  /* 14px — texte courant */
+  --taille-lg:   1rem;      /* 16px — titres de section */
+  --taille-xl:   1.25rem;   /* 20px — titre d'écran */
+  --taille-2xl:  1.5rem;    /* 24px — nom du bénéficiaire */
 
   /* --- Espacement (base 4px) --------------------------------- */
   --esp-1: 0.25rem;  --esp-2: 0.5rem;  --esp-3: 0.75rem;
@@ -137,3 +142,16 @@ table, .tabulaire {
     scroll-behavior: auto !important;
   }
 }
+
+/* Barres de défilement discrètes : dans une disposition à trois colonnes,
+   trois barres système découpent l'écran visuellement. */
+.defilement {
+  scrollbar-width: thin;
+  scrollbar-color: var(--bordure) transparent;
+}
+.defilement::-webkit-scrollbar { width: 8px; height: 8px; }
+.defilement::-webkit-scrollbar-thumb {
+  background: var(--bordure);
+  border-radius: 4px;
+}
+.defilement::-webkit-scrollbar-track { background: transparent; }

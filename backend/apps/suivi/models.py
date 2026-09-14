@@ -22,6 +22,7 @@ class StatutEcheance(models.TextChoices):
     A_VENIR = "a_venir", _("À venir")
     DUE = "due", _("Due")
     EN_RETARD = "en_retard", _("En retard")
+    PERIMEE = "perimee", _("Périmée")
     ADMINISTREE = "administree", _("Administrée")
     ANNULEE = "annulee", _("Annulée")
 

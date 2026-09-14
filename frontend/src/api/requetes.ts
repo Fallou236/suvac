@@ -10,4 +10,7 @@ export const requetes = {
 
   rechercherEnfants: (recherche: string) =>
     api.get<Page<EnfantListe>>("/enfants/", { search: recherche }),
+
+  fileDuJourComplete: (date?: string) =>
+    api.get<EcheanceFile[]>("/echeances/file-du-jour-complete/", { date }),
 };

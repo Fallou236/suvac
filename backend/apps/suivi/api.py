@@ -29,6 +29,50 @@ STATUTS_EN_ATTENTE = [
 ]
 
 
+def calculer_administrabilite(echeances) -> dict[int, list]:
+    """Détermine, pour chaque échéance, si elle est administrable aujourd'hui.
+
+    Le calcul est groupé par bénéficiaire : charger le schéma et reconstituer
+    le contexte une fois par échéance multiplierait les requêtes par dix-sept.
+    """
+    from apps.domaine import calendrier as moteur
+    from apps.suivi.services import contexte_beneficiaire
+    from apps.vaccination.services import charger_schema, regle_pour
+
+    aujourdhui = timezone.localdate()
+    resultat: dict[int, list] = {}
+    schemas: dict[str, list] = {}
+    contextes: dict[tuple, object] = {}
+
+    for echeance in echeances:
+        beneficiaire = echeance.beneficiaire
+        cle = (echeance.enfant_id, echeance.grossesse_id)
+
+        if cle not in contextes:
+            contextes[cle] = contexte_beneficiaire(beneficiaire)
+        contexte = contextes[cle]
+
+        if contexte.cible not in schemas:
+            schemas[contexte.cible] = charger_schema(contexte.cible)
+        schema = schemas[contexte.cible]
+
+        regle = regle_pour(schema, echeance.vaccin.code, echeance.rang)
+        if regle is None:
+            resultat[echeance.pk] = []
+            continue
+
+        resultat[echeance.pk] = moteur.valider_administration(
+            regle=regle,
+            date_reference=contexte.date_reference,
+            date_administration=aujourdhui,
+            date_dose_precedente=contexte.doses.get((echeance.vaccin.code, echeance.rang - 1)),
+            deja_administree=(echeance.vaccin.code, echeance.rang) in contexte.doses,
+            aujourdhui=aujourdhui,
+        )
+
+    return resultat
+
+
 class EcheanceViewSet(viewsets.ReadOnlyModelViewSet):
     """Consultation des échéances vaccinales.
 
@@ -96,23 +140,85 @@ class EcheanceViewSet(viewsets.ReadOnlyModelViewSet):
             horizon = 7
         horizon = max(0, min(horizon, 90))
 
-        limite_haute = jour + timedelta(days=horizon)
-        # Une échéance dont la cible remonte à plus d'un mois n'est plus
-        # « attendue aujourd'hui » : c'est du rattrapage, qui relève de la
-        # fiche du bénéficiaire et non de la file du jour.
-        borne_basse = jour - timedelta(days=30)
-
-        echeances = (
+        echeances = list(
             self.get_queryset()
             .filter(statut__in=STATUTS_EN_ATTENTE)
             .filter(
                 Q(statut=StatutEcheance.EN_RETARD)
-                | Q(date_cible__gte=borne_basse, date_cible__lte=limite_haute)
+                # Une échéance dont la cible remonte à plus d'un mois n'est
+                # plus « attendue aujourd'hui » : c'est du rattrapage.
+                | Q(
+                    date_cible__gte=jour - timedelta(days=30),
+                    date_cible__lte=jour + timedelta(days=horizon),
+                )
             )
             .order_by("date_cible", "vaccin__code", "rang")
         )
 
-        serializer = EcheanceFileSerializer(echeances, many=True, context={"request": request})
+        serializer = EcheanceFileSerializer(
+            echeances,
+            many=True,
+            context={
+                "request": request,
+                "validation": calculer_administrabilite(echeances),
+            },
+        )
+        return Response(serializer.data)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("date", str, description="Jour ciblé (AAAA-MM-JJ)."),
+            OpenApiParameter("horizon", int, description="Jours à venir inclus."),
+        ],
+        responses=EcheanceFileSerializer(many=True),
+        description=(
+            "Calendriers complets des bénéficiaires présents dans la file du "
+            "jour. Évite au client un appel par bénéficiaire pour afficher "
+            "leur progression vaccinale."
+        ),
+    )
+    @action(detail=False, methods=["get"], url_path="file-du-jour-complete")
+    def file_du_jour_complete(self, request):
+        jour = request.query_params.get("date")
+        jour = date.fromisoformat(jour) if jour else timezone.localdate()
+
+        try:
+            horizon = int(request.query_params.get("horizon", 7))
+        except ValueError:
+            horizon = 7
+        horizon = max(0, min(horizon, 90))
+
+        attendus = (
+            self.get_queryset()
+            .filter(statut__in=STATUTS_EN_ATTENTE)
+            .filter(
+                Q(statut=StatutEcheance.EN_RETARD)
+                | Q(
+                    date_cible__gte=jour - timedelta(days=30),
+                    date_cible__lte=jour + timedelta(days=horizon),
+                )
+            )
+        )
+
+        enfants = set(attendus.values_list("enfant_id", flat=True))
+        grossesses = set(attendus.values_list("grossesse_id", flat=True))
+        enfants.discard(None)
+        grossesses.discard(None)
+
+        completes = list(
+            self.get_queryset()
+            .filter(Q(enfant_id__in=enfants) | Q(grossesse_id__in=grossesses))
+            .order_by("date_cible", "vaccin__code", "rang")
+        )
+
+        serializer = EcheanceFileSerializer(
+            completes,
+            many=True,
+            context={
+                "request": request,
+                "validation": calculer_administrabilite(completes),
+            },
+        )
         return Response(serializer.data)
 
     @extend_schema(

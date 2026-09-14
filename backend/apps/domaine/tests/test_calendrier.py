@@ -173,10 +173,13 @@ def test_le_retard_ne_reinitialise_pas_la_serie():
 
 
 def test_serie_incomplete_depuis_plus_de_six_mois_est_abandonnee():
+    """RG-06. Au 30 septembre, les doses restantes sont périmées — une série
+    dont plus aucune dose n'est administrable n'est plus un abandon, c'est un
+    échec définitif. On se place donc avant la péremption."""
     doses = {("PENTA", 1): date(2026, 2, 12)}
-    resultat = calendrier(doses, aujourdhui=date(2026, 9, 30))
+    resultat = calendrier(doses, aujourdhui=date(2026, 8, 20))
 
-    assert serie_abandonnee(code_vaccin="PENTA", calendrier=resultat, aujourdhui=date(2026, 9, 30))
+    assert serie_abandonnee(code_vaccin="PENTA", calendrier=resultat, aujourdhui=date(2026, 8, 20))
 
 
 def test_serie_recente_n_est_pas_abandonnee():
@@ -213,17 +216,44 @@ def test_serie_complete_n_est_pas_abandonnee():
 
 
 def test_statuts_selon_la_date_du_jour():
+    """Penta-1 : cible au 12 février, limite au 12 mars, fenêtre de 28 jours.
+    Le seuil due/en retard tombe au tiers de la fenêtre, soit 9 jours."""
     veille = par_cle(calendrier(aujourdhui=date(2026, 2, 11)))
     assert veille[("PENTA", 1)].statut is Statut.A_VENIR
 
     jour = par_cle(calendrier(aujourdhui=date(2026, 2, 12)))
     assert jour[("PENTA", 1)].statut is Statut.DUE
 
-    dans_la_marge = par_cle(calendrier(aujourdhui=date(2026, 3, 12)))
-    assert dans_la_marge[("PENTA", 1)].statut is Statut.DUE
+    dans_le_seuil = par_cle(calendrier(aujourdhui=date(2026, 2, 21)))
+    assert dans_le_seuil[("PENTA", 1)].statut is Statut.DUE
 
-    apres = par_cle(calendrier(aujourdhui=date(2026, 3, 13)))
-    assert apres[("PENTA", 1)].statut is Statut.EN_RETARD
+    au_dela_du_seuil = par_cle(calendrier(aujourdhui=date(2026, 2, 22)))
+    assert au_dela_du_seuil[("PENTA", 1)].statut is Statut.EN_RETARD
+
+    dernier_jour = par_cle(calendrier(aujourdhui=date(2026, 3, 12)))
+    assert dernier_jour[("PENTA", 1)].statut is Statut.EN_RETARD
+
+    apres_la_limite = par_cle(calendrier(aujourdhui=date(2026, 3, 13)))
+    assert apres_la_limite[("PENTA", 1)].statut is Statut.PERIMEE
+
+
+def test_sans_date_limite_l_echeance_reste_administrable(db=None):
+    """Le Td maternel n'a pas de fenêtre : il ne périme jamais."""
+    from apps.domaine.calendrier import Cible, RegleVaccinale, generer_calendrier
+
+    regle = RegleVaccinale(
+        code_vaccin="TD",
+        libelle="Antitétanique",
+        rang=1,
+        age_min_jours=0,
+        age_cible_jours=0,
+        cible=Cible.MERE,
+    )
+    resultat = generer_calendrier(
+        date_reference=date(2026, 1, 1), regles=[regle], aujourdhui=date(2030, 1, 1)
+    )
+
+    assert resultat[0].statut is Statut.DUE
 
 
 def test_echeance_annulee_ne_devient_jamais_en_retard():

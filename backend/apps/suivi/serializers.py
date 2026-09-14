@@ -26,8 +26,16 @@ class EcheanceSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(source="identifiant_public", read_only=True)
     vaccin_code = serializers.CharField(source="vaccin.code", read_only=True)
     vaccin_libelle = serializers.SerializerMethodField()
+    age_cible_jours = serializers.SerializerMethodField()
     dose = serializers.SerializerMethodField()
     retard_jours = serializers.SerializerMethodField()
+    beneficiaire_nom = serializers.SerializerMethodField()
+    beneficiaire_id = serializers.SerializerMethodField()
+    beneficiaire_type = serializers.SerializerMethodField()
+    mere_nom = serializers.SerializerMethodField()
+    telephone = serializers.SerializerMethodField()
+    administrable = serializers.SerializerMethodField()
+    motif_non_administrable = serializers.SerializerMethodField()
 
     class Meta:
         model = Echeance
@@ -36,6 +44,7 @@ class EcheanceSerializer(serializers.ModelSerializer):
             "vaccin_code",
             "vaccin_libelle",
             "rang",
+            "age_cible_jours",
             "date_ouverture",
             "date_cible",
             "date_limite",
@@ -43,6 +52,13 @@ class EcheanceSerializer(serializers.ModelSerializer):
             "motif_annulation",
             "retard_jours",
             "dose",
+            "beneficiaire_nom",
+            "beneficiaire_id",
+            "beneficiaire_type",
+            "mere_nom",
+            "telephone",
+            "administrable",
+            "motif_non_administrable",
         ]
         read_only_fields = fields
 
@@ -56,6 +72,58 @@ class EcheanceSerializer(serializers.ModelSerializer):
 
     def get_retard_jours(self, obj: Echeance) -> int:
         return obj.retard_en_jours()
+
+    def get_age_cible_jours(self, obj: Echeance) -> int:
+        """Âge cible en jours depuis la date de référence du bénéficiaire.
+
+        Permet au client de regrouper le calendrier par échéance d'âge —
+        naissance, 6 semaines, 9 mois — comme sur le carnet papier.
+        """
+        reference = obj.enfant.date_naissance if obj.enfant_id else obj.grossesse.date_reference
+        return (obj.date_cible - reference).days
+
+    def get_beneficiaire_nom(self, obj: Echeance) -> str:
+        if obj.enfant_id:
+            return obj.enfant.nom_complet
+        return obj.grossesse.mere.nom_complet
+
+    def get_beneficiaire_id(self, obj: Echeance) -> str:
+        cible = obj.enfant or obj.grossesse
+        return str(cible.identifiant_public)
+
+    def get_beneficiaire_type(self, obj: Echeance) -> str:
+        return "enfant" if obj.enfant_id else "grossesse"
+
+    def _mere(self, obj: Echeance):
+        return obj.enfant.mere if obj.enfant_id else obj.grossesse.mere
+
+    def get_mere_nom(self, obj: Echeance) -> str:
+        return self._mere(obj).nom_complet
+
+    def get_telephone(self, obj: Echeance) -> str:
+        return self._mere(obj).telephone
+
+    def get_administrable(self, obj: Echeance) -> bool:
+        """La dose peut-elle être administrée aujourd'hui ?
+
+        Le moteur tranche : âge minimal, intervalle depuis la dose
+        précédente, fenêtre de rattrapage. L'interface n'a pas à rejouer
+        ces règles, elle se contente de les afficher.
+        """
+        return not self._violations(obj)
+
+    def get_motif_non_administrable(self, obj: Echeance) -> list[str]:
+        return [v.value for v in self._violations(obj)]
+
+    def _violations(self, obj: Echeance):
+        """Mémorisé sur l'instance : deux champs consultent le même calcul."""
+        if hasattr(obj, "_violations_calculees"):
+            return obj._violations_calculees
+
+        contexte = self.context.get("validation") or {}
+        violations = contexte.get(obj.pk, [])
+        obj._violations_calculees = violations
+        return violations
 
 
 class EcheanceFileSerializer(EcheanceSerializer):

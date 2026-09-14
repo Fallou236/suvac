@@ -193,6 +193,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/echeances/file-du-jour-complete/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Calendriers complets des bénéficiaires présents dans la file du jour. Évite au client un appel par bénéficiaire pour afficher leur progression vaccinale. */
+        get: operations["echeances_file_du_jour_complete_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/enfants/": {
         parameters: {
             query?: never;
@@ -504,6 +521,13 @@ export interface components {
             /** Rang de la dose */
             readonly rang: number;
             /**
+             * @description Âge cible en jours depuis la date de référence du bénéficiaire.
+             *
+             *     Permet au client de regrouper le calendrier par échéance d'âge —
+             *     naissance, 6 semaines, 9 mois — comme sur le carnet papier.
+             */
+            readonly age_cible_jours: number;
+            /**
              * Date d'ouverture
              * Format: date
              */
@@ -512,13 +536,27 @@ export interface components {
             readonly date_cible: string;
             /** Format: date */
             readonly date_limite: string | null;
-            readonly statut: components["schemas"]["Statut184Enum"];
+            readonly statut: components["schemas"]["Statut88fEnum"];
             /** Motif d'annulation */
             readonly motif_annulation: components["schemas"]["MotifAnnulationEnum"];
             readonly retard_jours: number;
             readonly dose: {
                 [key: string]: unknown;
             } | null;
+            readonly beneficiaire_nom: string;
+            readonly beneficiaire_id: string;
+            readonly beneficiaire_type: string;
+            readonly mere_nom: string;
+            readonly telephone: string;
+            /**
+             * @description La dose peut-elle être administrée aujourd'hui ?
+             *
+             *     Le moteur tranche : âge minimal, intervalle depuis la dose
+             *     précédente, fenêtre de rattrapage. L'interface n'a pas à rejouer
+             *     ces règles, elle se contente de les afficher.
+             */
+            readonly administrable: boolean;
+            readonly motif_non_administrable: string[];
         };
         /**
          * @description Vue enrichie pour la file du jour de l'agent (EF-42).
@@ -534,6 +572,13 @@ export interface components {
             /** Rang de la dose */
             readonly rang: number;
             /**
+             * @description Âge cible en jours depuis la date de référence du bénéficiaire.
+             *
+             *     Permet au client de regrouper le calendrier par échéance d'âge —
+             *     naissance, 6 semaines, 9 mois — comme sur le carnet papier.
+             */
+            readonly age_cible_jours: number;
+            /**
              * Date d'ouverture
              * Format: date
              */
@@ -542,7 +587,7 @@ export interface components {
             readonly date_cible: string;
             /** Format: date */
             readonly date_limite: string | null;
-            readonly statut: components["schemas"]["Statut184Enum"];
+            readonly statut: components["schemas"]["Statut88fEnum"];
             /** Motif d'annulation */
             readonly motif_annulation: components["schemas"]["MotifAnnulationEnum"];
             readonly retard_jours: number;
@@ -552,7 +597,17 @@ export interface components {
             readonly beneficiaire_nom: string;
             readonly beneficiaire_id: string;
             readonly beneficiaire_type: string;
+            readonly mere_nom: string;
             readonly telephone: string;
+            /**
+             * @description La dose peut-elle être administrée aujourd'hui ?
+             *
+             *     Le moteur tranche : âge minimal, intervalle depuis la dose
+             *     précédente, fenêtre de rattrapage. L'interface n'a pas à rejouer
+             *     ces règles, elle se contente de les afficher.
+             */
+            readonly administrable: boolean;
+            readonly motif_non_administrable: string[];
         };
         Enfant: {
             /** Format: uuid */
@@ -937,11 +992,12 @@ export interface components {
          * @description * `a_venir` - À venir
          *     * `due` - Due
          *     * `en_retard` - En retard
+         *     * `perimee` - Périmée
          *     * `administree` - Administrée
          *     * `annulee` - Annulée
          * @enum {string}
          */
-        Statut184Enum: "a_venir" | "due" | "en_retard" | "administree" | "annulee";
+        Statut88fEnum: "a_venir" | "due" | "en_retard" | "perimee" | "administree" | "annulee";
         TokenRefresh: {
             readonly access: string;
             refresh: string;
@@ -1233,6 +1289,32 @@ export interface operations {
                 /** @description Jour ciblé (AAAA-MM-JJ). Par défaut : aujourd'hui. */
                 date?: string;
                 /** @description Nombre de jours à venir inclus. Défaut : 7. */
+                horizon?: number;
+                /** @description Un numéro de page de l'ensemble des résultats. */
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedEcheanceFileList"];
+                };
+            };
+        };
+    };
+    echeances_file_du_jour_complete_list: {
+        parameters: {
+            query?: {
+                /** @description Jour ciblé (AAAA-MM-JJ). */
+                date?: string;
+                /** @description Jours à venir inclus. */
                 horizon?: number;
                 /** @description Un numéro de page de l'ensemble des résultats. */
                 page?: number;
