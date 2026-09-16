@@ -120,7 +120,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Tests
-        run: npx vitest run --passWithNoTests --coverage
+        run: npx vitest run --coverage
 
       - name: Build de production
         run: npm run build
