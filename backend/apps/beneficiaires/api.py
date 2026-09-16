@@ -1,6 +1,6 @@
 """Points d'accès des bénéficiaires."""
 
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -86,9 +86,30 @@ class EnfantViewSet(FiltrageParPoste, viewsets.ModelViewSet):
     ordering = ["-date_naissance"]
     champ_poste = "poste"
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "mere",
+                str,
+                description="Identifiant public de la mère, pour ne lister que ses enfants.",
+            ),
+        ],
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
     def get_queryset(self):
         queryset = Enfant.objects.select_related("mere", "poste")
-        return self.filtrer_par_poste(queryset)
+        queryset = self.filtrer_par_poste(queryset)
+
+        # Filtre facultatif : ne lister que les enfants d'une mère donnée.
+        # Le nom ne suffit pas — deux mères homonymes verraient leurs
+        # enfants mélangés.
+        mere = self.request.query_params.get("mere")
+        if mere:
+            queryset = queryset.filter(mere__identifiant_public=mere)
+
+        return queryset
 
     def get_serializer_class(self):
         return EnfantListeSerializer if self.action == "list" else EnfantSerializer
