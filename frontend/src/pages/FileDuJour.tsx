@@ -11,6 +11,8 @@ import { Bouton } from "@/composants/Bouton";
 import { cn } from "@/composants/cn";
 import { messageDErreur } from "@/etat/messages";
 import type { EcheanceFile } from "@/api/types";
+import { Modal } from "@/composants/Modal";
+import { FormulaireDose } from "./FormulaireDose";
 import {
   grouperParBeneficiaire,
   SECTIONS,
@@ -204,6 +206,7 @@ function Detail({
 }) {
   const administrables = groupe.aFaire.filter((e) => e.administrable);
   const bloquees = groupe.aFaire.filter((e) => !e.administrable);
+  const [aSaisir, setASaisir] = useState<EcheanceFile | null>(null);
 
   return (
     <div className="flex flex-col">
@@ -271,7 +274,12 @@ function Detail({
           ) : (
             <ul className="flex flex-col gap-1.5">
               {administrables.map((e) => (
-                <LigneDose key={e.id} echeance={e} administrable />
+                <LigneDose
+                  key={e.id}
+                  echeance={e}
+                  administrable
+                  onAdministrer={() => setASaisir(e)}
+                />
               ))}
             </ul>
           )}
@@ -301,6 +309,20 @@ function Detail({
           </div>
         </section>
       </div>
+      <Modal
+        ouvert={aSaisir !== null}
+        titre="Enregistrer une dose"
+        onFermer={() => setASaisir(null)}
+      >
+        {aSaisir && (
+          <FormulaireDose
+            echeance={aSaisir}
+            beneficiaire={groupe.nom}
+            onTermine={() => setASaisir(null)}
+            onAnnuler={() => setASaisir(null)}
+          />
+        )}
+      </Modal>
     </div>
   );
 }
@@ -316,9 +338,11 @@ const MOTIFS: Record<string, string> = {
 function LigneDose({
   echeance,
   administrable,
+  onAdministrer,
 }: {
   echeance: EcheanceFile;
   administrable?: boolean;
+  onAdministrer?: () => void;
 }) {
   const enRetard = echeance.statut === "en_retard";
   const motifs = (echeance.motif_non_administrable ?? [])
@@ -365,7 +389,7 @@ function LigneDose({
       </span>
 
       {administrable && (
-        <Bouton variante="secondaire" taille="compact">
+        <Bouton variante="secondaire" taille="compact" onClick={onAdministrer}>
           Administrer
         </Bouton>
       )}
