@@ -1,9 +1,20 @@
 import { api } from "./client";
-import type { EcheanceFile, MereListe, EnfantListe, Page } from "./types";
+import type { Dose, EcheanceFile, MereListe, EnfantListe, Page } from "./types";
+
+export type SaisieDose = {
+  echeance_id: string;
+  date_administration: string;
+  numero_lot?: string;
+  cle_idempotence: string;
+  evenement_indesirable?: string;
+};
 
 export const requetes = {
   fileDuJour: (date?: string) =>
     api.get<EcheanceFile[]>("/echeances/file-du-jour/", { date }),
+
+  fileDuJourComplete: (date?: string) =>
+    api.get<EcheanceFile[]>("/echeances/file-du-jour-complete/", { date }),
 
   rechercherMeres: (recherche: string) =>
     api.get<Page<MereListe>>("/meres/", { search: recherche }),
@@ -11,6 +22,5 @@ export const requetes = {
   rechercherEnfants: (recherche: string) =>
     api.get<Page<EnfantListe>>("/enfants/", { search: recherche }),
 
-  fileDuJourComplete: (date?: string) =>
-    api.get<EcheanceFile[]>("/echeances/file-du-jour-complete/", { date }),
+  enregistrerDose: (saisie: SaisieDose) => api.post<Dose>("/doses/", saisie),
 };
