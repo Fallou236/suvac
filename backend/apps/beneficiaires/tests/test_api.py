@@ -422,3 +422,30 @@ def test_un_jeton_de_rafraichissement_ne_sert_qu_une_fois(client, agent):
     seconde = client.post("/api/auth/rafraichir/", {"refresh": ancien}, format="json")
 
     assert seconde.status_code == 401
+
+
+def test_filtrer_les_enfants_par_mere(client, agent, mere, poste):
+    """Deux mères homonymes ne doivent pas voir leurs enfants mélangés."""
+    from apps.beneficiaires.models import Enfant, Mere, Sexe
+
+    homonyme = Mere.objects.create(prenom="Awa", nom="Ndiaye", poste=poste)
+    Enfant.objects.create(
+        mere=mere,
+        prenom="Moussa",
+        date_naissance="2026-01-01",
+        sexe=Sexe.MASCULIN,
+        poste=poste,
+    )
+    Enfant.objects.create(
+        mere=homonyme,
+        prenom="Fatou",
+        date_naissance="2026-01-01",
+        sexe=Sexe.FEMININ,
+        poste=poste,
+    )
+
+    connecter(client, "awa.ndiaye")
+    reponse = client.get(f"/api/enfants/?mere={mere.identifiant_public}")
+
+    assert reponse.data["count"] == 1
+    assert reponse.data["results"][0]["nom_complet"].startswith("Moussa")
