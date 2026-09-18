@@ -25,23 +25,48 @@ const MERE = {
   village: "Ndondol",
 };
 
-function servirMeres(resultats: unknown[] = [MERE]) {
+const MERE_COMPLETE = {
+  ...MERE,
+  langue: "wo",
+  accepte_les_rappels: true,
+  consentements: [],
+};
+
+/**
+ * Prépare les quatre routes qu'appelle l'écran : la liste des mères, la fiche
+ * d'une mère, ses enfants et ses grossesses. MSW est réglé pour échouer sur
+ * une requête non interceptée — autant toutes les servir d'un coup.
+ */
+function servirEcran({
+  meres = [MERE],
+  fiche = MERE_COMPLETE,
+  enfants = [],
+  grossesses = [],
+}: {
+  meres?: unknown[];
+  fiche?: unknown;
+  enfants?: unknown[];
+  grossesses?: unknown[];
+} = {}) {
+  const page = (resultats: unknown[]) => ({
+    count: resultats.length,
+    next: null,
+    previous: null,
+    results: resultats,
+  });
+
   serveur.use(
-    http.get("/api/meres/", () =>
-      HttpResponse.json({
-        count: resultats.length,
-        next: null,
-        previous: null,
-        results: resultats,
-      }),
-    ),
+    http.get("/api/meres/", () => HttpResponse.json(page(meres))),
+    http.get("/api/meres/mere-1/", () => HttpResponse.json(fiche)),
+    http.get("/api/enfants/", () => HttpResponse.json(page(enfants))),
+    http.get("/api/grossesses/", () => HttpResponse.json(page(grossesses))),
   );
 }
 
 describe("Beneficiaires", () => {
   it("liste les mères du poste", async () => {
     connecter();
-    servirMeres();
+    servirEcran();
     rendre(<Beneficiaires />);
 
     expect(await screen.findByText("Khady Ndiaye")).toBeInTheDocument();
@@ -49,7 +74,7 @@ describe("Beneficiaires", () => {
 
   it("invite à enregistrer une mère quand la liste est vide", async () => {
     connecter();
-    servirMeres([]);
+    servirEcran({ meres: [] });
     rendre(<Beneficiaires />);
 
     expect(
@@ -60,7 +85,7 @@ describe("Beneficiaires", () => {
   it("ouvre le formulaire de création", async () => {
     const utilisateur = userEvent.setup();
     connecter();
-    servirMeres();
+    servirEcran();
     rendre(<Beneficiaires />);
 
     await utilisateur.click(
@@ -75,63 +100,79 @@ describe("Beneficiaires", () => {
   it("ouvre la fiche de la mère au clic", async () => {
     const utilisateur = userEvent.setup();
     connecter();
-    servirMeres();
-
-    serveur.use(
-      http.get("/api/meres/mere-1/", () =>
-        HttpResponse.json({
-          ...MERE,
-          langue: "wo",
-          accepte_les_rappels: true,
-          consentements: [
-            {
-              id: "c1",
-              canal: "whatsapp",
-              accorde_le: "2026-01-15T10:00:00Z",
-              revoque_le: null,
-              actif: true,
-            },
-          ],
-        }),
-      ),
-      http.get("/api/enfants/", () =>
-        HttpResponse.json({ count: 0, next: null, previous: null, results: [] }),
-      ),
-    );
+    servirEcran({
+      fiche: {
+        ...MERE_COMPLETE,
+        consentements: [
+          {
+            id: "c1",
+            canal: "whatsapp",
+            accorde_le: "2026-01-15T10:00:00Z",
+            revoque_le: null,
+            actif: true,
+          },
+        ],
+      },
+    });
 
     rendre(<Beneficiaires />);
     await utilisateur.click(await screen.findByText("Khady Ndiaye"));
 
     expect(await screen.findByText(/rappels acceptés/i)).toBeInTheDocument();
-    expect(
-      screen.getByText(/aucun enfant enregistré/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/aucun enfant enregistré/i)).toBeInTheDocument();
   });
 
   it("signale l'absence de consentement sur la fiche", async () => {
     const utilisateur = userEvent.setup();
     connecter();
-    servirMeres();
-
-    serveur.use(
-      http.get("/api/meres/mere-1/", () =>
-        HttpResponse.json({
-          ...MERE,
-          langue: "fr",
-          accepte_les_rappels: false,
-          consentements: [],
-        }),
-      ),
-      http.get("/api/enfants/", () =>
-        HttpResponse.json({ count: 0, next: null, previous: null, results: [] }),
-      ),
-    );
+    servirEcran({
+      fiche: { ...MERE_COMPLETE, langue: "fr", accepte_les_rappels: false },
+    });
 
     rendre(<Beneficiaires />);
     await utilisateur.click(await screen.findByText("Khady Ndiaye"));
 
     expect(
       await screen.findByText(/aucun rappel ne sera envoyé/i),
+    ).toBeInTheDocument();
+  });
+
+  it("affiche les grossesses suivies", async () => {
+    const utilisateur = userEvent.setup();
+    connecter();
+    servirEcran({
+      grossesses: [
+        {
+          id: "g1",
+          rang: 2,
+          date_reference: "2026-03-01",
+          terme_estime: "2026-10-15",
+          statut: "en_cours",
+        },
+      ],
+    });
+
+    rendre(<Beneficiaires />);
+    await utilisateur.click(await screen.findByText("Khady Ndiaye"));
+
+    expect(await screen.findByText(/grossesse 2/i)).toBeInTheDocument();
+    expect(screen.getByText(/en cours/i)).toBeInTheDocument();
+  });
+
+  it("ouvre le formulaire de grossesse depuis la fiche", async () => {
+    const utilisateur = userEvent.setup();
+    connecter();
+    servirEcran();
+
+    rendre(<Beneficiaires />);
+    await utilisateur.click(await screen.findByText("Khady Ndiaye"));
+
+    await utilisateur.click(
+      await screen.findByRole("button", { name: /ajouter une grossesse/i }),
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: /enregistrer une grossesse/i }),
     ).toBeInTheDocument();
   });
 });
