@@ -7,6 +7,7 @@ import { Chargement } from "@/composants/Chargement";
 import { Modal } from "@/composants/Modal";
 import { messageDErreur } from "@/etat/messages";
 import { FormulaireEnfant } from "./FormulaireEnfant";
+import { FormulaireGrossesse } from "./FormulaireGrossesse";
 
 type Props = {
   id: string;
@@ -16,6 +17,13 @@ type Props = {
 export function FicheMere({ id, onFermer }: Props) {
   const [ajoutEnfant, setAjoutEnfant] = useState(false);
   const client = useQueryClient();
+  const [ajoutGrossesse, setAjoutGrossesse] = useState(false);
+
+  const { data: grossesses } = useQuery({
+    queryKey: ["grossesses-de", id],
+    queryFn: () => requetes.grossessesDe(id),
+    select: (page) => page.results,
+  });
 
   const { data: mere, isPending, error } = useQuery({
     queryKey: ["mere", id],
@@ -102,6 +110,7 @@ export function FicheMere({ id, onFermer }: Props) {
             <Bouton
               variante="secondaire"
               taille="compact"
+              aria-label="Ajouter un enfant"
               onClick={() => setAjoutEnfant(true)}
             >
               Ajouter
@@ -130,6 +139,60 @@ export function FicheMere({ id, onFermer }: Props) {
           ) : (
             <p className="rounded-md border border-bordure bg-white px-3 py-2.5 text-sm text-texte-faible">
               Aucun enfant enregistré pour cette mère.
+            </p>
+          )}
+        </section>
+
+        <section>
+          <div className="mb-2.5 flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-texte-faible">
+              Grossesses
+              <span className="ml-1.5 font-semibold opacity-70">
+                {grossesses?.length ?? 0}
+              </span>
+            </h3>
+            <Bouton
+              variante="secondaire"
+              taille="compact"
+              aria-label="Ajouter une grossesse"
+              onClick={() => setAjoutGrossesse(true)}
+            >
+              Ajouter
+            </Bouton>
+          </div>
+
+          {grossesses && grossesses.length > 0 ? (
+            <ul className="flex flex-col gap-1.5">
+              {grossesses.map((grossesse) => (
+                <li
+                  key={grossesse.id}
+                  className="flex items-center justify-between gap-3 rounded-md border border-bordure bg-white px-3 py-2"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-texte">
+                      Grossesse {grossesse.rang}
+                    </span>
+                    <span className="tabulaire text-xs text-texte-faible">
+                      suivi depuis le {formatDate(grossesse.date_reference)}
+                      {grossesse.terme_estime && (
+                        <>
+                          <span aria-hidden="true"> · </span>
+                          terme le {formatDate(grossesse.terme_estime)}
+                        </>
+                      )}
+                    </span>
+                  </span>
+                  <Etiquette
+                    ton={grossesse.statut === "en_cours" ? "accent" : "neutre"}
+                  >
+                    {libelleStatut(grossesse.statut)}
+                  </Etiquette>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="rounded-md border border-bordure bg-white px-3 py-2.5 text-sm text-texte-faible">
+              Aucune grossesse suivie.
             </p>
           )}
         </section>
@@ -178,6 +241,22 @@ export function FicheMere({ id, onFermer }: Props) {
           />
         )}
       </Modal>
+
+      <Modal
+        ouvert={ajoutGrossesse}
+        titre="Enregistrer une grossesse"
+        onFermer={() => setAjoutGrossesse(false)}
+      >
+        {ajoutGrossesse && (
+          <FormulaireGrossesse
+            mereId={mere.id}
+            mereNom={mere.nom_complet}
+            rangSuggere={(grossesses?.length ?? 0) + 1}
+            onTermine={() => setAjoutGrossesse(false)}
+            onAnnuler={() => setAjoutGrossesse(false)}
+          />
+        )}
+      </Modal>
     </div>
   );
 }
@@ -194,4 +273,10 @@ function formatDate(iso: string): string {
     month: "short",
     year: "numeric",
   });
+}
+
+function libelleStatut(statut: string): string {
+  if (statut === "en_cours") return "En cours";
+  if (statut === "terminee") return "Terminée";
+  return "Interrompue";
 }

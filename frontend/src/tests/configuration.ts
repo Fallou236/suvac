@@ -10,10 +10,12 @@ import { serveur } from "./serveur";
  */
 if (typeof HTMLDialogElement !== "undefined") {
   HTMLDialogElement.prototype.showModal ??= function () {
-    this.open = true;
+    this.setAttribute("open", "");
+    this.style.display = "block";
   };
   HTMLDialogElement.prototype.close ??= function () {
-    this.open = false;
+    this.removeAttribute("open");
+    this.style.display = "none";
     this.dispatchEvent(new Event("close"));
   };
 }

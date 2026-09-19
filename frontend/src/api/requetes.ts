@@ -70,4 +70,7 @@ export const requetes = {
     api.post(`/meres/${idMere}/consentement/`, { canal }),
 
   enregistrerDose: (saisie: SaisieDose) => api.post<Dose>("/doses/", saisie),
+
+  grossessesDe: (mereId: string) =>
+    api.get<Page<Grossesse>>("/grossesses/", { mere: mereId }),
 };

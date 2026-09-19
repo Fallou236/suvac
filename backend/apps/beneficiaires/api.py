@@ -159,7 +159,13 @@ class GrossesseViewSet(FiltrageParPoste, viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Grossesse.objects.select_related("mere", "mere__poste")
-        return self.filtrer_par_poste(queryset)
+        queryset = self.filtrer_par_poste(queryset)
+
+        mere = self.request.query_params.get("mere")
+        if mere:
+            queryset = queryset.filter(mere__identifiant_public=mere)
+
+        return queryset
 
     @extend_schema(
         responses={200: None},
