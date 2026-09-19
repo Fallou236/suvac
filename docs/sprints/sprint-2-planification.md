@@ -1,7 +1,7 @@
 # Sprint 2 — Planification
 
 Thème : frontend React
-Période : … à …
+Période : 11/09/2026 à …
 
 ## Objectif
 

@@ -672,7 +672,7 @@ Seules les exigences \pM{} conditionnent l'acceptation du projet (section~16).
 \toprule
 \rowhead \hd{Réf.} & \hd{Exigence} & \hd{Prio.} \\
 \midrule \endhead
-\rid{EF-70} & L'interface est disponible en français et en wolof, commutable par l'utilisateur. & \pM \\
+\rid{EF-70} & L'interface professionnelle est disponible en français ; les messages adressés aux bénéficiaires sont en wolof. Le mécanisme d'internationalisation permet d'étendre la traduction de l'interface si le besoin s'en confirme. & \pM \\
 \rowcolor{softbg}
 \rid{EF-71} & La préférence linguistique est mémorisée par utilisateur et par bénéficiaire. & \pM \\
 \rid{EF-72} & Les messages de rappel disposent d'une version textuelle et d'une version audio en wolof. & \pM \\
@@ -704,6 +704,7 @@ façon exhaustive et de rester indépendantes de l'infrastructure.
 \rid{RG-04} & Lorsqu'une dose est administrée après sa date cible, les échéances suivantes sont recalculées à partir de la date réelle d'administration. \\
 \rid{RG-05} & Une échéance passe au statut « en retard » lorsque la date limite est dépassée sans administration. \\
 \rowcolor{softbg}
+\rid{RG-05bis} & Une échéance dont la fenêtre de rattrapage est close passe au statut « périmée » : la dose n'est plus administrable. Le seuil entre « due » et « en retard » suit la fenêtre propre à chaque vaccin, au tiers de celle-ci. \\
 \rid{RG-06} & Une série est réputée abandonnée lorsque la dernière dose date de plus de six mois et que la série est incomplète. \\
 \rid{RG-07} & Pour un enfant prématuré, l'âge chronologique reste la référence, sauf paramétrage contraire explicite. \\
 \rowcolor{softbg}
@@ -1181,7 +1182,7 @@ service externe réel, ce qui rend la suite déterministe et exécutable hors li
 Unitaire backend & Moteur de calendrier, règles de gestion, services. \texttt{pytest}, \texttt{factory\_boy}, \texttt{freezegun} & $\geq$ 90 \% sur le module domaine \\
 \rowcolor{softbg}
 Intégration backend & Points d'API, permissions, sérialisation, tâches Celery. \texttt{pytest-django}, PostgreSQL de test & $\geq$ 80 \% global \\
-Unitaire frontend & Composants, hooks, logique de synchronisation. \texttt{Vitest}, RTL, \texttt{MSW} & $\geq$ 70 \% \\
+Unitaire frontend & Composants, hooks, logique de synchronisation. \texttt{Vitest}, RTL, \texttt{MSW} & $\geq$ 70 \% (82,7 \% atteints) \\
 \rowcolor{softbg}
 Bout en bout & Parcours critiques. \texttt{Playwright} sur la pile Docker complète & 100 \% des parcours critiques \\
 \bottomrule
@@ -1750,11 +1751,12 @@ Td-5 & 1 an après Td-4 \\
 \toprule
 \rowhead \hd{Version} & \hd{Date} & \hd{Auteur} & \hd{Modifications} \\
 \midrule
-1.1 & Septembre 2026 & Fallou Diouck & Version initiale \\
+1.0 & Septembre 2026 & Fallou Diouck & Version initiale \\
 \rowcolor{softbg}
 1.1 & Septembre 2026 & Fallou Diouck & Découpage des sprints révisé (13.3) ; \texttt{mypy} rendu progressif (11.4) ; vérification manuelle d'ENF-15 (7.2) ; prénom facultatif pour l'enfant (EF-12) \\
  &  &  &  \\
 \rowcolor{softbg}
+1.2 & Septembre 2026 & Fallou Diouck & Périmètre de l'internationalisation précisé (EF-70, ADR 0005) ; statut « périmée » ajouté au moteur (RG-05bis) ; couverture frontend atteinte \\
  &  &  &  \\
 \bottomrule
 \end{tabularx}
