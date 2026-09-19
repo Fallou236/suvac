@@ -1,0 +1,129 @@
+{
+  "app": {
+    "nom": "SUVAC"
+  },
+  "navigation": {
+    "fileDuJour": "File du jour",
+    "beneficiaires": "Bénéficiaires",
+    "pilotage": "Pilotage",
+    "deconnexion": "Se déconnecter",
+    "ouvrirMenu": "Ouvrir le menu",
+    "replierPanneau": "Replier le panneau",
+    "deplierPanneau": "Déplier le panneau",
+    "aucunPoste": "Aucun poste",
+    "fermerMenu": "Fermer le menu"
+  },
+  "connexion": {
+    "titre": "Connexion",
+    "sousTitre": "Accès réservé au personnel du poste de santé.",
+    "identifiant": "Identifiant",
+    "motDePasse": "Mot de passe",
+    "action": "Se connecter"
+  },
+  "file": {
+    "titre": "File du jour",
+    "actualiser": "Actualiser",
+    "aujourdhui": "Aujourd'hui",
+    "enRetard": "En retard",
+    "aRattraper": "À rattraper",
+    "vide": "Aucun bénéficiaire attendu",
+    "videDescription": "La file se remplira à mesure que des échéances arrivent à terme.",
+    "invite": "Sélectionnez un bénéficiaire dans la liste pour voir son calendrier vaccinal et enregistrer une dose.",
+    "administrable": "Administrable aujourd'hui",
+    "aucuneAdministrable": "Aucune dose administrable aujourd'hui.",
+    "prochainesSeances": "Prochaines séances",
+    "calendrier": "Calendrier vaccinal",
+    "administrer": "Administrer",
+    "dose": "dose {{rang}}",
+    "prevueLe": "prévue le {{date}}",
+    "joursRetard_one": "{{count}} jour de retard",
+    "joursRetard_other": "{{count}} jours de retard",
+    "dosesRecues": "{{faites}}/{{total}} doses reçues",
+    "pasAdministrable": "Pas encore administrable — {{motif}}"
+  },
+  "beneficiaires": {
+    "titre": "Bénéficiaires",
+    "rechercher": "Nom, téléphone ou village",
+    "nouvelleMere": "Nouvelle mère",
+    "nouvelEnfant": "Nouvel enfant",
+    "aucuneMere": "Aucune mère enregistrée",
+    "aucunResultat": "Aucun résultat",
+    "invite": "Recherchez une mère par son nom, son téléphone ou son village, puis sélectionnez-la pour voir ses enfants et leur suivi vaccinal.",
+    "sansTelephone": "Sans téléphone",
+    "enfants": "Enfants",
+    "grossesses": "Grossesses",
+    "aucunEnfant": "Aucun enfant enregistré pour cette mère.",
+    "aucuneGrossesse": "Aucune grossesse suivie.",
+    "ajouterEnfant": "Ajouter un enfant",
+    "ajouterGrossesse": "Ajouter une grossesse",
+    "consentement": "Consentement",
+    "rappelsAcceptes": "Rappels acceptés",
+    "sansRappel": "Sans rappel",
+    "aucunConsentement": "Aucun consentement actif. Aucun rappel ne sera envoyé."
+  },
+  "formulaire": {
+    "annuler": "Annuler",
+    "enregistrer": "Enregistrer",
+    "prenom": "Prénom",
+    "nom": "Nom",
+    "telephone": "Téléphone",
+    "village": "Village ou quartier",
+    "dateNaissance": "Date de naissance",
+    "sexe": "Sexe",
+    "feminin": "Féminin",
+    "masculin": "Masculin",
+    "facultatif": "Facultatif",
+    "langueRappels": "Langue des rappels",
+    "wolof": "Wolof",
+    "francais": "Français",
+    "canalConsentement": "Consentement aux rappels",
+    "whatsapp": "WhatsApp",
+    "sms": "SMS",
+    "aucunEnvoi": "Aucun envoi"
+  },
+  "dose": {
+    "titre": "Enregistrer une dose",
+    "dateAdministration": "Date d'administration",
+    "numeroLot": "Numéro de lot",
+    "evenementIndesirable": "Événement indésirable",
+    "signalerEvenement": "Signaler un événement indésirable",
+    "action": "Enregistrer la dose",
+    "refus": "Enregistrement refusé"
+  },
+  "statut": {
+    "a_venir": "À venir",
+    "due": "Due",
+    "en_retard": "En retard",
+    "perimee": "Périmée",
+    "administree": "Administrée",
+    "annulee": "Annulée"
+  },
+  "etape": {
+    "naissance": "Naissance",
+    "semaines6": "6 semaines",
+    "semaines10": "10 semaines",
+    "semaines14": "14 semaines",
+    "mois6": "6 mois",
+    "mois9": "9 mois",
+    "mois15": "15 mois",
+    "plusTard": "Plus tard"
+  },
+  "erreur": {
+    "reseau": "Impossible de joindre le serveur. Vérifiez votre connexion.",
+    "identifiant": "Identifiant ou mot de passe incorrect.",
+    "droits": "Vous n'avez pas les droits pour cette action.",
+    "introuvable": "Élément introuvable.",
+    "tropDeTentatives": "Trop de tentatives. Réessayez dans une minute.",
+    "serveur": "Le serveur a rencontré un problème. Réessayez.",
+    "generique": "Une erreur est survenue.",
+    "reessayer": "Réessayer"
+  },
+  "violation": {
+    "age_minimal_non_atteint": "L'enfant est trop jeune pour ce vaccin.",
+    "age_limite_depasse": "L'âge limite d'administration est dépassé.",
+    "intervalle_minimal_non_respecte": "Le délai depuis la dose précédente est insuffisant.",
+    "dose_precedente_manquante": "La dose précédente de cette série n'a pas été administrée.",
+    "dose_deja_administree": "Cette dose a déjà été enregistrée.",
+    "date_future": "Une dose ne peut pas être enregistrée à une date future."
+  }
+}

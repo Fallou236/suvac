@@ -7,6 +7,7 @@ import "./index.css";
 import { routeur } from "./routes";
 import { surPerteDeSession } from "./api/client";
 import { useAuthentification } from "./etat/authentification";
+import "./i18n";
 
 // Quand la session ne peut plus être prolongée, on vide l'état local.
 surPerteDeSession(() => useAuthentification.getState().deconnexion());

@@ -1,22 +1,28 @@
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import type { ReactNode } from "react";
 import { Logo } from "./Logo";
+import { SelecteurLangue } from "./SelecteurLangue";
 import { cn } from "./cn";
 import { useAuthentification } from "@/etat/authentification";
 
 type Entree = {
   vers: string;
-  libelle: string;
+  cle: string;
   icone: ReactNode;
   roles?: string[];
 };
 
 const ENTREES: Entree[] = [
-  { vers: "/", libelle: "File du jour", icone: <IconeFile /> },
-  { vers: "/beneficiaires", libelle: "Bénéficiaires", icone: <IconePersonnes /> },
+  { vers: "/", cle: "navigation.fileDuJour", icone: <IconeFile /> },
+  {
+    vers: "/beneficiaires",
+    cle: "navigation.beneficiaires",
+    icone: <IconePersonnes />,
+  },
   {
     vers: "/pilotage",
-    libelle: "Pilotage",
+    cle: "navigation.pilotage",
     icone: <IconeGraphique />,
     roles: ["superviseur", "admin"],
   },
@@ -31,6 +37,7 @@ export function BarreLaterale({
   repliee: boolean;
   onFermer: () => void;
 }) {
+  const { t } = useTranslation();
   const utilisateur = useAuthentification((e) => e.utilisateur);
   const deconnexion = useAuthentification((e) => e.deconnexion);
 
@@ -43,7 +50,7 @@ export function BarreLaterale({
       {ouverte && (
         <button
           onClick={onFermer}
-          aria-label="Fermer le menu"
+          aria-label={t("navigation.fermerMenu")}
           className="fixed inset-0 z-30 bg-black/40 lg:hidden"
         />
       )}
@@ -74,7 +81,7 @@ export function BarreLaterale({
                   to={entree.vers}
                   end={entree.vers === "/"}
                   onClick={onFermer}
-                  title={repliee ? entree.libelle : undefined}
+                  title={repliee ? t(entree.cle) : undefined}
                   className={({ isActive }) =>
                     cn(
                       "flex items-center gap-2.5 overflow-hidden rounded-md px-3 py-2",
@@ -89,7 +96,7 @@ export function BarreLaterale({
                     {entree.icone}
                   </span>
                   {!repliee && (
-                    <span className="whitespace-nowrap">{entree.libelle}</span>
+                    <span className="whitespace-nowrap">{t(entree.cle)}</span>
                   )}
                 </NavLink>
               </li>
@@ -101,13 +108,11 @@ export function BarreLaterale({
           {repliee ? (
             <button
               onClick={deconnexion}
-              aria-label="Se déconnecter"
-              title="Se déconnecter"
+              aria-label={t("navigation.deconnexion")}
+              title={t("navigation.deconnexion")}
               className="grid size-9 place-items-center rounded-md text-white/65 transition-colors duration-[120ms] hover:bg-white/10 hover:text-white"
             >
-              <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <IconeSortie />
             </button>
           ) : (
             <>
@@ -115,13 +120,18 @@ export function BarreLaterale({
                 {utilisateur?.nom_complet ?? "—"}
               </p>
               <p className="truncate text-xs text-white/55">
-                {utilisateur?.poste?.nom ?? "Aucun poste"}
+                {utilisateur?.poste?.nom ?? t("navigation.aucunPoste")}
               </p>
+
+              <div className="mt-2">
+                <SelecteurLangue />
+              </div>
+
               <button
                 onClick={deconnexion}
                 className="mt-2 w-full rounded-md border border-white/15 py-1.5 text-xs font-medium text-white/70 transition-colors duration-[120ms] hover:border-white/30 hover:text-white"
               >
-                Se déconnecter
+                {t("navigation.deconnexion")}
               </button>
             </>
           )}
@@ -156,6 +166,14 @@ function IconeGraphique() {
     <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
       <path d="M3 3v18h18" strokeLinecap="round" />
       <path d="M7 15l4-5 3 3 5-7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconeSortie() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
