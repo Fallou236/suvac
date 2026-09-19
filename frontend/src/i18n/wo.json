@@ -1,0 +1,11 @@
+{
+  "navigation": {
+    "deconnexion": ""
+  },
+  "statut": {
+    "a_venir": "",
+    "due": "",
+    "en_retard": "",
+    "administree": ""
+  }
+}
