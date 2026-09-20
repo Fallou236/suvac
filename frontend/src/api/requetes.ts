@@ -38,6 +38,46 @@ export type SaisieEnfant = {
   poids_naissance_grammes?: number | null;
 };
 
+export type Synthese = {
+  enfants_suivis: number;
+  doses_du_mois: number;
+  en_retard: number;
+  perimees: number;
+  couverture_globale: number;
+  poste: string;
+  arrete_au: string;
+};
+
+export type Couverture = {
+  code: string;
+  libelle: string;
+  rang: number;
+  attendus: number;
+  administres: number;
+  taux: number;
+};
+
+export type Abandon = {
+  code: string;
+  libelle: string;
+  premiere_dose: number;
+  derniere_dose: number;
+  taux: number;
+};
+
+export type Activite = { mois: string; doses: number };
+
+export type LigneRetard = {
+  enfant_id: string;
+  enfant: string;
+  mere: string;
+  telephone: string;
+  village: string;
+  vaccin: string;
+  date_limite: string | null;
+  retard_jours: number;
+};
+
 export const requetes = {
   fileDuJour: (date?: string) =>
     api.get<EcheanceFile[]>("/echeances/file-du-jour/", { date }),
@@ -86,4 +126,11 @@ export const requetes = {
     ancien_mot_de_passe: string;
     nouveau_mot_de_passe: string;
   }) => api.post<void>("/auth/mot-de-passe/", saisie),
+
+  synthese: () => api.get<Synthese>("/pilotage/synthese/"),
+  couverture: () => api.get<Couverture[]>("/pilotage/couverture/"),
+  abandon: () => api.get<Abandon[]>("/pilotage/abandon/"),
+  activite: (mois = 12) => api.get<Activite[]>("/pilotage/activite/", { mois }),
+  retards: (limite = 100) =>
+    api.get<LigneRetard[]>("/pilotage/retards/", { limite }),
 };
