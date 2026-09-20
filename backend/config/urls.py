@@ -11,6 +11,13 @@ from apps.accounts.api import (
     ProfilView,
 )
 from apps.beneficiaires.api import EnfantViewSet, GrossesseViewSet, MereViewSet
+from apps.pilotage.api import (
+    AbandonView,
+    ActiviteView,
+    CouvertureView,
+    RetardsView,
+    SyntheseView,
+)
 from apps.suivi.api import DoseViewSet, EcheanceViewSet
 from config.health import healthz
 
@@ -40,4 +47,9 @@ urlpatterns = [
     # Documentation
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
+    path("api/pilotage/synthese/", SyntheseView.as_view(), name="pilotage-synthese"),
+    path("api/pilotage/couverture/", CouvertureView.as_view(), name="pilotage-couverture"),
+    path("api/pilotage/abandon/", AbandonView.as_view(), name="pilotage-abandon"),
+    path("api/pilotage/activite/", ActiviteView.as_view(), name="pilotage-activite"),
+    path("api/pilotage/retards/", RetardsView.as_view(), name="pilotage-retards"),
 ]

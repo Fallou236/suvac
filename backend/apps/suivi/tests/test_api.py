@@ -108,7 +108,14 @@ def test_le_calendrier_expose_les_statuts(client, agent, enfant):
     reponse = client.get(f"/api/enfants/{enfant.identifiant_public}/calendrier/")
 
     statuts = {e["statut"] for e in reponse.data["echeances"]}
-    assert statuts <= {"a_venir", "due", "en_retard", "perimee", "administree", "annulee"}
+    assert statuts <= {
+        "a_venir",
+        "due",
+        "en_retard",
+        "perimee",
+        "administree",
+        "annulee",
+    }
 
 
 def test_calendrier_d_un_enfant_d_un_autre_poste_refuse(client, agent, enfant_ailleurs):
