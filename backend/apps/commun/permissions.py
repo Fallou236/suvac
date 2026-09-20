@@ -54,6 +54,33 @@ class FiltrageParPoste:
 
         if utilisateur.est_administrateur:
             return queryset
+        # Un bénéficiaire n'accède jamais aux données d'un poste : son
+        # dossier passe par des points d'accès dédiés.
+        if utilisateur.role == Role.BENEFICIAIRE:
+            return queryset.none()
         if utilisateur.poste_id is None:
             return queryset.none()
         return queryset.filter(**{f"{self.champ_poste}_id": utilisateur.poste_id})
+
+
+class EstPersonnelSoignant(permissions.BasePermission):
+    """Exclut les bénéficiaires des écrans professionnels.
+
+    Une mère ne doit pas accéder à la file du jour, au pilotage, ni à la
+    liste des bénéficiaires du poste — seulement à son propre dossier.
+    """
+
+    message = "Cet accès est réservé au personnel du poste de santé."
+
+    def has_permission(self, request, view) -> bool:
+        return bool(
+            request.user.is_authenticated
+            and request.user.role in {Role.AGENT, Role.SUPERVISEUR, Role.ADMINISTRATEUR}
+        )
+
+
+class EstBeneficiaire(permissions.BasePermission):
+    message = "Réservé aux bénéficiaires."
+
+    def has_permission(self, request, view) -> bool:
+        return bool(request.user.is_authenticated and request.user.role == Role.BENEFICIAIRE)
