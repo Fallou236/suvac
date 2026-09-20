@@ -8,6 +8,7 @@ import type {
   Mere,
   MereListe,
   Page,
+  Utilisateur,
 } from "./types";
 
 export type SaisieDose = {
@@ -73,4 +74,16 @@ export const requetes = {
 
   grossessesDe: (mereId: string) =>
     api.get<Page<Grossesse>>("/grossesses/", { mere: mereId }),
+
+  modifierProfil: (profil: {
+    first_name?: string;
+    last_name?: string;
+    telephone?: string;
+    langue?: string;
+  }) => api.patch<Utilisateur>("/auth/profil/", profil),
+
+  changerMotDePasse: (saisie: {
+    ancien_mot_de_passe: string;
+    nouveau_mot_de_passe: string;
+  }) => api.post<void>("/auth/mot-de-passe/", saisie),
 };

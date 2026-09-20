@@ -11,7 +11,8 @@
     "replierPanneau": "Replier le panneau",
     "deplierPanneau": "Déplier le panneau",
     "aucunPoste": "Aucun poste",
-    "fermerMenu": "Fermer le menu"
+    "fermerMenu": "Fermer le menu",
+    "parametres": "Paramètres"
   },
   "connexion": {
     "titre": "Connexion",

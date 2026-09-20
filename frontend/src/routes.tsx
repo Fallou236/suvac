@@ -6,6 +6,7 @@ import { Protege } from "@/composants/Protege";
 const Connexion = lazy(() => import("@/pages/Connexion"));
 const FileDuJour = lazy(() => import("@/pages/FileDuJour"));
 const Beneficiaires = lazy(() => import("@/pages/Beneficiaires"));
+const Parametres = lazy(() => import("@/pages/Parametres"));
 
 export const routeur = createBrowserRouter([
   {
@@ -25,6 +26,14 @@ export const routeur = createBrowserRouter([
         element: (
           <Protege>
             <Beneficiaires />
+          </Protege>
+        ),
+      },
+      {
+        path: "/parametres",
+        element: (
+          <Protege>
+            <Parametres />
           </Protege>
         ),
       },
