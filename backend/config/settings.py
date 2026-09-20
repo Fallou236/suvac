@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "apps.vaccination",
     "apps.beneficiaires",
     "apps.suivi",
+    "apps.pilotage",
 ]
 
 AUTH_USER_MODEL = "accounts.Utilisateur"

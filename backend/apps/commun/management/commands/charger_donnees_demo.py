@@ -211,7 +211,12 @@ class Command(BaseCommand):
         mere = self._mere("Coumba", "Faye", "+221771000007", ndondol, "Thiakhar")
         self._consentir(mere, awa, CanalRappel.APPLICATION)
         self._enfant(
-            mere, "Mariama", "Faye", aujourdhui - timedelta(days=90), Sexe.FEMININ, ndondol
+            mere,
+            "Mariama",
+            "Faye",
+            aujourdhui - timedelta(days=90),
+            Sexe.FEMININ,
+            ndondol,
         )
 
         # ---- Cas 8 : consentement révoqué -----------------------------
@@ -219,19 +224,30 @@ class Command(BaseCommand):
         consentement = self._consentir(mere, awa, CanalRappel.WHATSAPP)
         consentement.revoquer()
         self._enfant(
-            mere, "Ibrahima", "Thiam", aujourdhui - timedelta(days=120), Sexe.MASCULIN, ndondol
+            mere,
+            "Ibrahima",
+            "Thiam",
+            aujourdhui - timedelta(days=120),
+            Sexe.MASCULIN,
+            ndondol,
         )
 
         # ---- Cas 9 : échéance annulée ---------------------------------
         mere = self._mere("Astou", "Mbaye", "+221771000009", ndondol, "Keur Samba")
         self._consentir(mere, awa, CanalRappel.WHATSAPP)
         enfant = self._enfant(
-            mere, "Aminata", "Mbaye", aujourdhui - timedelta(days=60), Sexe.FEMININ, ndondol
+            mere,
+            "Aminata",
+            "Mbaye",
+            aujourdhui - timedelta(days=60),
+            Sexe.FEMININ,
+            ndondol,
         )
         echeance = Echeance.objects.filter(enfant=enfant, vaccin__code="ROTA", rang=1).first()
         if echeance and echeance.statut != StatutEcheance.ADMINISTREE:
             echeance.annuler(
-                MotifAnnulation.CONTRE_INDICATION, "Antécédent d'invagination intestinale."
+                MotifAnnulation.CONTRE_INDICATION,
+                "Antécédent d'invagination intestinale.",
             )
 
         # ---- Cas 10 : grossesse suivie --------------------------------
@@ -252,15 +268,32 @@ class Command(BaseCommand):
         mere = self._mere("Yacine", "Seck", "+221771000011", ndondol, "Thiakhar")
         self._consentir(mere, awa, CanalRappel.WHATSAPP)
         self._enfant(
-            mere, "Modou", "Seck", aujourdhui - timedelta(days=300), Sexe.MASCULIN, ndondol
+            mere,
+            "Modou",
+            "Seck",
+            aujourdhui - timedelta(days=300),
+            Sexe.MASCULIN,
+            ndondol,
         )
-        self._enfant(mere, "Fatima", "Seck", aujourdhui - timedelta(days=75), Sexe.FEMININ, ndondol)
+        self._enfant(
+            mere,
+            "Fatima",
+            "Seck",
+            aujourdhui - timedelta(days=75),
+            Sexe.FEMININ,
+            ndondol,
+        )
 
         # ---- Cas 12 : autre poste, pour le cloisonnement (EF-03) ------
         mere = self._mere("Dieynaba", "Sy", "+221771000012", ngaparou, "Ngaparou")
         self._consentir(mere, agents["ibrahima.ba"], CanalRappel.WHATSAPP)
         self._enfant(
-            mere, "Alioune", "Sy", aujourdhui - timedelta(days=110), Sexe.MASCULIN, ngaparou
+            mere,
+            "Alioune",
+            "Sy",
+            aujourdhui - timedelta(days=110),
+            Sexe.MASCULIN,
+            ngaparou,
         )
 
         # ---- Cas 13 : sans téléphone ----------------------------------
