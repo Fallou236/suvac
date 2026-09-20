@@ -1338,6 +1338,8 @@ export interface operations {
     enfants_list: {
         parameters: {
             query?: {
+                /** @description Identifiant public de la mère, pour ne lister que ses enfants. */
+                mere?: string;
                 /** @description Quel champ utiliser pour classer les résultats. */
                 ordering?: string;
                 /** @description Un numéro de page de l'ensemble des résultats. */
