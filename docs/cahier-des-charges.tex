@@ -493,9 +493,9 @@ Prédiction du risque d'abandon & Réservé à une évolution ultérieure \\
 \toprule
 \rowhead \hd{Acteur} & \hd{Description} & \hd{Accès principal} \\
 \midrule
-\textbf{Agent de santé} & Infirmier, sage-femme ou matrone du poste de santé. Enregistre les bénéficiaires et administre les doses. Utilisateur principal, souvent en connectivité dégradée. & PWA, mode hors ligne \\
+\textbf{Agent de santé} & Infirmier, sage-femme ou matrone du poste de santé. Enregistre les bénéficiaires et administre les doses. Utilisateur principal, souvent en connectivité dégradée.  Ouvre et ferme l'accès des mères à leur espace personnel. & PWA, mode hors ligne \\
 \rowcolor{softbg}
-\textbf{Mère ou tuteur} & Bénéficiaire finale. Consulte le carnet de son enfant et reçoit les rappels. Peut être non alphabétisée. & WhatsApp vocal, consultation web légère \\
+\textbf{Mère ou tuteur} & Bénéficiaire finale. Consulte le carnet de ses enfants et de ses grossesses, reçoit les rappels accompagnés de l'explication de chaque vaccin. Peut être non alphabétisée. N'enregistre aucun acte vaccinal. & Rappels vocaux par WhatsApp ; espace personnel en consultation, si l'agent lui ouvre un accès \\
 \textbf{Superviseur de district} & Responsable du suivi de la couverture sur plusieurs postes. Consulte, n'administre pas de doses. & Web, tableau de bord \\
 \rowcolor{softbg}
 \textbf{Administrateur} & Membre de l'équipe technique. Gère les référentiels, les comptes et le schéma vaccinal. & Interface d'administration \\
@@ -682,6 +682,25 @@ Seules les exigences \pM{} conditionnent l'acceptation du projet (section~16).
 \bottomrule
 \end{xltabular}
 
+\subsection{Espace bénéficiaire}
+
+\begin{xltabular}{\textwidth}{@{}C{1.5cm} L C{1.3cm}@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} & \hd{Prio.} \\
+\midrule \endhead
+\rid{EF-80} & L'agent ouvre et ferme l'accès d'une mère à son espace personnel. Fermer l'accès désactive le compte sans supprimer l'historique. & \pM \\
+\rowcolor{softbg}
+\rid{EF-81} & La mère consulte le carnet de chacun de ses enfants et de chacune de ses grossesses, regroupé par étape d'âge. & \pM \\
+\rid{EF-82} & La mère voit en un écran ce qui est à faire, ce qui est en retard et ses prochains rendez-vous, pour elle et ses enfants. & \pM \\
+\rowcolor{softbg}
+\rid{EF-83} & La mère reçoit ses rappels dans l'application ; un retard est signalé sans culpabiliser. & \pM \\
+\rid{EF-84} & Chaque vaccin, dans le carnet comme dans les messages, est accompagné d'une explication destinée aux mères. & \pM \\
+\rowcolor{softbg}
+\rid{EF-85} & Les fiches des vaccins sont consultables par tous les utilisateurs connectés. & \pS \\
+\rid{EF-86} & La mère peut corriger son téléphone et son village, jamais son identité. & \pS \\
+\bottomrule
+\end{xltabular}
+
 % =====================================================================
 \section{Règles de gestion}
 % =====================================================================
@@ -813,6 +832,7 @@ les jeux de données de démonstration doivent être entièrement fictifs.
 \rowcolor{softbg}
 \rid{ENF-23} & Une durée de conservation est définie et documentée pour chaque catégorie de données. \\
 \rid{ENF-24} & Les données de démonstration et de test sont entièrement fictives ou anonymisées. \\
+\rid{ENF-25} & Une bénéficiaire n'accède qu'à son propre dossier. Un identifiant valide mais rattaché à une autre bénéficiaire reçoit la même réponse qu'un identifiant inconnu. \\
 \rowcolor{softbg}
 \rid{ENF-25} & Le système journalise les accès aux données de santé. \\
 \bottomrule
@@ -1758,6 +1778,8 @@ Td-5 & 1 an après Td-4 \\
 \rowcolor{softbg}
 1.2 & Septembre 2026 & Fallou Diouck & Périmètre de l'internationalisation précisé (EF-70, ADR 0005) ; statut « périmée » ajouté au moteur (RG-05bis) ; couverture frontend atteinte \\
  &  &  &  \\
+\rowcolor{softbg}
+1.3 & Septembre 2026 & Fallou Diouck & Espace bénéficiaire (EF-80 à EF-86, ENF-25, ADR 0006) ; fiches vaccins ; tableau de bord superviseur livré ; écran de paramètres \\
 \bottomrule
 \end{tabularx}
 
