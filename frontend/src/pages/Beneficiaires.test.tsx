@@ -5,6 +5,7 @@ import { rendre } from "@/tests/utilitaires";
 import { serveur, http, HttpResponse } from "@/tests/serveur";
 import { useAuthentification } from "@/etat/authentification";
 import Beneficiaires from "./Beneficiaires";
+import { screen, waitFor } from "@testing-library/react";
 
 function connecter() {
   useAuthentification.getState().definirUtilisateur({
