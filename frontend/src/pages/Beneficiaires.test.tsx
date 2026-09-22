@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { rendre } from "@/tests/utilitaires";
 import { serveur, http, HttpResponse } from "@/tests/serveur";
 import { useAuthentification } from "@/etat/authentification";
 import Beneficiaires from "./Beneficiaires";
-import { screen, waitFor } from "@testing-library/react";
 
 function connecter() {
   useAuthentification.getState().definirUtilisateur({
