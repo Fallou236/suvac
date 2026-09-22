@@ -78,6 +78,58 @@ export type LigneRetard = {
   retard_jours: number;
 };
 
+export type MonBeneficiaire = {
+  id: string;
+  nom: string;
+  date_naissance?: string;
+  sexe?: string;
+  age_jours?: number;
+  rang?: number;
+  date_reference?: string;
+  terme_estime?: string | null;
+  statut?: string;
+};
+
+export type MonCarnet = {
+  id: string;
+  nom: string;
+  type: "enfant" | "grossesse";
+  date_reference: string;
+  echeances: {
+    id: string;
+    vaccin: string;
+    code: string;
+    protege_contre: string;
+    rang: number;
+    date_cible: string;
+    statut: string;
+    age_cible_jours: number;
+    date_administration: string | null;
+  }[];
+};
+
+export type MonRappel = {
+  id: string;
+  beneficiaire: string;
+  beneficiaire_id: string;
+  vaccin: string;
+  code: string;
+  protege_contre: string;
+  rang: number;
+  date_cible: string;
+  statut: string;
+  retard_jours: number;
+  poste: string;
+};
+
+export type FicheVaccin = {
+  code: string;
+  libelle: string;
+  protege_contre: string;
+  description: string;
+  voie: string;
+};
+
 export const requetes = {
   fileDuJour: (date?: string) =>
     api.get<EcheanceFile[]>("/echeances/file-du-jour/", { date }),
@@ -133,4 +185,32 @@ export const requetes = {
   activite: (mois = 12) => api.get<Activite[]>("/pilotage/activite/", { mois }),
   retards: (limite = 100) =>
     api.get<LigneRetard[]>("/pilotage/retards/", { limite }),
+
+    monProfil: () => api.get<Mere>("/mon-dossier/profil/"),
+
+  modifierMonProfil: (donnees: {
+    telephone?: string;
+    village?: string;
+    langue?: string;
+  }) => api.patch<Mere>("/mon-dossier/profil/", donnees),
+
+  mesBeneficiaires: () =>
+    api.get<{ enfants: MonBeneficiaire[]; grossesses: MonBeneficiaire[] }>(
+      "/mon-dossier/beneficiaires/",
+    ),
+
+  monCarnet: (id: string) => api.get<MonCarnet>(`/mon-dossier/carnet/${id}/`),
+
+  mesRappels: () => api.get<MonRappel[]>("/mon-dossier/rappels/"),
+
+  ouvrirAcces: (idMere: string, identifiant: string, motDePasse: string) =>
+    api.post<{ identifiant: string }>(`/meres/${idMere}/ouvrir-acces/`, {
+      identifiant,
+      mot_de_passe: motDePasse,
+    }),
+
+  fermerAcces: (idMere: string) =>
+    api.post<void>(`/meres/${idMere}/fermer-acces/`),
+
+  vaccins: () => api.get<FicheVaccin[]>("/vaccins/"),
 };

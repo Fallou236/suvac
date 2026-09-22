@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { requetes } from "@/api/requetes";
 import { Bouton } from "@/composants/Bouton";
 import { Etiquette } from "@/composants/Etiquette";
 import { Chargement } from "@/composants/Chargement";
 import { Modal } from "@/composants/Modal";
-import { messageDErreur } from "@/etat/messages";
+import { erreursParChamp, messageDErreur } from "@/etat/messages";
 import { FormulaireEnfant } from "./FormulaireEnfant";
 import { FormulaireGrossesse } from "./FormulaireGrossesse";
+import { Champ } from "@/composants/Champ";
 
 type Props = {
   id: string;
@@ -222,6 +223,7 @@ export function FicheMere({ id, onFermer }: Props) {
             )}
           </div>
         </section>
+        <SectionAcces mere={mere} />
       </div>
 
       <Modal
@@ -279,4 +281,101 @@ function libelleStatut(statut: string): string {
   if (statut === "en_cours") return "En cours";
   if (statut === "terminee") return "Terminée";
   return "Interrompue";
+}
+
+function SectionAcces({ mere }: { mere: { id: string; a_un_acces?: boolean } }) {
+  const [ouvert, setOuvert] = useState(false);
+  const [identifiant, setIdentifiant] = useState("");
+  const [motDePasse, setMotDePasse] = useState("");
+  const client = useQueryClient();
+
+  const ouvrir = useMutation({
+    mutationFn: () => requetes.ouvrirAcces(mere.id, identifiant, motDePasse),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ["mere", mere.id] });
+      setOuvert(false);
+    },
+  });
+
+  const fermer = useMutation({
+    mutationFn: () => requetes.fermerAcces(mere.id),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["mere", mere.id] }),
+  });
+
+  return (
+    <section>
+      <h3 className="mb-2.5 text-xs font-bold uppercase tracking-wide text-texte-faible">
+        Espace personnel
+      </h3>
+      <div className="rounded-md border border-bordure bg-white px-3 py-3">
+        {mere.a_un_acces ? (
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-texte">
+              La mère peut consulter ses carnets et ses messages.
+            </p>
+            <Bouton
+              variante="secondaire"
+              taille="compact"
+              chargement={fermer.isPending}
+              onClick={() => fermer.mutate()}
+            >
+              Fermer l'accès
+            </Bouton>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-texte-faible">
+              Aucun accès. La mère ne peut pas consulter ses carnets en ligne.
+            </p>
+            <Bouton taille="compact" onClick={() => setOuvert(true)}>
+              Ouvrir un accès
+            </Bouton>
+          </div>
+        )}
+      </div>
+
+      <Modal ouvert={ouvert} titre="Ouvrir un accès" onFermer={() => setOuvert(false)}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            ouvrir.mutate();
+          }}
+          className="flex flex-col gap-4"
+          noValidate
+        >
+          <p className="text-sm text-texte-faible">
+            Choisissez un identifiant et un mot de passe à transmettre à la mère.
+            Notez-les pour elle : elle en aura besoin pour se connecter.
+          </p>
+          <Champ
+            libelle="Identifiant"
+            value={identifiant}
+            onChange={(e) => setIdentifiant(e.target.value)}
+            autoCapitalize="none"
+            erreur={erreursParChamp(ouvrir.error).identifiant}
+          />
+          <Champ
+            libelle="Mot de passe"
+            value={motDePasse}
+            onChange={(e) => setMotDePasse(e.target.value)}
+            aide="Au moins huit caractères."
+            erreur={erreursParChamp(ouvrir.error).mot_de_passe}
+          />
+          <div className="flex justify-end gap-2">
+            <Bouton type="button" variante="secondaire" taille="compact" onClick={() => setOuvert(false)}>
+              Annuler
+            </Bouton>
+            <Bouton
+              type="submit"
+              taille="compact"
+              chargement={ouvrir.isPending}
+              disabled={!identifiant || motDePasse.length < 8}
+            >
+              Ouvrir l'accès
+            </Bouton>
+          </div>
+        </form>
+      </Modal>
+    </section>
+  );
 }

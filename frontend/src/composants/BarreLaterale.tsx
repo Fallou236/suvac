@@ -5,20 +5,25 @@ import { Logo } from "./Logo";
 import { SelecteurLangue } from "./SelecteurLangue";
 import { cn } from "./cn";
 import { useAuthentification } from "@/etat/authentification";
+import { useQuery } from "@tanstack/react-query";
+import { requetes } from "@/api/requetes";
+import { PERSONNEL } from "@/etat/navigation";
 
 type Entree = {
   vers: string;
   cle: string;
   icone: ReactNode;
   roles?: string[];
+  compteur?: "rappels";
 };
 
 const ENTREES: Entree[] = [
-  { vers: "/", cle: "navigation.fileDuJour", icone: <IconeFile /> },
+  { vers: "/", cle: "navigation.fileDuJour", icone: <IconeFile />, roles: PERSONNEL },
   {
     vers: "/beneficiaires",
     cle: "navigation.beneficiaires",
     icone: <IconePersonnes />,
+    roles: PERSONNEL,
   },
   {
     vers: "/pilotage",
@@ -26,8 +31,31 @@ const ENTREES: Entree[] = [
     icone: <IconeGraphique />,
     roles: ["superviseur", "admin"],
   },
+  {
+    vers: "/mon-espace",
+    cle: "navigation.aujourdhui",
+    icone: <IconeCalendrier />,
+    roles: ["beneficiaire"],
+  },
+  {
+    vers: "/mon-espace/carnets",
+    cle: "navigation.carnets",
+    icone: <IconeCarnet />,
+    roles: ["beneficiaire"],
+  },
+  {
+    vers: "/mon-espace/messages",
+    cle: "navigation.messages",
+    icone: <IconeMessage />,
+    roles: ["beneficiaire"],
+    compteur: "rappels",
+  },
+  { vers: "/vaccins", cle: "navigation.vaccins", icone: <IconeBouclier /> },
   { vers: "/parametres", cle: "navigation.parametres", icone: <IconeReglages /> },
 ];
+
+/** Routes dont les sous-pages ont leur propre entrée : activation exacte. */
+const EXACTES = new Set(["/", "/mon-espace"]);
 
 export function BarreLaterale({
   ouverte,
@@ -41,6 +69,15 @@ export function BarreLaterale({
   const { t } = useTranslation();
   const utilisateur = useAuthentification((e) => e.utilisateur);
   const deconnexion = useAuthentification((e) => e.deconnexion);
+  const estBeneficiaire = utilisateur?.role === "beneficiaire";
+
+  // Le compteur de messages n'est chargé que pour une bénéficiaire.
+  const { data: rappels } = useQuery({
+    queryKey: ["mon-dossier", "rappels"],
+    queryFn: requetes.mesRappels,
+    enabled: estBeneficiaire,
+  });
+  const nombreRappels = rappels?.length ?? 0;
 
   const entrees = ENTREES.filter(
     (e) => !e.roles || (utilisateur && e.roles.includes(utilisateur.role)),
@@ -80,7 +117,7 @@ export function BarreLaterale({
               <li key={entree.vers}>
                 <NavLink
                   to={entree.vers}
-                  end={entree.vers === "/"}
+                  end={EXACTES.has(entree.vers)}
                   onClick={onFermer}
                   title={repliee ? t(entree.cle) : undefined}
                   className={({ isActive }) =>
@@ -93,11 +130,27 @@ export function BarreLaterale({
                     )
                   }
                 >
-                  <span className="grid size-5 shrink-0 place-items-center">
+                  <span className="relative grid size-5 shrink-0 place-items-center">
                     {entree.icone}
+                    {entree.compteur && nombreRappels > 0 && repliee && (
+                      <span
+                        aria-hidden="true"
+                        className="absolute -right-1 -top-1 size-2 rounded-full bg-cuivre-lumiere"
+                      />
+                    )}
                   </span>
                   {!repliee && (
-                    <span className="whitespace-nowrap">{t(entree.cle)}</span>
+                    <>
+                      <span className="flex-1 whitespace-nowrap">{t(entree.cle)}</span>
+                      {entree.compteur && nombreRappels > 0 && (
+                        <span
+                          className="tabulaire grid min-w-5 place-items-center rounded-full bg-cuivre-lumiere px-1.5 text-[11px] font-bold text-baobab-fonce"
+                          aria-label={`${nombreRappels} message${nombreRappels > 1 ? "s" : ""}`}
+                        >
+                          {nombreRappels}
+                        </span>
+                      )}
+                    </>
                   )}
                 </NavLink>
               </li>
@@ -121,7 +174,9 @@ export function BarreLaterale({
                 {utilisateur?.nom_complet ?? "—"}
               </p>
               <p className="truncate text-xs text-white/55">
-                {utilisateur?.poste?.nom ?? t("navigation.aucunPoste")}
+                {estBeneficiaire
+                  ? "Espace personnel"
+                  : utilisateur?.poste?.nom ?? t("navigation.aucunPoste")}
               </p>
 
               <div className="mt-2">
@@ -184,6 +239,43 @@ function IconeReglages() {
     <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconeCalendrier() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="17" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" strokeLinecap="round" />
+      <circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function IconeCarnet() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14Z" strokeLinejoin="round" />
+      <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5" strokeLinejoin="round" />
+      <path d="M9 8h7M9 12h5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconeMessage() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconeBouclier() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" strokeLinejoin="round" />
+      <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { rendre } from "@/tests/utilitaires";
 import { serveur, http, HttpResponse } from "@/tests/serveur";
@@ -173,6 +173,48 @@ describe("Beneficiaires", () => {
 
     expect(
       await screen.findByRole("heading", { name: /enregistrer une grossesse/i }),
+    ).toBeInTheDocument();
+  });
+
+    it("ouvre un accès pour la mère", async () => {
+    const utilisateur = userEvent.setup();
+    connecter();
+    servirEcran();
+    let corpsRecu: Record<string, unknown> | null = null;
+
+    serveur.use(
+      http.post("/api/meres/mere-1/ouvrir-acces/", async ({ request }) => {
+        corpsRecu = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({ identifiant: "khady.ndiaye" }, { status: 201 });
+      }),
+    );
+
+    rendre(<Beneficiaires />);
+    await utilisateur.click(await screen.findByText("Khady Ndiaye"));
+    await utilisateur.click(
+      await screen.findByRole("button", { name: /^ouvrir un accès$/i }),
+    );
+    await utilisateur.type(screen.getByLabelText(/^identifiant/i), "khady.ndiaye");
+    await utilisateur.type(screen.getByLabelText(/^mot de passe/i), "motdepasse-solide");
+    await utilisateur.click(screen.getByRole("button", { name: /ouvrir l'accès/i }));
+
+    await waitFor(() => expect(corpsRecu).not.toBeNull());
+    expect(corpsRecu).toMatchObject({
+      identifiant: "khady.ndiaye",
+      mot_de_passe: "motdepasse-solide",
+    });
+  });
+
+  it("propose de fermer un accès existant", async () => {
+    const utilisateur = userEvent.setup();
+    connecter();
+    servirEcran({ fiche: { ...MERE_COMPLETE, a_un_acces: true } });
+
+    rendre(<Beneficiaires />);
+    await utilisateur.click(await screen.findByText("Khady Ndiaye"));
+
+    expect(
+      await screen.findByRole("button", { name: /fermer l'accès/i }),
     ).toBeInTheDocument();
   });
 });

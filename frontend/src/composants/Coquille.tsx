@@ -21,7 +21,7 @@ export function Coquille({ titre, actions, children }: Props) {
   }, [repliee]);
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-surface-basse">
+    <div className="fixed inset-0 flex overflow-hidden bg-surface-basse">
       <BarreLaterale
         ouverte={menuMobile}
         repliee={repliee}

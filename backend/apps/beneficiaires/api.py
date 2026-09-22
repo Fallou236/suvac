@@ -6,11 +6,16 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.commun.permissions import FiltrageParPoste, LectureSeulePourSuperviseur
+from apps.commun.permissions import (
+    EstPersonnelSoignant,
+    FiltrageParPoste,
+    LectureSeulePourSuperviseur,
+)
 
 from .models import Consentement, Enfant, Grossesse, Mere
 from .serializers import (
     ConsentementSerializer,
+    CreationCompteSerializer,
     CreationConsentementSerializer,
     EnfantListeSerializer,
     EnfantSerializer,
@@ -23,7 +28,11 @@ from .serializers import (
 class MereViewSet(FiltrageParPoste, viewsets.ModelViewSet):
     """Mères et futures mères (EF-10, EF-14)."""
 
-    permission_classes = [IsAuthenticated, LectureSeulePourSuperviseur]
+    permission_classes = [
+        IsAuthenticated,
+        EstPersonnelSoignant,
+        LectureSeulePourSuperviseur,
+    ]
     lookup_field = "identifiant_public"
     lookup_url_kwarg = "id"
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -73,11 +82,75 @@ class MereViewSet(FiltrageParPoste, viewsets.ModelViewSet):
         """Suppression logique (RG-10)."""
         instance.supprimer()
 
+    @extend_schema(
+        request=CreationCompteSerializer,
+        responses={201: None, 400: None},
+        description=(
+            "Ouvre un accès à la mère pour qu'elle consulte le carnet de ses "
+            "enfants. L'identifiant et le mot de passe sont transmis oralement "
+            "par l'agent."
+        ),
+    )
+    @action(detail=True, methods=["post"], url_path="ouvrir-acces")
+    def ouvrir_acces(self, request, id=None):
+        from apps.accounts.models import Role, Utilisateur
+
+        mere = self.get_object()
+
+        if mere.compte_id:
+            return Response(
+                {"detail": "Un accès existe déjà pour cette bénéficiaire."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        entree = CreationCompteSerializer(data=request.data)
+        entree.is_valid(raise_exception=True)
+
+        compte = Utilisateur.objects.create_user(
+            username=entree.validated_data["identifiant"],
+            password=entree.validated_data["mot_de_passe"],
+            first_name=mere.prenom,
+            last_name=mere.nom,
+            role=Role.BENEFICIAIRE,
+            langue=mere.langue,
+            telephone=mere.telephone,
+        )
+        mere.compte = compte
+        mere.save(update_fields=["compte", "modifie_le"])
+
+        return Response(
+            {"identifiant": compte.username},
+            status=status.HTTP_201_CREATED,
+        )
+
+    @extend_schema(
+        responses={204: None},
+        description="Ferme l'accès de la mère. Son dossier reste intact.",
+    )
+    @action(detail=True, methods=["post"], url_path="fermer-acces")
+    def fermer_acces(self, request, id=None):
+        mere = self.get_object()
+
+        if mere.compte_id:
+            compte = mere.compte
+            mere.compte = None
+            mere.save(update_fields=["compte", "modifie_le"])
+            # Désactivation plutôt que suppression : les actes tracés
+            # gardent ainsi leur auteur (RG-10).
+            compte.is_active = False
+            compte.save(update_fields=["is_active"])
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class EnfantViewSet(FiltrageParPoste, viewsets.ModelViewSet):
     """Enfants bénéficiaires (EF-12, EF-14)."""
 
-    permission_classes = [IsAuthenticated, LectureSeulePourSuperviseur]
+    permission_classes = [
+        IsAuthenticated,
+        EstPersonnelSoignant,
+        LectureSeulePourSuperviseur,
+    ]
     lookup_field = "identifiant_public"
     lookup_url_kwarg = "id"
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -152,7 +225,11 @@ class GrossesseViewSet(FiltrageParPoste, viewsets.ModelViewSet):
     """Épisodes de grossesse (EF-11)."""
 
     serializer_class = GrossesseSerializer
-    permission_classes = [IsAuthenticated, LectureSeulePourSuperviseur]
+    permission_classes = [
+        IsAuthenticated,
+        EstPersonnelSoignant,
+        LectureSeulePourSuperviseur,
+    ]
     lookup_field = "identifiant_public"
     lookup_url_kwarg = "id"
     champ_poste = "mere__poste"

@@ -10,7 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.commun.permissions import LectureSeulePourSuperviseur
+from apps.commun.permissions import EstPersonnelSoignant, LectureSeulePourSuperviseur
 
 from .models import DoseAdministree, Echeance, StatutEcheance
 from .serializers import (
@@ -82,7 +82,11 @@ class EcheanceViewSet(viewsets.ReadOnlyModelViewSet):
     """
 
     serializer_class = EcheanceSerializer
-    permission_classes = [IsAuthenticated, LectureSeulePourSuperviseur]
+    permission_classes = [
+        IsAuthenticated,
+        EstPersonnelSoignant,
+        LectureSeulePourSuperviseur,
+    ]
     lookup_field = "identifiant_public"
     lookup_url_kwarg = "id"
 
@@ -245,7 +249,11 @@ class DoseViewSet(viewsets.GenericViewSet):
     """Enregistrement des actes vaccinaux (EF-30, EF-31)."""
 
     serializer_class = CreationDoseSerializer
-    permission_classes = [IsAuthenticated, LectureSeulePourSuperviseur]
+    permission_classes = [
+        IsAuthenticated,
+        EstPersonnelSoignant,
+        LectureSeulePourSuperviseur,
+    ]
 
     def _echeances_accessibles(self):
         utilisateur = self.request.user

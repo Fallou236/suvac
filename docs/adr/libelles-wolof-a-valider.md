@@ -1,7 +1,7 @@
 # Libellés wolof à valider
 
 À soumettre à un locuteur natif, de préférence familier du vocabulaire
-sanitaire : professeur Michel Seck, ou un agent du poste de santé.
+sanitaire.
 
 ## Principe
 
@@ -36,27 +36,31 @@ Les variables entre crochets seront remplacées à l'envoi.
 **Rappel avant l'échéance**
 > Français : « Bonjour. [Prénom] doit recevoir le vaccin [vaccin] le [date].
 > Venez au poste de santé de [poste]. »
-> Wolof : …
+> Wolof : « Nanga def. [Prenom] dafa wara ñaq u [vaccin] ci [date].
+> Ñëwal ci postu wérgi-yaram bu [poste]. »
 
 **Rappel le jour même**
 > Français : « Bonjour. [Prénom] doit recevoir le vaccin [vaccin] aujourd'hui.
 > Venez au poste de santé de [poste]. »
-> Wolof : …
+> Wolof : « Nanga def. [Prenom] dafa wara ñaq u [vaccin] tay. »
+> ñëwal ci postu wérgi-yaram bu [poste] »
 
 **Relance après retard**
 > Français : « Bonjour. [Prénom] n'a pas reçu le vaccin [vaccin] prévu le
 > [date]. Venez au poste de santé dès que possible. »
-> Wolof : …
+> Wolof : « Nanga def. [Prenom] jotul ñaq [vaccin] bi ñu ko waroon a jox [date]. Nanga ñëw ci
+> postu wérgi-yaram bi ci nimu gëna gaawe. »
 
 **Confirmation après administration**
 > Français : « [Prénom] a bien reçu le vaccin [vaccin]. Prochain rendez-vous
 > le [date]. »
-> Wolof : …
+> Wolof : « [Prenom] jot na ñakk [vaccin] bi. Randewu bi ci topp: [date]. »
 
 **Rappel pour la mère (antitétanique)**
 > Français : « Bonjour. Vous devez recevoir votre vaccin antitétanique le
 > [date]. Venez au poste de santé de [poste]. »
-> Wolof : …
+> Wolof : « Nanga def. Danga wara am sa ñaqu tetanus ci [date]. Ñëwal ci postu wérgi-yaram bu
+> [poste]. »
 
 ## 3. Questions de formulation à trancher
 

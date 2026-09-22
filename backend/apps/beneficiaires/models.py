@@ -44,6 +44,15 @@ class Mere(ModeleHorodate, ModeleSuppressionLogique, ModeleIdentifiantPublic):
     telephone = models.CharField(
         _("téléphone"), max_length=20, blank=True, validators=[validateur_telephone]
     )
+    compte = models.OneToOneField(
+        "accounts.Utilisateur",
+        verbose_name=_("compte d'accès"),
+        on_delete=models.SET_NULL,
+        related_name="mere",
+        null=True,
+        blank=True,
+        help_text=_("Permet à la mère de consulter le carnet de ses enfants."),
+    )
     langue = models.CharField(
         _("langue préférée"), max_length=2, choices=Langue.choices, default=Langue.WOLOF
     )

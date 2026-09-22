@@ -4,6 +4,7 @@ import { Bouton } from "@/composants/Bouton";
 import { Champ } from "@/composants/Champ";
 import { useAuthentification } from "@/etat/authentification";
 import { messageDErreur } from "@/etat/messages";
+import { accueilPour } from "@/etat/navigation";
 
 export default function Connexion() {
   const [identifiant, setIdentifiant] = useState("");
@@ -22,9 +23,9 @@ export default function Connexion() {
 
     try {
       await connexion(identifiant, motDePasse);
-      const destination =
-        (emplacement.state as { depuis?: string } | null)?.depuis ?? "/";
-      naviguer(destination, { replace: true });
+      const role = useAuthentification.getState().utilisateur?.role;
+      const depuis = (emplacement.state as { depuis?: string } | null)?.depuis;
+      naviguer(depuis ?? accueilPour(role), { replace: true });
     } catch (e) {
       setErreur(messageDErreur(e));
     } finally {

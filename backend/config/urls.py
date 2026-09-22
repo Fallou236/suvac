@@ -11,6 +11,12 @@ from apps.accounts.api import (
     ProfilView,
 )
 from apps.beneficiaires.api import EnfantViewSet, GrossesseViewSet, MereViewSet
+from apps.beneficiaires.mon_dossier import (
+    MesBeneficiairesView,
+    MesRappelsView,
+    MonCarnetView,
+    MonProfilView,
+)
 from apps.pilotage.api import (
     AbandonView,
     ActiviteView,
@@ -19,6 +25,7 @@ from apps.pilotage.api import (
     SyntheseView,
 )
 from apps.suivi.api import DoseViewSet, EcheanceViewSet
+from apps.vaccination.api import VaccinViewSet
 from config.health import healthz
 
 routeur = DefaultRouter()
@@ -28,6 +35,7 @@ routeur.register("enfants", EnfantViewSet, basename="enfant")
 routeur.register("grossesses", GrossesseViewSet, basename="grossesse")
 routeur.register("echeances", EcheanceViewSet, basename="echeance")
 routeur.register("doses", DoseViewSet, basename="dose")
+routeur.register("vaccins", VaccinViewSet, basename="vaccin")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -52,4 +60,10 @@ urlpatterns = [
     path("api/pilotage/abandon/", AbandonView.as_view(), name="pilotage-abandon"),
     path("api/pilotage/activite/", ActiviteView.as_view(), name="pilotage-activite"),
     path("api/pilotage/retards/", RetardsView.as_view(), name="pilotage-retards"),
+    path("api/mon-dossier/profil/", MonProfilView.as_view(), name="mon-profil"),
+    path(
+        "api/mon-dossier/beneficiaires/", MesBeneficiairesView.as_view(), name="mes-beneficiaires"
+    ),
+    path("api/mon-dossier/carnet/<uuid:id>/", MonCarnetView.as_view(), name="mon-carnet"),
+    path("api/mon-dossier/rappels/", MesRappelsView.as_view(), name="mes-rappels"),
 ]

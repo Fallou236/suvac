@@ -26,6 +26,7 @@ class Role(models.TextChoices):
     AGENT = "agent", _("Agent de santé")
     SUPERVISEUR = "superviseur", _("Superviseur de district")
     ADMINISTRATEUR = "admin", _("Administrateur")
+    BENEFICIAIRE = "beneficiaire", _("Bénéficiaire")
 
 
 class PosteSante(ModeleHorodate, ModeleSuppressionLogique, ModeleIdentifiantPublic):
@@ -104,7 +105,9 @@ class Utilisateur(AbstractUser, ModeleHorodate, ModeleIdentifiantPublic):
         constraints = [
             models.CheckConstraint(
                 name="agent_et_superviseur_ont_un_poste",
-                condition=models.Q(role="admin") | models.Q(poste__isnull=False),
+                condition=(
+                    models.Q(role__in=["admin", "beneficiaire"]) | models.Q(poste__isnull=False)
+                ),
             )
         ]
 
@@ -123,3 +126,7 @@ class Utilisateur(AbstractUser, ModeleHorodate, ModeleIdentifiantPublic):
     @property
     def est_administrateur(self) -> bool:
         return self.role == Role.ADMINISTRATEUR
+
+    @property
+    def est_beneficiaire(self) -> bool:
+        return self.role == Role.BENEFICIAIRE

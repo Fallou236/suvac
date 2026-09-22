@@ -28,6 +28,7 @@ class MereSerializer(serializers.ModelSerializer):
     accepte_les_rappels = serializers.BooleanField(read_only=True)
     consentements = ConsentementSerializer(many=True, read_only=True)
     nombre_enfants = serializers.SerializerMethodField()
+    a_un_acces = serializers.SerializerMethodField()
 
     class Meta:
         model = Mere
@@ -44,11 +45,15 @@ class MereSerializer(serializers.ModelSerializer):
             "consentements",
             "nombre_enfants",
             "cree_le",
+            "a_un_acces",
         ]
         read_only_fields = ["id", "cree_le"]
 
     def get_nombre_enfants(self, obj: Mere) -> int:
         return obj.enfants.filter(supprime_le__isnull=True).count()
+
+    def get_a_un_acces(self, obj: Mere) -> bool:
+        return obj.compte_id is not None
 
     def create(self, donnees_validees: dict) -> Mere:
         """Le poste vient de l'agent, jamais du client (EF-03)."""
@@ -184,3 +189,23 @@ class GrossesseSerializer(serializers.ModelSerializer):
 
 class CreationConsentementSerializer(serializers.Serializer):
     canal = serializers.ChoiceField(choices=CanalRappel.choices)
+
+
+class CreationCompteSerializer(serializers.Serializer):
+    """Ouverture d'un accès pour une mère.
+
+    L'identifiant et le mot de passe sont choisis par l'agent et transmis
+    oralement. C'est une solution transitoire : le sprint 3 la remplacera
+    par un code à usage unique envoyé sur le canal WhatsApp (ADR à venir).
+    """
+
+    identifiant = serializers.CharField(max_length=150)
+    mot_de_passe = serializers.CharField(min_length=8, write_only=True)
+
+    def validate_identifiant(self, valeur: str) -> str:
+        from apps.accounts.models import Utilisateur
+
+        valeur = valeur.strip().lower()
+        if Utilisateur.objects.filter(username=valeur).exists():
+            raise serializers.ValidationError("Cet identifiant est déjà utilisé.")
+        return valeur
