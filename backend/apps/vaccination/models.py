@@ -36,6 +36,12 @@ class Vaccin(ModeleHorodate, ModeleSuppressionLogique):
     libelle_fr = models.CharField(_("libellé français"), max_length=100)
     libelle_wo = models.CharField(_("libellé wolof"), max_length=100, blank=True)
     description = models.TextField(_("description"), blank=True)
+    protege_contre = models.CharField(
+        _("protège contre"),
+        max_length=120,
+        blank=True,
+        help_text=_("Formulation courte, destinée aux bénéficiaires."),
+    )
     voie = models.CharField(
         _("voie d'administration"),
         max_length=20,

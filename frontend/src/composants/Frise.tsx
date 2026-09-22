@@ -11,6 +11,7 @@ const COULEURS: Record<StatutEcheance, string> = {
   due: "bg-white border-cuivre border-2",
   en_retard: "bg-retard border-retard",
   a_venir: "bg-white border-avenir",
+  perimee: "bg-annule/10 border-annule/40 border-dashed",
   annulee: "bg-annule/20 border-annule/40",
 };
 

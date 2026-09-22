@@ -181,6 +181,7 @@ describe("Pilotage", () => {
 
   it("explique l'échec du chargement et propose de réessayer", async () => {
     connecter();
+    servirTableauDeBord();
     serveur.use(
       http.get("/api/pilotage/synthese/", () =>
         new HttpResponse(null, { status: 403 }),

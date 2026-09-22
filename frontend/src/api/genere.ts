@@ -375,6 +375,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/meres/{id}/fermer-acces/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Ferme l'accès de la mère. Son dossier reste intact. */
+        post: operations["meres_fermer_acces_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/meres/{id}/ouvrir-acces/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Ouvre un accès à la mère pour qu'elle consulte le carnet de ses enfants. L'identifiant et le mot de passe sont transmis oralement par l'agent. */
+        post: operations["meres_ouvrir_acces_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/meres/{id}/revoquer-consentement/": {
         parameters: {
             query?: never;
@@ -386,6 +420,160 @@ export interface paths {
         put?: never;
         /** @description Révoque le consentement actif. Sans effet s'il n'y en a pas. */
         post: operations["meres_revoquer_consentement_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mon-dossier/beneficiaires/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Enfants et grossesses rattachés à la bénéficiaire connectée. */
+        get: operations["mon_dossier_beneficiaires_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mon-dossier/carnet/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Carnet vaccinal d'un bénéficiaire rattaché au compte connecté. */
+        get: operations["mon_dossier_carnet_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mon-dossier/profil/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Dossier de la bénéficiaire connectée. */
+        get: operations["mon_dossier_profil_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** @description Modification limitée : la bénéficiaire peut corriger son téléphone, son village et sa langue. Ni son identité ni son rattachement. */
+        patch: operations["mon_dossier_profil_partial_update"];
+        trace?: never;
+    };
+    "/api/mon-dossier/rappels/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Rappels dans l'application (EF-41) : échéances dues ou en retard pour les bénéficiaires rattachés au compte. Chaque rappel porte l'explication courte du vaccin concerné. */
+        get: operations["mon_dossier_rappels_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pilotage/abandon/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Taux d'abandon par série (EF-61) : proportion des bénéficiaires ayant reçu la première dose sans recevoir la dernière. */
+        get: operations["pilotage_abandon_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pilotage/activite/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Doses administrées par mois (EF-63). */
+        get: operations["pilotage_activite_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pilotage/couverture/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Taux de couverture par vaccin et par rang de dose (EF-60). Le dénominateur exclut les échéances non encore dues : un enfant de trois mois n'est pas « non couvert » pour un vaccin prévu à neuf mois. */
+        get: operations["pilotage_couverture_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pilotage/retards/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Liste nominative des enfants en retard, du plus ancien au plus récent (EF-62). */
+        get: operations["pilotage_retards_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pilotage/synthese/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Quatre chiffres résumant l'activité : enfants suivis, doses du mois, retards, doses périmées. */
+        get: operations["pilotage_synthese_retrieve"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -418,6 +606,50 @@ export interface paths {
         };
         /** @description Référentiel des postes, en lecture seule hors administration. */
         get: operations["postes_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vaccins/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Fiches des vaccins (EF-70 côté bénéficiaire).
+         *
+         *     Accessible à tous : l'agent y trouve la voie d'administration, la mère
+         *     y trouve l'explication de ce contre quoi le vaccin protège.
+         */
+        get: operations["vaccins_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vaccins/{code}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Fiches des vaccins (EF-70 côté bénéficiaire).
+         *
+         *     Accessible à tous : l'agent y trouve la voie d'administration, la mère
+         *     y trouve l'explication de ce contre quoi le vaccin protège.
+         */
+        get: operations["vaccins_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -477,6 +709,17 @@ export interface components {
         ConsentementRequest: {
             /** Canal accepté */
             canal?: components["schemas"]["CanalEnum"];
+        };
+        /**
+         * @description Ouverture d'un accès pour une mère.
+         *
+         *     L'identifiant et le mot de passe sont choisis par l'agent et transmis
+         *     oralement. C'est une solution transitoire : le sprint 3 la remplacera
+         *     par un code à usage unique envoyé sur le canal WhatsApp (ADR à venir).
+         */
+        CreationCompteRequest: {
+            identifiant: string;
+            mot_de_passe: string;
         };
         CreationConsentementRequest: {
             canal: components["schemas"]["CanalEnum"];
@@ -741,6 +984,7 @@ export interface components {
             readonly nombre_enfants: number;
             /** Format: date-time */
             readonly cree_le: string;
+            readonly a_un_acces: boolean;
         };
         /**
          * @description Vue allégée pour les listes et la recherche.
@@ -979,9 +1223,10 @@ export interface components {
          * @description * `agent` - Agent de santé
          *     * `superviseur` - Superviseur de district
          *     * `admin` - Administrateur
+         *     * `beneficiaire` - Bénéficiaire
          * @enum {string}
          */
-        RoleEnum: "agent" | "superviseur" | "admin";
+        RoleEnum: "agent" | "superviseur" | "admin" | "beneficiaire";
         /**
          * @description * `F` - Féminin
          *     * `M` - Masculin
@@ -1031,6 +1276,26 @@ export interface components {
             telephone?: string;
             langue?: components["schemas"]["LangueEnum"];
         };
+        Vaccin: {
+            code: string;
+            readonly libelle: string;
+            /**
+             * Protège contre
+             * @description Formulation courte, destinée aux bénéficiaires.
+             */
+            protege_contre?: string;
+            description?: string;
+            /** Voie d'administration */
+            voie?: components["schemas"]["VoieEnum"];
+        };
+        /**
+         * @description * `orale` - Orale
+         *     * `intradermique` - Intradermique
+         *     * `intramusculaire` - Intramusculaire
+         *     * `sous_cutanee` - Sous-cutanée
+         * @enum {string}
+         */
+        VoieEnum: "orale" | "intradermique" | "intramusculaire" | "sous_cutanee";
     };
     responses: never;
     parameters: never;
@@ -1838,6 +2103,65 @@ export interface operations {
             };
         };
     };
+    meres_fermer_acces_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MereRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["MereRequest"];
+                "multipart/form-data": components["schemas"]["MereRequest"];
+            };
+        };
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    meres_ouvrir_acces_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreationCompteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CreationCompteRequest"];
+                "multipart/form-data": components["schemas"]["CreationCompteRequest"];
+            };
+        };
+        responses: {
+            /** @description No response body */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No response body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     meres_revoquer_consentement_create: {
         parameters: {
             query?: never;
@@ -1857,6 +2181,196 @@ export interface operations {
         responses: {
             /** @description No response body */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    mon_dossier_beneficiaires_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    mon_dossier_carnet_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    mon_dossier_profil_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Mere"];
+                };
+            };
+        };
+    };
+    mon_dossier_profil_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Mere"];
+                };
+            };
+        };
+    };
+    mon_dossier_rappels_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    pilotage_abandon_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    pilotage_activite_retrieve: {
+        parameters: {
+            query?: {
+                /** @description Nombre de mois. Défaut : 12. */
+                mois?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    pilotage_couverture_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    pilotage_retards_retrieve: {
+        parameters: {
+            query?: {
+                /** @description Maximum de lignes. Défaut : 100. */
+                limite?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    pilotage_synthese_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1903,6 +2417,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PosteSante"];
+                };
+            };
+        };
+    };
+    vaccins_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Vaccin"][];
+                };
+            };
+        };
+    };
+    vaccins_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Vaccin"];
                 };
             };
         };

@@ -11,6 +11,7 @@ const LIBELLES: Record<StatutEcheance, string> = {
   en_retard: "En retard",
   administree: "Administrée",
   annulee: "Annulée",
+  perimee: "Périmée",
 };
 
 /**
@@ -53,7 +54,7 @@ export function Pastille({ statut, taille = "normal" }: Props) {
           </>
         )}
 
-        {statut === "annulee" && (
+        {(statut === "annulee" || statut === "perimee") && (
           <>
             <circle cx="14" cy="14" r="9" fill="none" stroke="#6B7A82" strokeWidth="2.5" />
             <line x1="7" y1="21" x2="21" y2="7" stroke="#6B7A82" strokeWidth="2.5" />

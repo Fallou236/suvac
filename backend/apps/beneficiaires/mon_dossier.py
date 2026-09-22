@@ -160,6 +160,7 @@ class MonCarnetView(BaseMonDossier):
                         "id": str(e.identifiant_public),
                         "vaccin": e.vaccin.libelle(mere.langue),
                         "code": e.vaccin.code,
+                        "protege_contre": e.vaccin.protege_contre,
                         "rang": e.rang,
                         "date_cible": e.date_cible.isoformat(),
                         "statut": e.statut,
@@ -181,7 +182,8 @@ class MesRappelsView(BaseMonDossier):
         responses={200: None},
         description=(
             "Rappels dans l'application (EF-41) : échéances dues ou en retard "
-            "pour les bénéficiaires rattachés au compte."
+            "pour les bénéficiaires rattachés au compte. Chaque rappel porte "
+            "l'explication courte du vaccin concerné."
         ),
     )
     def get(self, request):
@@ -194,7 +196,7 @@ class MesRappelsView(BaseMonDossier):
                 Q(enfant__mere=mere) | Q(grossesse__mere=mere),
                 statut__in=[StatutEcheance.DUE, StatutEcheance.EN_RETARD],
             )
-            .select_related("vaccin", "enfant", "grossesse")
+            .select_related("vaccin", "enfant", "enfant__poste", "grossesse")
             .order_by("date_cible")
         )
 
@@ -205,6 +207,8 @@ class MesRappelsView(BaseMonDossier):
                     "beneficiaire": (e.enfant.nom_complet if e.enfant_id else mere.nom_complet),
                     "beneficiaire_id": str((e.enfant or e.grossesse).identifiant_public),
                     "vaccin": e.vaccin.libelle(mere.langue),
+                    "code": e.vaccin.code,
+                    "protege_contre": e.vaccin.protege_contre,
                     "rang": e.rang,
                     "date_cible": e.date_cible.isoformat(),
                     "statut": e.statut,

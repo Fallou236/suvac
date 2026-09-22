@@ -24,6 +24,7 @@ export type StatutEcheance =
   | "a_venir"
   | "due"
   | "en_retard"
+  | "perimee"
   | "administree"
   | "annulee";
 

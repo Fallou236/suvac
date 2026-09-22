@@ -25,6 +25,7 @@ from apps.pilotage.api import (
     SyntheseView,
 )
 from apps.suivi.api import DoseViewSet, EcheanceViewSet
+from apps.vaccination.api import VaccinViewSet
 from config.health import healthz
 
 routeur = DefaultRouter()
@@ -34,6 +35,7 @@ routeur.register("enfants", EnfantViewSet, basename="enfant")
 routeur.register("grossesses", GrossesseViewSet, basename="grossesse")
 routeur.register("echeances", EcheanceViewSet, basename="echeance")
 routeur.register("doses", DoseViewSet, basename="dose")
+routeur.register("vaccins", VaccinViewSet, basename="vaccin")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
