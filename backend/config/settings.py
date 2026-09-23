@@ -56,6 +56,8 @@ INSTALLED_APPS = [
     "apps.beneficiaires",
     "apps.suivi",
     "apps.pilotage",
+    "apps.rappels",
+    "django_celery_beat",
 ]
 
 AUTH_USER_MODEL = "accounts.Utilisateur"
@@ -178,11 +180,13 @@ CORS_ALLOWED_ORIGINS = env_liste("CORS_ALLOWED_ORIGINS", "http://localhost:5173"
 CORS_ALLOW_CREDENTIALS = True
 
 # --- Tâches asynchrones -----------------------------------------------------
-REDIS_URL = env("REDIS_URL", "redis://localhost:6379/0")
-CELERY_BROKER_URL = REDIS_URL
-CELERY_RESULT_BACKEND = REDIS_URL
-CELERY_TIMEZONE = TIME_ZONE
+CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_EAGER", False)
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TIME_LIMIT = 300
+CELERY_TASK_SOFT_TIME_LIMIT = 240
 
 # --- Journalisation ---------------------------------------------------------
 LOGGING = {
@@ -208,6 +212,7 @@ EN_TEST = "pytest" in sys.modules or "test" in sys.argv
 # de la suite sans rien apporter à ce qu'on vérifie.
 if EN_TEST:
     PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+    CELERY_TASK_ALWAYS_EAGER = True
 
 # Les compteurs de débit vivent dans le cache, qui persiste d'un test à
 # l'autre alors que la base est réinitialisée : le trente-et-unième test qui
