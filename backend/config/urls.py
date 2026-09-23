@@ -24,6 +24,7 @@ from apps.pilotage.api import (
     RetardsView,
     SyntheseView,
 )
+from apps.rappels.webhooks import webhook_whatsapp
 from apps.suivi.api import DoseViewSet, EcheanceViewSet
 from apps.vaccination.api import VaccinViewSet
 from config.health import healthz
@@ -68,4 +69,5 @@ urlpatterns = [
     ),
     path("api/mon-dossier/carnet/<uuid:id>/", MonCarnetView.as_view(), name="mon-carnet"),
     path("api/mon-dossier/rappels/", MesRappelsView.as_view(), name="mes-rappels"),
+    path("webhooks/whatsapp/", webhook_whatsapp, name="webhook-whatsapp"),
 ]

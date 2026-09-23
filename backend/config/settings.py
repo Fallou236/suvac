@@ -115,11 +115,23 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# --- WhatsApp Cloud API ---------------------------------------------------
+WHATSAPP_NUMERO_ID = os.getenv("WHATSAPP_NUMERO_ID", "")
+WHATSAPP_COMPTE_ID = os.getenv("WHATSAPP_COMPTE_ID", "")
+WHATSAPP_JETON = os.getenv("WHATSAPP_JETON", "")
+WHATSAPP_VERSION_API = os.getenv("WHATSAPP_VERSION_API", "v25.0")
+WHATSAPP_MODELE_RAPPEL = os.getenv("WHATSAPP_MODELE_RAPPEL", "rappel_vaccinal")
+WHATSAPP_LANGUE_MODELE = os.getenv("WHATSAPP_LANGUE_MODELE", "fr")
+WHATSAPP_JETON_WEBHOOK = os.getenv("WHATSAPP_JETON_WEBHOOK", "")
+
+META_SECRET_APPLICATION = os.getenv("META_SECRET_APPLICATION", "")
+
 # Argon2 en tête, conformément à ENF-12.
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",
     "django.contrib.auth.hashers.PBKDF2PasswordHasher",
 ]
+
 
 # --- Internationalisation ---------------------------------------------------
 LANGUAGE_CODE = "fr"
