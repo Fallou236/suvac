@@ -309,3 +309,17 @@ def test_retard_en_jours(enfant):
     assert penta1.date_limite is not None
     assert penta1.retard_en_jours(a_la_date=penta1.date_limite) == 0
     assert penta1.retard_en_jours(a_la_date=date(2027, 1, 1)) > 0
+
+
+def test_une_echeance_perimee_redevient_active_si_la_date_recule(enfant):
+    """Une échéance périmée n'est pas figée : si le calcul est rejoué à une
+    date antérieure, ou si la fenêtre est corrigée, elle doit revenir à un
+    statut actif. Sans quoi une erreur de saisie de date de naissance serait
+    irrattrapable."""
+    from datetime import date
+
+    rafraichir_statuts(aujourdhui=date(2027, 6, 1))
+    assert echeance_de(enfant, "PENTA", 1).statut == StatutEcheance.PERIMEE
+
+    rafraichir_statuts(aujourdhui=date(2026, 3, 1))
+    assert echeance_de(enfant, "PENTA", 1).statut == StatutEcheance.DUE
