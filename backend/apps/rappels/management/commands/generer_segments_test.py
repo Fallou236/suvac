@@ -33,6 +33,7 @@ SEGMENTS = {
     "liaison_et_autres": 0.4,
     "liaison_vaccins_restants": 1.2,
     "beneficiaire_votre_enfant": 0.8,
+    "liaison_ne_en": 1.4,
     "vaccin_bcg": 2.2,
     "vaccin_vpo": 2.4,
     "vaccin_vpi": 2.4,

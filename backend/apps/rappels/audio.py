@@ -96,6 +96,7 @@ def segments_du_message(
     type_rappel: str,
     nom_poste: str,
     pour_elle_meme: bool,
+    plusieurs_enfants: bool = False,
 ) -> list[str]:
     """Décompose un message en suite de segments à concaténer.
 
@@ -122,8 +123,7 @@ def segments_du_message(
         suite += ["liaison_venez_au_poste"] + segments_pour_poste(nom_poste)
         return suite
 
-    # Le prénom n'est pas enregistrable : on dit « votre enfant ».
-    suite.append("beneficiaire_votre_enfant")
+    suite += _designer_enfant(echeances[0], plusieurs_enfants)
 
     if type_rappel == TypeRappel.RELANCE:
         suite.append("liaison_na_pas_recu")
@@ -145,6 +145,25 @@ def segments_du_message(
     suite.append("liaison_venez_au_poste")
     suite += segments_pour_poste(nom_poste)
     return suite
+
+
+def _designer_enfant(echeance: Echeance, plusieurs: bool) -> list[str]:
+    """Désigne l'enfant concerné sans prononcer son prénom.
+
+    Les prénoms ne peuvent pas être enregistrés à l'avance. Quand la mère
+    n'a qu'un enfant suivi, « sa doom » suffit. Quand elle en a plusieurs,
+    le mois de naissance lève l'ambiguïté : sans cela, elle entendrait
+    « votre enfant doit recevoir… » sans savoir lequel.
+    """
+    if not plusieurs or echeance.enfant is None:
+        return ["beneficiaire_votre_enfant"]
+
+    naissance = echeance.enfant.date_naissance
+    return [
+        "beneficiaire_votre_enfant",
+        "liaison_ne_en",
+        f"mois_{naissance.month:02d}",
+    ]
 
 
 def _vaccins_enonces(codes: list[str]) -> list[str]:

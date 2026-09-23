@@ -46,6 +46,8 @@ connaît. Ni formel, ni familier. Bienveillant, surtout pour les relances.
 | `mere_na_pas_recu` | Jotoo woon sa ñakku tetanus bi ñu ko waroon a jox |
 | `liaison_et_autres` | ak |
 | `liaison_vaccins_restants` | ñakk yu des |
+| `beneficiaire_votre_enfant` | sa doom |
+| `liaison_ne_en` | ji juddu ci weer u |
 
 ## 2. Les neuf vaccins
 
@@ -140,6 +142,13 @@ naissance quand elle en a plusieurs.
 
 À valider : « sa doom ju juddu ci [mois] » pour « votre enfant né en
 [mois] » convient-il ?
+
+**Les prénoms.** Impossible à prévoir. Quand la mère n'a qu'un enfant
+suivi, le message dit « sa doom ». Quand elle en a plusieurs, il précise le
+mois de naissance : « sa doom ju juddu ci oktoobar ».
+
+**À valider** : « ju juddu ci » est-il la façon naturelle de dire « né en » ?
+Y a-t-il une tournure plus courante à l'oral ?
 
 ---
 

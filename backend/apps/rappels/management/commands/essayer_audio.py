@@ -31,7 +31,12 @@ class Command(BaseCommand):
             pour_elle_meme = premiere.grossesse_id is not None
             poste = rappel.mere.poste.nom if pour_elle_meme else premiere.enfant.poste.nom
 
-            segments = segments_du_message(echeances, rappel.type, poste, pour_elle_meme)
+            plusieurs = (
+                not pour_elle_meme
+                and rappel.mere.enfants.filter(supprime_le__isnull=True).count() > 1
+            )
+
+            segments = segments_du_message(echeances, rappel.type, poste, pour_elle_meme, plusieurs)
 
             try:
                 assemblage = assembler(segments, rappel.langue)
