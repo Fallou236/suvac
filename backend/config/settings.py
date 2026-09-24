@@ -115,11 +115,23 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# --- WhatsApp Cloud API ---------------------------------------------------
+WHATSAPP_NUMERO_ID = os.getenv("WHATSAPP_NUMERO_ID", "")
+WHATSAPP_COMPTE_ID = os.getenv("WHATSAPP_COMPTE_ID", "")
+WHATSAPP_JETON = os.getenv("WHATSAPP_JETON", "")
+WHATSAPP_VERSION_API = os.getenv("WHATSAPP_VERSION_API", "v25.0")
+WHATSAPP_MODELE_RAPPEL = os.getenv("WHATSAPP_MODELE_RAPPEL", "rappel_vaccinal")
+WHATSAPP_LANGUE_MODELE = os.getenv("WHATSAPP_LANGUE_MODELE", "fr")
+WHATSAPP_JETON_WEBHOOK = os.getenv("WHATSAPP_JETON_WEBHOOK", "")
+
+META_SECRET_APPLICATION = os.getenv("META_SECRET_APPLICATION", "")
+
 # Argon2 en tête, conformément à ENF-12.
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",
     "django.contrib.auth.hashers.PBKDF2PasswordHasher",
 ]
+
 
 # --- Internationalisation ---------------------------------------------------
 LANGUAGE_CODE = "fr"
@@ -213,6 +225,10 @@ EN_TEST = "pytest" in sys.modules or "test" in sys.argv
 if EN_TEST:
     PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
     CELERY_TASK_ALWAYS_EAGER = True
+    # Aucun test ne doit appeler Meta : ni lenteur, ni frais, ni message
+    # parti par accident vers un vrai téléphone.
+    WHATSAPP_NUMERO_ID = ""
+    WHATSAPP_JETON = ""
 
 # Les compteurs de débit vivent dans le cache, qui persiste d'un test à
 # l'autre alors que la base est réinitialisée : le trente-et-unième test qui
