@@ -32,6 +32,12 @@ const ENTREES: Entree[] = [
     roles: ["superviseur", "admin"],
   },
   {
+    vers: "/rappels",
+    cle: "navigation.rappels",
+    icone: <IconeEnvoi />,
+    roles: ["superviseur", "admin"],
+  },
+  {
     vers: "/mon-espace",
     cle: "navigation.aujourdhui",
     icone: <IconeCalendrier />,
@@ -77,7 +83,8 @@ export function BarreLaterale({
     queryFn: requetes.mesRappels,
     enabled: estBeneficiaire,
   });
-  const nombreRappels = rappels?.length ?? 0;
+
+  const nombreRappels = (rappels ?? []).filter((r) => !r.lu).length;
 
   const entrees = ENTREES.filter(
     (e) => !e.roles || (utilisateur && e.roles.includes(utilisateur.role)),
@@ -276,6 +283,14 @@ function IconeBouclier() {
     <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" strokeLinejoin="round" />
       <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconeEnvoi() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+      <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7Z" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
