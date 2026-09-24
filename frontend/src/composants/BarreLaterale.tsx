@@ -186,9 +186,15 @@ export function BarreLaterale({
                   : utilisateur?.poste?.nom ?? t("navigation.aucunPoste")}
               </p>
 
-              <div className="mt-2">
-                <SelecteurLangue />
-              </div>
+              {/* L'interface professionnelle reste en français : c'est la
+                  langue de l'administration sanitaire, des formulaires du
+                  PEV et du carnet. Voir ADR 0005. */}
+              {estBeneficiaire && (
+                <div className="mt-2">
+                  <SelecteurLangue />
+                </div>
+              )}
+
 
               <button
                 onClick={deconnexion}

@@ -1,11 +1,44 @@
 {
   "navigation": {
-    "deconnexion": ""
+    "aujourdhui": "Tay",
+    "carnets": "Sama karne yi",
+    "messages": "Bataaxal yi",
+    "vaccins": "Ñakk yi",
+    "parametres": "Tëralin",
+    "deconnexion": "Génn",
+    "espacePersonnel": "Sa bërëb"
+  },
+  "espace": {
+    "bonjour": "Nanga def {{prenom}}",
+    "aFaire": "Yi ñu war a def",
+    "enRetard": "Yi weesu",
+    "dosesRecues": "Ñakk yi ñu jot",
+    "toutEstAJour": "Lépp dëppoo na",
+    "aRattraper": "Yi ñu war a dabaatal",
+    "aFaireMaintenant": "Yi ñu war a def léegi",
+    "prochainsRendezVous": "Randewu yi ci topp",
+    "vous": "yaw",
+    "voirTousLesCarnets": "Xool karne yépp"
+  },
+  "messagerie": {
+    "titre": "Bataaxal yi",
+    "tous": "Yépp",
+    "nonLus": "Yu ñu jàngul",
+    "vaccinARattraper": "Ñakk bu ñu war a dabu",
+    "vaccinAFaire": "Ñakk bu ñu war a def",
+    "aucunMessage": "Amul bataaxal",
+    "toutEstLu": "Jàng nga lépp"
+  },
+  "vaccins": {
+    "titre": "Ñakk yi",
+    "pourquoiVacciner": "Lu tax ñuy ñakk ?",
+    "protegeContre": "Dafay aar ci",
+    "pourquoiCeVaccin": "Lu tax ñakk bii ?"
   },
   "statut": {
-    "a_venir": "",
-    "due": "",
-    "en_retard": "",
-    "administree": ""
+    "administree": "Jot na ko",
+    "due": "War na",
+    "en_retard": "Yeex na",
+    "a_venir": "Dina ñëw"
   }
 }

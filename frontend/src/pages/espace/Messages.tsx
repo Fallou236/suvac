@@ -12,19 +12,21 @@ import { cn } from "@/composants/cn";
 import { messageDErreur } from "@/etat/messages";
 import { indexerFiches, useFichesVaccins } from "@/etat/vaccins";
 import { formatDate } from "./format";
+import { useTranslation } from "react-i18next";
 
 type Filtre = "tous" | "nonlus" | "retard";
 
-const FILTRES: { cle: Filtre; libelle: string }[] = [
-  { cle: "tous", libelle: "Tous" },
-  { cle: "nonlus", libelle: "Non lus" },
-  { cle: "retard", libelle: "En retard" },
+const FILTRES: { cle: Filtre; cleTexte: string }[] = [
+  { cle: "tous", cleTexte: "messagerie.tous" },
+  { cle: "nonlus", cleTexte: "messagerie.nonLus" },
+  { cle: "retard", cleTexte: "messagerie.enRetard" },
 ];
 
 export default function Messages() {
   const [filtre, setFiltre] = useState<Filtre>("tous");
   const [ouvert, setOuvert] = useState<string | null>(null);
   const client = useQueryClient();
+  const { t } = useTranslation();
 
   const { data, isPending, error } = useQuery({
     queryKey: ["mon-dossier", "rappels"],
@@ -109,7 +111,7 @@ export default function Messages() {
                           : "border-bordure bg-white text-texte hover:bg-surface-basse",
                       )}
                     >
-                      {f.libelle}
+                      {t(f.cleTexte)}
                       {f.cle === "nonlus" && nonLus > 0 && (
                         <span className="tabulaire ml-1.5 font-bold">
                           {nonLus}
@@ -174,6 +176,7 @@ function LigneMessage({
   actif: boolean;
   onOuvrir: () => void;
 }) {
+  const { t } = useTranslation();
   const enRetard = message.type === "relance";
 
   return (
@@ -203,7 +206,9 @@ function LigneMessage({
               message.lu ? "font-medium text-texte-faible" : "font-bold text-texte",
             )}
           >
-            {enRetard ? "Vaccin à rattraper" : "Vaccin à faire"}
+            {enRetard
+              ? t("messagerie.vaccinARattraper")
+              : t("messagerie.vaccinAFaire")}
           </span>
           <span className="tabulaire shrink-0 text-xs text-texte-faible">
             {formatDate(message.date)}
