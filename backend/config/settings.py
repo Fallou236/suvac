@@ -225,6 +225,10 @@ EN_TEST = "pytest" in sys.modules or "test" in sys.argv
 if EN_TEST:
     PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
     CELERY_TASK_ALWAYS_EAGER = True
+    # Aucun test ne doit appeler Meta : ni lenteur, ni frais, ni message
+    # parti par accident vers un vrai téléphone.
+    WHATSAPP_NUMERO_ID = ""
+    WHATSAPP_JETON = ""
 
 # Les compteurs de débit vivent dans le cache, qui persiste d'un test à
 # l'autre alors que la base est réinitialisée : le trente-et-unième test qui

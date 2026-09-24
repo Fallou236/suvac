@@ -23,21 +23,30 @@ __all__ = [
 
 
 def canal_pour(nom: str) -> Canal:
-    """Fabrique le canal demandé, ou la simulation s'il n'est pas encore là.
+    """Fabrique le canal demandé, ou la simulation s'il n'est pas utilisable.
 
     Import tardif : les canaux réels dépendent de bibliothèques externes
     qu'on ne charge pas pour rien en test. Le repli sur la simulation
-    permet de dérouler toute la chaîne avant qu'ils n'existent.
+    couvre deux cas — le module absent, et le canal présent mais non
+    configuré.
     """
     try:
         if nom == "whatsapp":
             from .whatsapp import CanalWhatsApp
 
-            return CanalWhatsApp()
-        if nom == "sms":
+            canal = CanalWhatsApp()
+            if canal.disponible():
+                return canal
+            journal.warning("WhatsApp non configuré, repli sur la simulation.")
+
+        elif nom == "sms":
             from .sms import CanalSms
 
-            return CanalSms()
+            canal = CanalSms()
+            if canal.disponible():
+                return canal
+            journal.warning("SMS non configuré, repli sur la simulation.")
+
     except ImportError:
         journal.warning("Canal %s indisponible, repli sur la simulation.", nom)
 
