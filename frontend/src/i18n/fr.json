@@ -16,7 +16,8 @@
     "carnets": "Mes carnets",
     "messages": "Messages",
     "vaccins": "Les vaccins",
-    "parametres": "Paramètres"
+    "parametres": "Paramètres",
+    "rappels": "Journal des rappels"
   },
   "connexion": {
     "titre": "Connexion",

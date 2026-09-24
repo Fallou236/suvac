@@ -110,16 +110,21 @@ export type MonCarnet = {
 
 export type MonRappel = {
   id: string;
+  type: string;
+  statut: string;
+  texte: string;
+  langue: string;
+  date: string;
+  lu: boolean;
   beneficiaire: string;
   beneficiaire_id: string;
-  vaccin: string;
-  code: string;
-  protege_contre: string;
-  rang: number;
-  date_cible: string;
-  statut: string;
-  retard_jours: number;
-  poste: string;
+  vaccins: {
+    code: string;
+    libelle: string;
+    protege_contre: string;
+    rang: number;
+    statut: string;
+  }[];
 };
 
 export type FicheVaccin = {
@@ -128,6 +133,49 @@ export type FicheVaccin = {
   protege_contre: string;
   description: string;
   voie: string;
+};
+
+export type Rappel = {
+  id: string;
+  destinataire: string;
+  telephone: string;
+  village: string;
+  type: string;
+  type_libelle: string;
+  canal: string;
+  langue: string;
+  statut: string;
+  statut_libelle: string;
+  texte: string;
+  vaccins: string[];
+  planifie_pour: string;
+  envoye_le: string | null;
+  remis_le: string | null;
+  erreur: string;
+  tentatives: number;
+};
+
+export type SyntheseRappels = {
+  total: number;
+  en_attente: number;
+  envoyes: number;
+  remis: number;
+  lus: number;
+  echecs: number;
+  abandonnes: number;
+  taux_remise: number;
+  taux_lecture: number;
+  par_canal: { canal: string; total: number; echecs: number }[];
+  motifs_echec: { erreur: string; occurrences: number }[];
+  periode_jours: number;
+  depuis: string;
+};
+
+export type FiltresRappels = {
+  statut?: string;
+  canal?: string;
+  type?: string;
+  search?: string;
 };
 
 export const requetes = {
@@ -213,4 +261,14 @@ export const requetes = {
     api.post<void>(`/meres/${idMere}/fermer-acces/`),
 
   vaccins: () => api.get<FicheVaccin[]>("/vaccins/"),
+
+  rappels: (filtres: FiltresRappels = {}) =>
+    api.get<Page<Rappel>>("/rappels/", filtres),
+
+  syntheseRappels: (jours = 30) =>
+    api.get<SyntheseRappels>("/rappels/synthese/", { jours }),
+
+    marquerRappelsLus: () => api.post<void>("/mon-dossier/rappels/"),
+
+  monRappel: (id: string) => api.get<MonRappel>(`/mon-dossier/rappels/${id}/`),
 };

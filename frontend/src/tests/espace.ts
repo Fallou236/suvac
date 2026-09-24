@@ -56,29 +56,45 @@ export const FICHES = [
 export const RAPPELS = [
   {
     id: "r1",
+    type: "relance",
+    statut: "envoye",
+    lu: false,
+    texte:
+      "Bonjour. Sokhna Ba n'a pas encore reçu le vaccin Polio oral, prévu le 5 juillet. Il est encore temps de le faire : venez au poste de santé dès que possible.",
+    langue: "fr",
+    date: "2026-07-05",
     beneficiaire: "Sokhna Ba",
     beneficiaire_id: "e1",
-    vaccin: "Polio oral",
-    code: "VPO",
-    protege_contre: "la poliomyélite",
-    rang: 1,
-    date_cible: "2026-07-05",
-    statut: "en_retard",
-    retard_jours: 0,
-    poste: "Poste de Santé de Ndondol",
+    vaccins: [
+      {
+        code: "VPO",
+        libelle: "Polio oral",
+        protege_contre: "la poliomyélite",
+        rang: 1,
+        statut: "en_retard",
+      },
+    ],
   },
   {
     id: "r2",
+    type: "jour",
+    statut: "envoye",
+    lu: true,
+    texte:
+      "Bonjour. Vous devez recevoir votre vaccin antitétanique le 20 août. Venez au poste de santé de Ndondol.",
+    langue: "fr",
+    date: "2026-08-20",
     beneficiaire: "Rokhaya Ba",
     beneficiaire_id: "g1",
-    vaccin: "Antitétanique",
-    code: "TD",
-    protege_contre: "le tétanos, pour vous et votre bébé",
-    rang: 1,
-    date_cible: "2026-08-20",
-    statut: "due",
-    retard_jours: 0,
-    poste: "Poste de Santé de Ndondol",
+    vaccins: [
+      {
+        code: "TD",
+        libelle: "Antitétanique",
+        protege_contre: "le tétanos, pour vous et votre bébé",
+        rang: 1,
+        statut: "due",
+      },
+    ],
   },
 ];
 
@@ -157,15 +173,38 @@ export const CARNETS: Record<string, unknown> = {
  * pour son compteur : sans ce simulateur, chaque test échouerait sur une
  * requête non interceptée.
  */
-export function servirEspace({ rappels = RAPPELS } = {}) {
+export function servirEspace({
+  rappels = RAPPELS,
+  carnets = CARNETS,
+}: {
+  rappels?: unknown[];
+  carnets?: Record<string, unknown>;
+} = {}) {
   serveur.use(
+    http.get("/api/mon-dossier/rappels/:id/", ({ params }) => {
+      const rappel = (rappels as { id: string }[]).find(
+        (r) => r.id === params.id,
+      );
+      return rappel
+        ? HttpResponse.json({ ...rappel, lu: true })
+        : new HttpResponse(null, { status: 404 });
+    }),
     http.get("/api/mon-dossier/rappels/", () => HttpResponse.json(rappels)),
     http.get("/api/mon-dossier/beneficiaires/", () =>
       HttpResponse.json(BENEFICIAIRES),
     ),
-    http.get("/api/mon-dossier/carnet/:id/", ({ params }) =>
-      HttpResponse.json(CARNETS[params.id as string]),
-    ),
+    http.get("/api/mon-dossier/carnet/:id/", ({ params }) => {
+      const carnet = carnets[params.id as string];
+      return carnet
+        ? HttpResponse.json(carnet)
+        : HttpResponse.json({
+            id: params.id,
+            nom: "—",
+            type: "enfant",
+            date_reference: "2026-01-01",
+            echeances: [],
+          });
+    }),
     http.get("/api/vaccins/", () => HttpResponse.json(FICHES)),
   );
 }

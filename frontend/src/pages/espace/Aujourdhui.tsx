@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { requetes, type MonRappel } from "@/api/requetes";
+import { requetes } from "@/api/requetes";
 import { Coquille } from "@/composants/Coquille";
 import { Chargement } from "@/composants/Chargement";
 import { messageDErreur } from "@/etat/messages";
@@ -9,6 +9,16 @@ import { indexerFiches, useFichesVaccins } from "@/etat/vaccins";
 import { useMesCarnets } from "@/etat/espace";
 import { LigneVaccin } from "./LigneVaccin";
 import { formatDate } from "./format";
+
+type EcheanceAffichee = {
+  id: string;
+  vaccin: string;
+  code: string;
+  rang: number;
+  statut: string;
+  date_cible: string;
+  beneficiaire: string;
+};
 
 export default function Aujourdhui() {
   const utilisateur = useAuthentification((e) => e.utilisateur);
@@ -38,16 +48,28 @@ export default function Aujourdhui() {
     );
   }
 
-  const retards = rappels.data.filter((r) => r.statut === "en_retard");
-  const aFaire = rappels.data.filter((r) => r.statut === "due");
+  // Les échéances viennent des carnets, pas des messages : cet écran montre
+  // l'état du calendrier, que des rappels aient été envoyés ou non.
+  const toutes: EcheanceAffichee[] = liste.flatMap((b) =>
+    (carnets[b.id]?.echeances ?? []).map((e) => ({
+      id: e.id,
+      vaccin: e.vaccin,
+      code: e.code,
+      rang: e.rang,
+      statut: e.statut,
+      date_cible: e.date_cible,
+      beneficiaire: b.type === "grossesse" ? "Vous" : b.titre,
+    })),
+  );
 
-  const toutes = Object.values(carnets).flatMap((c) => c.echeances);
+  const retards = toutes.filter((e) => e.statut === "en_retard");
+  const aFaire = toutes.filter((e) => e.statut === "due");
+
   const recues = toutes.filter((e) => e.statut === "administree").length;
   const comptables = toutes.filter((e) =>
     ["administree", "due", "en_retard"].includes(e.statut),
   ).length;
 
-  // La prochaine dose à venir de chaque bénéficiaire.
   const prochains = liste
     .flatMap((b) => {
       const suivante = carnets[b.id]?.echeances
@@ -63,7 +85,7 @@ export default function Aujourdhui() {
     .sort((a, b) => a.echeance.date_cible.localeCompare(b.echeance.date_cible));
 
   const prenom = utilisateur?.first_name || utilisateur?.nom_complet || "";
-  const poste = rappels.data[0]?.poste;
+  const nonLus = (rappels.data ?? []).filter((r) => !r.lu).length;
 
   return (
     <Coquille titre="Aujourd'hui">
@@ -94,12 +116,15 @@ export default function Aujourdhui() {
             </div>
           </header>
 
-          {rappels.data.length === 0 && (
+          {retards.length === 0 && aFaire.length === 0 && (
             <div className="rounded-lg border border-baobab/20 bg-baobab-clair px-5 py-6 text-center">
-              <p className="text-lg font-semibold text-baobab">Tout est à jour</p>
+              <p className="text-lg font-semibold text-baobab">
+                {toutes.length > 0 ? "Tout est à jour" : "Aucun suivi en cours"}
+              </p>
               <p className="mt-1 text-sm text-texte-faible">
-                Aucun vaccin à faire pour le moment. Vous recevrez un message
-                avant le prochain rendez-vous.
+                {toutes.length > 0
+                  ? "Aucun vaccin à faire pour le moment. Vous recevrez un message avant le prochain rendez-vous."
+                  : "Aucun carnet n'est encore rattaché à votre compte. Adressez-vous à votre poste de santé."}
               </p>
             </div>
           )}
@@ -110,19 +135,27 @@ export default function Aujourdhui() {
               description="Ces vaccins sont en retard, mais il est encore temps. Rendez-vous au poste de santé dès que possible."
               ton="alerte"
             >
-              <ParBeneficiaire rappels={retards} index={index} />
+              <ParBeneficiaire echeances={retards} index={index} />
             </Section>
           )}
 
           {aFaire.length > 0 && (
             <Section
               titre="À faire maintenant"
-              description={
-                poste ? `Présentez-vous au ${poste} avec le carnet.` : undefined
-              }
+              description="Présentez-vous au poste de santé avec le carnet."
             >
-              <ParBeneficiaire rappels={aFaire} index={index} />
+              <ParBeneficiaire echeances={aFaire} index={index} />
             </Section>
+          )}
+
+          {nonLus > 0 && (
+              <Link
+                to="/mon-espace/messages"
+                className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-cuivre underline-offset-2 hover:underline"
+              >
+                {nonLus} message{nonLus > 1 ? "s" : ""} non lu
+                {nonLus > 1 ? "s" : ""}
+              </Link>
           )}
 
           {prochains.length > 0 && (
@@ -165,17 +198,17 @@ export default function Aujourdhui() {
 /* ---------------------------------------------------------------- */
 
 function ParBeneficiaire({
-  rappels,
+  echeances,
   index,
 }: {
-  rappels: MonRappel[];
+  echeances: EcheanceAffichee[];
   index: ReturnType<typeof indexerFiches>;
 }) {
-  const groupes = new Map<string, MonRappel[]>();
-  for (const rappel of rappels) {
-    const liste = groupes.get(rappel.beneficiaire) ?? [];
-    liste.push(rappel);
-    groupes.set(rappel.beneficiaire, liste);
+  const groupes = new Map<string, EcheanceAffichee[]>();
+  for (const echeance of echeances) {
+    const liste = groupes.get(echeance.beneficiaire) ?? [];
+    liste.push(echeance);
+    groupes.set(echeance.beneficiaire, liste);
   }
 
   return (
@@ -184,15 +217,14 @@ function ParBeneficiaire({
         <div key={beneficiaire}>
           <p className="mb-2 text-sm font-bold text-texte">{beneficiaire}</p>
           <ul className="flex flex-col gap-2">
-            {liste.map((r) => (
+            {liste.map((e) => (
               <LigneVaccin
-                key={r.id}
-                vaccin={r.vaccin}
-                rang={r.rang}
-                statut={r.statut}
-                dateCible={r.date_cible}
-                retardJours={r.retard_jours}
-                fiche={index[r.code]}
+                key={e.id}
+                vaccin={e.vaccin}
+                rang={e.rang}
+                statut={e.statut}
+                dateCible={e.date_cible}
+                fiche={index[e.code]}
               />
             ))}
           </ul>

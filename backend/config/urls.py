@@ -16,6 +16,7 @@ from apps.beneficiaires.mon_dossier import (
     MesRappelsView,
     MonCarnetView,
     MonProfilView,
+    MonRappelView,
 )
 from apps.pilotage.api import (
     AbandonView,
@@ -24,6 +25,7 @@ from apps.pilotage.api import (
     RetardsView,
     SyntheseView,
 )
+from apps.rappels.api import RappelViewSet
 from apps.rappels.webhooks import webhook_whatsapp
 from apps.suivi.api import DoseViewSet, EcheanceViewSet
 from apps.vaccination.api import VaccinViewSet
@@ -37,6 +39,8 @@ routeur.register("grossesses", GrossesseViewSet, basename="grossesse")
 routeur.register("echeances", EcheanceViewSet, basename="echeance")
 routeur.register("doses", DoseViewSet, basename="dose")
 routeur.register("vaccins", VaccinViewSet, basename="vaccin")
+routeur.register("rappels", RappelViewSet, basename="rappel")
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -70,4 +74,5 @@ urlpatterns = [
     path("api/mon-dossier/carnet/<uuid:id>/", MonCarnetView.as_view(), name="mon-carnet"),
     path("api/mon-dossier/rappels/", MesRappelsView.as_view(), name="mes-rappels"),
     path("webhooks/whatsapp/", webhook_whatsapp, name="webhook-whatsapp"),
+    path("api/mon-dossier/rappels/<uuid:id>/", MonRappelView.as_view(), name="mon-rappel"),
 ]

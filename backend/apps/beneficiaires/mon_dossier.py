@@ -5,7 +5,7 @@ Le filtrage ne passe pas par le poste mais par le compte : une mère ne voit
 que ses enfants et ses grossesses, jamais ceux d'une autre.
 """
 
-from django.db.models import Prefetch, Q
+from django.db.models import Prefetch
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -13,7 +13,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.commun.permissions import EstBeneficiaire
-from apps.suivi.models import DoseAdministree, Echeance, StatutEcheance
+from apps.rappels.models import StatutRappel
+from apps.suivi.models import DoseAdministree, Echeance
 
 from .models import Mere
 from .serializers import MereSerializer
@@ -181,9 +182,9 @@ class MesRappelsView(BaseMonDossier):
     @extend_schema(
         responses={200: None},
         description=(
-            "Rappels dans l'application (EF-41) : échéances dues ou en retard "
-            "pour les bénéficiaires rattachés au compte. Chaque rappel porte "
-            "l'explication courte du vaccin concerné."
+            "Rappels adressés à la bénéficiaire (EF-41). Ce sont les messages "
+            "réellement produits par le balayage, pas une reconstitution : la "
+            "mère voit ce que le poste de santé a envoyé."
         ),
     )
     def get(self, request):
@@ -191,30 +192,100 @@ class MesRappelsView(BaseMonDossier):
         if mere is None:
             return self.refus()
 
-        echeances = (
-            Echeance.objects.filter(
-                Q(enfant__mere=mere) | Q(grossesse__mere=mere),
-                statut__in=[StatutEcheance.DUE, StatutEcheance.EN_RETARD],
+        rappels = (
+            mere.rappels.filter(
+                statut__in=[
+                    StatutRappel.EN_ATTENTE,
+                    StatutRappel.ENVOYE,
+                    StatutRappel.REMIS,
+                    StatutRappel.LU,
+                ]
             )
-            .select_related("vaccin", "enfant", "enfant__poste", "grossesse")
-            .order_by("date_cible")
+            .prefetch_related("echeances__vaccin", "echeances__enfant")
+            .order_by("-planifie_pour")[:50]
         )
 
-        return Response(
-            [
-                {
-                    "id": str(e.identifiant_public),
-                    "beneficiaire": (e.enfant.nom_complet if e.enfant_id else mere.nom_complet),
-                    "beneficiaire_id": str((e.enfant or e.grossesse).identifiant_public),
-                    "vaccin": e.vaccin.libelle(mere.langue),
-                    "code": e.vaccin.code,
-                    "protege_contre": e.vaccin.protege_contre,
-                    "rang": e.rang,
-                    "date_cible": e.date_cible.isoformat(),
-                    "statut": e.statut,
-                    "retard_jours": e.retard_en_jours(),
-                    "poste": (e.enfant.poste.nom if e.enfant_id else mere.poste.nom),
-                }
-                for e in echeances
-            ]
-        )
+        return Response([_presenter(rappel, mere) for rappel in rappels])
+
+    @extend_schema(
+        request=None,
+        responses={204: None},
+        description="Marque tous les rappels comme lus.",
+    )
+    def post(self, request):
+        mere = self.mere(request)
+        if mere is None:
+            return self.refus()
+
+        for rappel in mere.rappels.filter(
+            statut__in=[StatutRappel.EN_ATTENTE, StatutRappel.ENVOYE, StatutRappel.REMIS]
+        ):
+            rappel.marquer_lu()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MonRappelView(BaseMonDossier):
+    """Un rappel précis : lecture et accusé.
+
+    Marquer comme lu se fait à l'ouverture du message, pas par un geste
+    séparé : c'est le comportement d'une boîte de réception.
+    """
+
+    @extend_schema(
+        responses={200: None},
+        description="Détail d'un rappel, qui le marque comme lu.",
+    )
+    def get(self, request, id):
+        mere = self.mere(request)
+        if mere is None:
+            return self.refus()
+
+        rappel = mere.rappels.filter(identifiant_public=id).first()
+        if rappel is None:
+            return self.refus()
+
+        if rappel.statut != StatutRappel.LU:
+            rappel.marquer_lu()
+
+        return Response(_presenter(rappel, mere))
+
+
+def _presenter(rappel, mere) -> dict:
+    """Met un rappel en forme pour l'espace de la mère.
+
+    Le texte affiché est celui qui a été composé lors du balayage, pas une
+    reconstitution : la mère lit exactement ce que le poste lui a adressé.
+    """
+    echeances = list(rappel.echeances.all())
+    premiere = echeances[0] if echeances else None
+
+    beneficiaire = mere.nom_complet
+    beneficiaire_id = ""
+    if premiere and premiere.enfant_id:
+        beneficiaire = premiere.enfant.nom_complet
+        beneficiaire_id = str(premiere.enfant.identifiant_public)
+    elif premiere and premiere.grossesse_id:
+        beneficiaire_id = str(premiere.grossesse.identifiant_public)
+
+    return {
+        "id": str(rappel.identifiant_public),
+        "type": rappel.type,
+        "statut": rappel.statut,
+        "texte": rappel.texte,
+        "langue": rappel.langue,
+        "date": rappel.planifie_pour.isoformat(),
+        "lu": rappel.statut == StatutRappel.LU,
+        "beneficiaire": beneficiaire,
+        "beneficiaire_id": beneficiaire_id,
+        "vaccins": [
+            {
+                "code": e.vaccin.code,
+                "libelle": e.vaccin.libelle(mere.langue),
+                "protege_contre": e.vaccin.protege_contre,
+                "rang": e.rang,
+                "statut": e.statut,
+            }
+            for e in echeances
+        ],
+    }

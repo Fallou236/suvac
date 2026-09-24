@@ -17,6 +17,7 @@ const Vaccins = lazy(() => import("@/pages/Vaccins"));
 const Aujourdhui = lazy(() => import("@/pages/espace/Aujourdhui"));
 const Carnets = lazy(() => import("@/pages/espace/Carnets"));
 const Messages = lazy(() => import("@/pages/espace/Messages"));
+const JournalRappels = lazy(() => import("@/pages/JournalRappels"));
 
 export const routeur = createBrowserRouter([
   {
@@ -98,6 +99,14 @@ export const routeur = createBrowserRouter([
         element: (
           <Protege>
             <Parametres />
+          </Protege>
+        ),
+      },
+      {
+        path: "/rappels",
+        element: (
+          <Protege roles={["superviseur", "admin"]}>
+            <JournalRappels />
           </Protege>
         ),
       },

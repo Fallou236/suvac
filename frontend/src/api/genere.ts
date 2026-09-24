@@ -485,8 +485,26 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Rappels dans l'application (EF-41) : échéances dues ou en retard pour les bénéficiaires rattachés au compte. Chaque rappel porte l'explication courte du vaccin concerné. */
+        /** @description Rappels adressés à la bénéficiaire (EF-41). Ce sont les messages réellement produits par le balayage, pas une reconstitution : la mère voit ce que le poste de santé a envoyé. */
         get: operations["mon_dossier_rappels_retrieve"];
+        put?: never;
+        /** @description Marque tous les rappels comme lus. */
+        post: operations["mon_dossier_rappels_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mon-dossier/rappels/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Détail d'un rappel, qui le marque comme lu. */
+        get: operations["mon_dossier_rappels_retrieve_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -614,6 +632,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/rappels/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Consultation du journal des rappels.
+         *
+         *     Lecture seule : un rappel est une trace de ce qui s'est passé, rien
+         *     ne doit pouvoir la réécrire.
+         */
+        get: operations["rappels_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/rappels/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Consultation du journal des rappels.
+         *
+         *     Lecture seule : un rappel est une trace de ce qui s'est passé, rien
+         *     ne doit pouvoir la réécrire.
+         */
+        get: operations["rappels_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/rappels/synthese/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Synthèse de l'acheminement sur la période : volumes par statut, taux de remise, et motifs d'échec les plus fréquents. */
+        get: operations["rappels_synthese_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/vaccins/": {
         parameters: {
             query?: never;
@@ -673,7 +752,7 @@ export interface components {
          *     * `application` - Application uniquement
          * @enum {string}
          */
-        CanalEnum: "whatsapp" | "sms" | "application";
+        Canal97cEnum: "whatsapp" | "sms" | "application";
         ChangementMotDePasseRequest: {
             ancien_mot_de_passe: string;
             nouveau_mot_de_passe: string;
@@ -692,7 +771,7 @@ export interface components {
         Consentement: {
             readonly id: number;
             /** Canal accepté */
-            canal?: components["schemas"]["CanalEnum"];
+            canal?: components["schemas"]["Canal97cEnum"];
             /**
              * Accordé le
              * Format: date-time
@@ -708,7 +787,7 @@ export interface components {
         };
         ConsentementRequest: {
             /** Canal accepté */
-            canal?: components["schemas"]["CanalEnum"];
+            canal?: components["schemas"]["Canal97cEnum"];
         };
         /**
          * @description Ouverture d'un accès pour une mère.
@@ -722,7 +801,7 @@ export interface components {
             mot_de_passe: string;
         };
         CreationConsentementRequest: {
-            canal: components["schemas"]["CanalEnum"];
+            canal: components["schemas"]["Canal97cEnum"];
         };
         /** @description Entrée de l'enregistrement d'un acte vaccinal (EF-30). */
         CreationDoseRequest: {
@@ -1144,6 +1223,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["PosteSante"][];
         };
+        PaginatedRappelList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["Rappel"][];
+        };
         PatchedEnfantRequest: {
             /** Format: uuid */
             mere_id?: string;
@@ -1219,6 +1313,57 @@ export interface components {
             readonly region: string;
             readonly actif: boolean;
         };
+        Rappel: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly destinataire: string;
+            readonly telephone: string;
+            readonly village: string;
+            readonly type: components["schemas"]["TypeEnum"];
+            readonly type_libelle: string;
+            readonly canal: components["schemas"]["RappelCanalEnum"];
+            readonly langue: string;
+            readonly statut: components["schemas"]["RappelStatutEnum"];
+            readonly statut_libelle: string;
+            /**
+             * Texte du message
+             * @description Conservé pour tracer ce qui a réellement été envoyé.
+             */
+            readonly texte: string;
+            readonly vaccins: string[];
+            /**
+             * Planifié pour
+             * Format: date
+             */
+            readonly planifie_pour: string;
+            /**
+             * Envoyé le
+             * Format: date-time
+             */
+            readonly envoye_le: string | null;
+            /** Format: date-time */
+            readonly remis_le: string | null;
+            readonly erreur: string;
+            readonly tentatives: number;
+        };
+        /**
+         * @description * `whatsapp` - WhatsApp
+         *     * `sms` - SMS
+         *     * `application` - Application
+         *     * `simulation` - Simulation
+         * @enum {string}
+         */
+        RappelCanalEnum: "whatsapp" | "sms" | "application" | "simulation";
+        /**
+         * @description * `en_attente` - En attente d'envoi
+         *     * `envoye` - Envoyé
+         *     * `remis` - Remis au destinataire
+         *     * `lu` - Lu
+         *     * `echec` - Échec
+         *     * `abandonne` - Abandonné
+         * @enum {string}
+         */
+        RappelStatutEnum: "en_attente" | "envoye" | "remis" | "lu" | "echec" | "abandonne";
         /**
          * @description * `agent` - Agent de santé
          *     * `superviseur` - Superviseur de district
@@ -1253,6 +1398,14 @@ export interface components {
         TokenVerifyRequest: {
             token: string;
         };
+        /**
+         * @description * `avant` - Avant l'échéance
+         *     * `jour` - Le jour même
+         *     * `relance` - Relance après retard
+         *     * `confirmation` - Confirmation d'administration
+         * @enum {string}
+         */
+        TypeEnum: "avant" | "jour" | "relance" | "confirmation";
         /** @description Profil de l'utilisateur connecté. */
         Utilisateur: {
             /** Format: uuid */
@@ -2282,6 +2435,44 @@ export interface operations {
             };
         };
     };
+    mon_dossier_rappels_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    mon_dossier_rappels_retrieve_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     pilotage_abandon_retrieve: {
         parameters: {
             query?: never;
@@ -2418,6 +2609,82 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PosteSante"];
                 };
+            };
+        };
+    };
+    rappels_list: {
+        parameters: {
+            query?: {
+                /** @description Filtre par canal. */
+                canal?: string;
+                /** @description Depuis cette date. */
+                debut?: string;
+                /** @description Jusqu'à cette date. */
+                fin?: string;
+                /** @description Un numéro de page de l'ensemble des résultats. */
+                page?: number;
+                /** @description Nom ou téléphone. */
+                search?: string;
+                /** @description Filtre par statut. */
+                statut?: string;
+                /** @description Filtre par type de rappel. */
+                type?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedRappelList"];
+                };
+            };
+        };
+    };
+    rappels_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Rappel"];
+                };
+            };
+        };
+    };
+    rappels_synthese_retrieve: {
+        parameters: {
+            query?: {
+                /** @description Période. Défaut : 30. */
+                jours?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

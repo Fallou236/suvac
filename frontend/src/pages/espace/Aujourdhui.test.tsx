@@ -4,6 +4,7 @@ import { rendre } from "@/tests/utilitaires";
 import { connecterMere, servirEspace } from "@/tests/espace";
 import Aujourdhui from "./Aujourdhui";
 
+
 describe("Aujourdhui", () => {
   it("salue la mère par son prénom", async () => {
     connecterMere();
@@ -45,7 +46,36 @@ describe("Aujourdhui", () => {
 
   it("rassure quand rien n'est à faire", async () => {
     connecterMere();
-    servirEspace({ rappels: [] });
+    servirEspace({
+      carnets: {
+        e1: {
+          id: "e1",
+          nom: "Sokhna Ba",
+          type: "enfant",
+          date_reference: "2026-07-05",
+          echeances: [
+            {
+              id: "x1",
+              vaccin: "BCG",
+              code: "BCG",
+              protege_contre: "la tuberculose",
+              rang: 1,
+              date_cible: "2026-07-05",
+              statut: "administree",
+              age_cible_jours: 0,
+              date_administration: "2026-07-05",
+            },
+          ],
+        },
+        g1: {
+          id: "g1",
+          nom: "Rokhaya Ba",
+          type: "grossesse",
+          date_reference: "2026-08-20",
+          echeances: [],
+        },
+      },
+    });
     rendre(<Aujourdhui />);
 
     expect(await screen.findByText(/tout est à jour/i)).toBeInTheDocument();
