@@ -13,7 +13,8 @@
     "ouvrirMenu": "Ouvrir le menu",
     "fermerMenu": "Fermer le menu",
     "espacePersonnel": "Espace personnel",
-    "aucunPoste": "Aucun poste"
+    "aucunPoste": "Aucun poste",
+    "personnel": "Personnel"
   },
   "espace": {
     "bonjour": "Bonjour {{prenom}}",

@@ -21,6 +21,7 @@ const JournalRappels = lazy(() => import("@/pages/JournalRappels"));
 const ChangementObligatoire = lazy(
   () => import("@/pages/ChangementObligatoire"),
 );
+const Personnel = lazy(() => import("@/pages/Personnel"));
 
 export const routeur = createBrowserRouter([
   {
@@ -111,6 +112,14 @@ export const routeur = createBrowserRouter([
         element: (
           <Protege roles={["superviseur", "admin"]}>
             <JournalRappels />
+          </Protege>
+        ),
+      },
+      {
+        path: "/personnel",
+        element: (
+          <Protege roles={["superviseur", "admin"]}>
+            <Personnel />
           </Protege>
         ),
       },

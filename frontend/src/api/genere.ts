@@ -155,7 +155,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description EF-05. */
+        /** @description Change le mot de passe et renvoie de nouveaux jetons. Les anciens sont mis en liste noire : si le mot de passe a été changé parce qu'il était compromis, les sessions ouvertes ailleurs doivent tomber. */
         post: operations["auth_mot_de_passe_create"];
         delete?: never;
         options?: never;
@@ -1959,7 +1959,7 @@ export interface operations {
         };
         responses: {
             /** @description No response body */
-            204: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

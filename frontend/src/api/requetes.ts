@@ -9,6 +9,7 @@ import type {
   MereListe,
   Page,
   Utilisateur,
+  PosteSante,
 } from "./types";
 
 export type SaisieDose = {
@@ -178,6 +179,43 @@ export type FiltresRappels = {
   search?: string;
 };
 
+export type Agent = {
+  id: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  nom_complet: string;
+  telephone: string;
+  langue: string;
+  role: string;
+  role_libelle: string;
+  poste: { id: string; nom: string; district: string; region: string } | null;
+  is_active: boolean;
+  doit_changer_mot_de_passe: boolean;
+  derniere_connexion: string | null;
+  date_joined: string;
+};
+
+export type SaisieAgent = {
+  username: string;
+  first_name: string;
+  last_name: string;
+  telephone?: string;
+  role: string;
+  mot_de_passe: string;
+  poste_id?: string;
+};
+
+export type ActeAudit = {
+  id: number;
+  acte: string;
+  acte_libelle: string;
+  auteur_identifiant: string;
+  cible_identifiant: string;
+  detail: string;
+  horodatage: string;
+};
+
 export const requetes = {
   fileDuJour: (date?: string) =>
     api.get<EcheanceFile[]>("/echeances/file-du-jour/", { date }),
@@ -274,4 +312,22 @@ export const requetes = {
     marquerRappelsLus: () => api.post<void>("/mon-dossier/rappels/"),
 
   monRappel: (id: string) => api.get<MonRappel>(`/mon-dossier/rappels/${id}/`),
+
+    agents: (actifs?: boolean) =>
+    api.get<Page<Agent>>("/agents/", { actifs: actifs ? "true" : undefined }),
+
+  creerAgent: (saisie: SaisieAgent) => api.post<Agent>("/agents/", saisie),
+
+  reinitialiserAgent: (id: string, motDePasse: string) =>
+    api.post<void>(`/agents/${id}/reinitialiser/`, { mot_de_passe: motDePasse }),
+
+  transfererAgent: (id: string, posteId: string) =>
+    api.post<Agent>(`/agents/${id}/transferer/`, { poste_id: posteId }),
+
+  basculerActivation: (id: string) =>
+    api.post<Agent>(`/agents/${id}/basculer-activation/`),
+
+  postes: () => api.get<Page<PosteSante>>("/postes/"),
+
+  audit: () => api.get<ActeAudit[]>("/audit/"),
 };
