@@ -32,6 +32,12 @@ const ENTREES: Entree[] = [
     roles: ["superviseur", "admin"],
   },
   {
+    vers: "/personnel",
+    cle: "navigation.personnel",
+    icone: <IconeEquipe />,
+    roles: ["superviseur", "admin"],
+  },
+  {
     vers: "/rappels",
     cle: "navigation.rappels",
     icone: <IconeEnvoi />,
@@ -297,6 +303,17 @@ function IconeEnvoi() {
   return (
     <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
       <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7Z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconeEquipe() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" strokeLinecap="round" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" strokeLinecap="round" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" />
     </svg>
   );
 }
