@@ -203,9 +203,14 @@ class CreationCompteSerializer(serializers.Serializer):
     mot_de_passe = serializers.CharField(min_length=8, write_only=True)
 
     def validate_identifiant(self, valeur: str) -> str:
-        from apps.accounts.models import Utilisateur
+        from apps.accounts.models import Role, Utilisateur
 
         valeur = valeur.strip().lower()
-        if Utilisateur.objects.filter(username=valeur).exists():
+
+        occupe = Utilisateur.objects.filter(username=valeur).exclude(
+            role=Role.BENEFICIAIRE, is_active=False
+        )
+        if occupe.exists():
             raise serializers.ValidationError("Cet identifiant est déjà utilisé.")
+
         return valeur

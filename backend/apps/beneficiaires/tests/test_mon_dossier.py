@@ -253,3 +253,39 @@ def test_un_compte_ferme_ne_peut_plus_se_connecter(client, agent, khady):
         format="json",
     )
     assert reponse.status_code == 401
+
+
+def test_rouvrir_un_acces_reactive_le_compte(client, agent, khady):
+    """Sans cela, chaque fermeture-réouverture laisserait un compte fantôme
+    et obligerait la mère à retenir un nouvel identifiant."""
+    connecter(client, "awa.ndiaye")
+    client.post(f"/api/meres/{khady.identifiant_public}/fermer-acces/")
+
+    reponse = client.post(
+        f"/api/meres/{khady.identifiant_public}/ouvrir-acces/",
+        {"identifiant": "khady.ndiaye", "mot_de_passe": "nouveau-motdepasse"},
+        format="json",
+    )
+
+    assert reponse.status_code == 201
+    assert reponse.data["reactive"] is True
+    assert Utilisateur.objects.filter(username="khady.ndiaye").count() == 1
+
+
+def test_un_compte_reactive_accepte_le_nouveau_mot_de_passe(client, agent, khady):
+    connecter(client, "awa.ndiaye")
+    client.post(f"/api/meres/{khady.identifiant_public}/fermer-acces/")
+    client.post(
+        f"/api/meres/{khady.identifiant_public}/ouvrir-acces/",
+        {"identifiant": "khady.ndiaye", "mot_de_passe": "nouveau-motdepasse"},
+        format="json",
+    )
+
+    client.credentials()
+    reponse = client.post(
+        "/api/auth/connexion/",
+        {"username": "khady.ndiaye", "password": "nouveau-motdepasse"},
+        format="json",
+    )
+
+    assert reponse.status_code == 200

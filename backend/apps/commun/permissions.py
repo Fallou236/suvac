@@ -84,3 +84,21 @@ class EstBeneficiaire(permissions.BasePermission):
 
     def has_permission(self, request, view) -> bool:
         return bool(request.user.is_authenticated and request.user.role == Role.BENEFICIAIRE)
+
+
+class MotDePasseAJour(permissions.BasePermission):
+    """Bloque tout tant que le mot de passe initial n'a pas été changé.
+
+    Un mot de passe transmis par un tiers n'est pas un secret : tant qu'il
+    n'est pas remplacé, le compte ne doit rien pouvoir faire. Sans cette
+    règle, un agent pourrait travailler des mois avec le mot de passe que
+    son superviseur connaît.
+    """
+
+    message = "Vous devez d'abord changer votre mot de passe."
+
+    def has_permission(self, request, view) -> bool:
+        utilisateur = request.user
+        if not utilisateur.is_authenticated:
+            return False
+        return not getattr(utilisateur, "doit_changer_mot_de_passe", False)

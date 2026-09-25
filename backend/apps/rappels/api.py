@@ -16,7 +16,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.commun.permissions import EstSuperviseurOuAdministrateur
+from apps.commun.permissions import EstSuperviseurOuAdministrateur, MotDePasseAJour
 
 from .models import Rappel, StatutRappel
 from .serializers import RappelSerializer
@@ -30,7 +30,11 @@ class RappelViewSet(viewsets.ReadOnlyModelViewSet):
     """
 
     serializer_class = RappelSerializer
-    permission_classes = [IsAuthenticated, EstSuperviseurOuAdministrateur]
+    permission_classes = [
+        IsAuthenticated,
+        EstSuperviseurOuAdministrateur,
+        MotDePasseAJour,
+    ]
     lookup_field = "identifiant_public"
     lookup_url_kwarg = "id"
 

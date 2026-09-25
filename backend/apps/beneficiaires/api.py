@@ -10,6 +10,7 @@ from apps.commun.permissions import (
     EstPersonnelSoignant,
     FiltrageParPoste,
     LectureSeulePourSuperviseur,
+    MotDePasseAJour,
 )
 
 from .models import Consentement, Enfant, Grossesse, Mere
@@ -31,6 +32,7 @@ class MereViewSet(FiltrageParPoste, viewsets.ModelViewSet):
     permission_classes = [
         IsAuthenticated,
         EstPersonnelSoignant,
+        MotDePasseAJour,
         LectureSeulePourSuperviseur,
     ]
     lookup_field = "identifiant_public"
@@ -87,8 +89,8 @@ class MereViewSet(FiltrageParPoste, viewsets.ModelViewSet):
         responses={201: None, 400: None},
         description=(
             "Ouvre un accès à la mère pour qu'elle consulte le carnet de ses "
-            "enfants. L'identifiant et le mot de passe sont transmis oralement "
-            "par l'agent."
+            "enfants. Si un accès a déjà existé, le compte est réactivé plutôt "
+            "qu'un second créé : la mère garde ses identifiants."
         ),
     )
     @action(detail=True, methods=["post"], url_path="ouvrir-acces")
@@ -106,20 +108,41 @@ class MereViewSet(FiltrageParPoste, viewsets.ModelViewSet):
         entree = CreationCompteSerializer(data=request.data)
         entree.is_valid(raise_exception=True)
 
-        compte = Utilisateur.objects.create_user(
-            username=entree.validated_data["identifiant"],
-            password=entree.validated_data["mot_de_passe"],
-            first_name=mere.prenom,
-            last_name=mere.nom,
-            role=Role.BENEFICIAIRE,
-            langue=mere.langue,
-            telephone=mere.telephone,
-        )
+        identifiant = entree.validated_data["identifiant"]
+        mot_de_passe = entree.validated_data["mot_de_passe"]
+
+        # Un compte désactivé peut exister d'un accès précédent : le
+        # réactiver évite d'accumuler des comptes fantômes et permet à la
+        # mère de garder l'identifiant qu'elle connaît déjà.
+        ancien = Utilisateur.objects.filter(
+            username=identifiant, role=Role.BENEFICIAIRE, is_active=False
+        ).first()
+
+        if ancien is not None:
+            ancien.set_password(mot_de_passe)
+            ancien.is_active = True
+            ancien.first_name = mere.prenom
+            ancien.last_name = mere.nom
+            ancien.langue = mere.langue
+            ancien.telephone = mere.telephone
+            ancien.save()
+            compte = ancien
+        else:
+            compte = Utilisateur.objects.create_user(
+                username=identifiant,
+                password=mot_de_passe,
+                first_name=mere.prenom,
+                last_name=mere.nom,
+                role=Role.BENEFICIAIRE,
+                langue=mere.langue,
+                telephone=mere.telephone,
+            )
+
         mere.compte = compte
         mere.save(update_fields=["compte", "modifie_le"])
 
         return Response(
-            {"identifiant": compte.username},
+            {"identifiant": compte.username, "reactive": ancien is not None},
             status=status.HTTP_201_CREATED,
         )
 
@@ -149,6 +172,7 @@ class EnfantViewSet(FiltrageParPoste, viewsets.ModelViewSet):
     permission_classes = [
         IsAuthenticated,
         EstPersonnelSoignant,
+        MotDePasseAJour,
         LectureSeulePourSuperviseur,
     ]
     lookup_field = "identifiant_public"
@@ -228,6 +252,7 @@ class GrossesseViewSet(FiltrageParPoste, viewsets.ModelViewSet):
     permission_classes = [
         IsAuthenticated,
         EstPersonnelSoignant,
+        MotDePasseAJour,
         LectureSeulePourSuperviseur,
     ]
     lookup_field = "identifiant_public"
