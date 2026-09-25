@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from apps.commun.permissions import (
@@ -52,22 +53,57 @@ class ProfilView(APIView):
 
 
 class ChangementMotDePasseView(APIView):
-    """EF-05."""
+    """Changement de mot de passe par l'utilisateur lui-même (EF-05)."""
 
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(request=ChangementMotDePasseSerializer, responses={204: None})
+    @extend_schema(
+        request=ChangementMotDePasseSerializer,
+        responses={200: None},
+        description=(
+            "Change le mot de passe et renvoie de nouveaux jetons. Les "
+            "anciens sont mis en liste noire : si le mot de passe a été "
+            "changé parce qu'il était compromis, les sessions ouvertes "
+            "ailleurs doivent tomber."
+        ),
+    )
     def post(self, request):
         entree = ChangementMotDePasseSerializer(data=request.data, context={"request": request})
         entree.is_valid(raise_exception=True)
 
         utilisateur = request.user
         utilisateur.set_password(entree.validated_data["nouveau_mot_de_passe"])
-        # Le mot de passe est désormais connu de lui seul.
         utilisateur.doit_changer_mot_de_passe = False
         utilisateur.save(update_fields=["password", "doit_changer_mot_de_passe"])
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        _invalider_les_sessions(utilisateur)
+
+        # Sans nouveaux jetons, l'utilisateur serait déconnecté par le geste
+        # même qui sécurise son compte.
+        refresh = RefreshToken.for_user(utilisateur)
+        return Response({"access": str(refresh.access_token), "refresh": str(refresh)})
+
+
+def _invalider_les_sessions(utilisateur) -> int:
+    """Met en liste noire les jetons de rafraîchissement du compte.
+
+    Un jeton d'accès reste valable jusqu'à son expiration — quinze minutes
+    dans notre configuration : la liste noire ne porte que sur le
+    rafraîchissement. C'est une limite inhérente aux jetons sans état,
+    assumée pour le gain de ne pas interroger la base à chaque requête.
+    """
+    from rest_framework_simplejwt.token_blacklist.models import (
+        BlacklistedToken,
+        OutstandingToken,
+    )
+
+    invalides = 0
+    for jeton in OutstandingToken.objects.filter(user=utilisateur):
+        _, cree = BlacklistedToken.objects.get_or_create(token=jeton)
+        if cree:
+            invalides += 1
+
+    return invalides
 
 
 class PosteSanteViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
@@ -181,6 +217,10 @@ class AgentViewSet(viewsets.ModelViewSet):
         compte.set_password(entree.validated_data["mot_de_passe"])
         compte.doit_changer_mot_de_passe = True
         compte.save(update_fields=["password", "doit_changer_mot_de_passe"])
+
+        # Un mot de passe réinitialisé l'est souvent parce qu'il est perdu
+        # ou compromis : les sessions ouvertes doivent tomber.
+        _invalider_les_sessions(compte)
 
         journaliser(ActeAdministration.REINITIALISATION, request.user, compte)
 

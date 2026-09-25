@@ -4,11 +4,12 @@ import { useAuthentification } from "@/etat/authentification";
 import { accueilPour } from "@/etat/navigation";
 
 /**
- * Deux contrôles : être connecté, puis avoir un rôle autorisé. Un rôle
- * refusé est renvoyé vers sa propre page d'accueil plutôt que vers une
- * erreur — une mère qui arrive sur la file du jour atterrit dans son espace.
+ * Trois contrôles, dans cet ordre : être connecté, avoir un mot de passe
+ * personnel, puis avoir un rôle autorisé.
  *
- * Ce n'est qu'un confort d'interface : le refus réel est fait par l'API.
+ * Le second passe avant le troisième : un agent dont le mot de passe est
+ * encore celui de son superviseur verrait des écrans vides, l'API refusant
+ * toutes ses requêtes.
  */
 export function Protege({
   children,
@@ -25,6 +26,10 @@ export function Protege({
     return (
       <Navigate to="/connexion" replace state={{ depuis: emplacement.pathname }} />
     );
+  }
+
+  if (utilisateur?.doit_changer_mot_de_passe) {
+    return <Navigate to="/changer-mot-de-passe" replace />;
   }
 
   if (roles && utilisateur && !roles.includes(utilisateur.role)) {

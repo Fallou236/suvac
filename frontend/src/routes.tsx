@@ -18,12 +18,16 @@ const Aujourdhui = lazy(() => import("@/pages/espace/Aujourdhui"));
 const Carnets = lazy(() => import("@/pages/espace/Carnets"));
 const Messages = lazy(() => import("@/pages/espace/Messages"));
 const JournalRappels = lazy(() => import("@/pages/JournalRappels"));
+const ChangementObligatoire = lazy(
+  () => import("@/pages/ChangementObligatoire"),
+);
 
 export const routeur = createBrowserRouter([
   {
     element: <Cadre />,
     children: [
       { path: "/connexion", element: <Connexion /> },
+      { path: "/changer-mot-de-passe", element: <ChangementObligatoire /> },
 
       // --- Personnel soignant --------------------------------------
       {

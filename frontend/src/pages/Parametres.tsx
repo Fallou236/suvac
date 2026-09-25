@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { requetes } from "@/api/requetes";
 import { Coquille } from "@/composants/Coquille";
@@ -7,7 +7,9 @@ import { Bouton } from "@/composants/Bouton";
 import { Champ } from "@/composants/Champ";
 import { Etiquette } from "@/composants/Etiquette";
 import { useAuthentification } from "@/etat/authentification";
+import { definirJetons } from "@/api/client";
 import { erreursParChamp, messageDErreur } from "@/etat/messages";
+
 
 export default function Parametres() {
   const utilisateur = useAuthentification((e) => e.utilisateur);
@@ -177,20 +179,18 @@ function MotDePasse() {
   const [confirmation, setConfirmation] = useState("");
   const [succes, setSucces] = useState(false);
 
-  const client = useQueryClient();
-
   const mutation = useMutation({
     mutationFn: () =>
       requetes.changerMotDePasse({
         ancien_mot_de_passe: ancien,
         nouveau_mot_de_passe: nouveau,
       }),
-    onSuccess: () => {
+    onSuccess: (jetons) => {
+      definirJetons(jetons.access, jetons.refresh);
       setAncien("");
       setNouveau("");
       setConfirmation("");
       setSucces(true);
-      client.clear();
       setTimeout(() => setSucces(false), 5000);
     },
   });

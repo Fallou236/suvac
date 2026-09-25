@@ -419,7 +419,7 @@ def test_un_compte_a_changer_peut_changer_son_mot_de_passe(client, superviseur):
         format="json",
     )
 
-    assert reponse.status_code == 204
+    assert reponse.status_code == 200
     nouveau.refresh_from_db()
     assert not nouveau.doit_changer_mot_de_passe
 
@@ -450,3 +450,87 @@ def test_apres_le_changement_l_acces_est_rendu(client, superviseur):
     client.force_authenticate(nouveau)
 
     assert client.get("/api/meres/").status_code == 200
+
+
+def test_changer_son_mot_de_passe_invalide_les_anciennes_sessions(client, superviseur):
+    """Si le mot de passe est changé parce qu'il était compromis, une
+    session ouverte ailleurs doit tomber."""
+    connexion = client.post(
+        "/api/auth/connexion/",
+        {"username": "fatou.gueye", "password": MOT_DE_PASSE},
+        format="json",
+    )
+    ancien_refresh = connexion.data["refresh"]
+
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {connexion.data['access']}")
+    client.post(
+        "/api/auth/mot-de-passe/",
+        {"ancien_mot_de_passe": MOT_DE_PASSE, "nouveau_mot_de_passe": SOLIDE},
+        format="json",
+    )
+
+    client.credentials()
+    reponse = client.post("/api/auth/rafraichir/", {"refresh": ancien_refresh}, format="json")
+
+    assert reponse.status_code == 401
+
+
+def test_le_changement_renvoie_de_nouveaux_jetons(client, superviseur):
+    """Sans cela, l'utilisateur serait déconnecté par le geste même qui
+    sécurise son compte."""
+    connexion = client.post(
+        "/api/auth/connexion/",
+        {"username": "fatou.gueye", "password": MOT_DE_PASSE},
+        format="json",
+    )
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {connexion.data['access']}")
+
+    reponse = client.post(
+        "/api/auth/mot-de-passe/",
+        {"ancien_mot_de_passe": MOT_DE_PASSE, "nouveau_mot_de_passe": SOLIDE},
+        format="json",
+    )
+
+    assert reponse.status_code == 200
+    assert "access" in reponse.data
+    assert "refresh" in reponse.data
+
+
+def test_une_reinitialisation_coupe_les_sessions_de_l_agent(client, superviseur, agent):
+    connexion = client.post(
+        "/api/auth/connexion/",
+        {"username": "awa.ndiaye", "password": MOT_DE_PASSE},
+        format="json",
+    )
+    ancien_refresh = connexion.data["refresh"]
+
+    connecter(client, superviseur)
+    client.post(
+        f"/api/agents/{agent.identifiant_public}/reinitialiser/",
+        {"mot_de_passe": SOLIDE},
+        format="json",
+    )
+
+    client.credentials()
+    client.force_authenticate(None)
+    reponse = client.post("/api/auth/rafraichir/", {"refresh": ancien_refresh}, format="json")
+
+    assert reponse.status_code == 401
+
+
+def test_desactiver_un_compte_coupe_ses_sessions(client, superviseur, agent):
+    connexion = client.post(
+        "/api/auth/connexion/",
+        {"username": "awa.ndiaye", "password": MOT_DE_PASSE},
+        format="json",
+    )
+    ancien_refresh = connexion.data["refresh"]
+
+    connecter(client, superviseur)
+    client.post(f"/api/agents/{agent.identifiant_public}/basculer-activation/")
+
+    client.credentials()
+    client.force_authenticate(None)
+    reponse = client.post("/api/auth/rafraichir/", {"refresh": ancien_refresh}, format="json")
+
+    assert reponse.status_code == 401

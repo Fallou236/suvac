@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.accounts.api import _invalider_les_sessions
 from apps.commun.permissions import (
     EstPersonnelSoignant,
     FiltrageParPoste,
@@ -158,10 +159,10 @@ class MereViewSet(FiltrageParPoste, viewsets.ModelViewSet):
             compte = mere.compte
             mere.compte = None
             mere.save(update_fields=["compte", "modifie_le"])
-            # Désactivation plutôt que suppression : les actes tracés
-            # gardent ainsi leur auteur (RG-10).
             compte.is_active = False
             compte.save(update_fields=["is_active"])
+
+            _invalider_les_sessions(compte)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 

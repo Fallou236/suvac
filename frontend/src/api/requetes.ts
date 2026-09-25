@@ -225,8 +225,11 @@ export const requetes = {
   changerMotDePasse: (saisie: {
     ancien_mot_de_passe: string;
     nouveau_mot_de_passe: string;
-  }) => api.post<void>("/auth/mot-de-passe/", saisie),
-
+  }) =>
+    api.post<{ access: string; refresh: string }>(
+      "/auth/mot-de-passe/",
+      saisie,
+    ),
   synthese: () => api.get<Synthese>("/pilotage/synthese/"),
   couverture: () => api.get<Couverture[]>("/pilotage/couverture/"),
   abandon: () => api.get<Abandon[]>("/pilotage/abandon/"),

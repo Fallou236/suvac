@@ -112,7 +112,11 @@ def test_changer_son_mot_de_passe(client, agent):
         format="json",
     )
 
-    assert reponse.status_code == 204
+    assert reponse.status_code == 200
+    # De nouveaux jetons sont rendus : les anciens viennent d'être
+    # invalidés, la session serait perdue sans cela.
+    assert "access" in reponse.data
+
     agent.refresh_from_db()
     assert agent.check_password("nouveau-motdepasse-solide-456")
 
