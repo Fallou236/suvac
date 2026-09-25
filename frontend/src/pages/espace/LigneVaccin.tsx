@@ -4,6 +4,7 @@ import { Pastille } from "@/composants/Pastille";
 import { ExplicationVaccin } from "@/composants/ExplicationVaccin";
 import { cn } from "@/composants/cn";
 import { formatDate } from "./format";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   vaccin: string;
@@ -26,6 +27,7 @@ export function LigneVaccin({
   beneficiaire,
   fiche,
 }: Props) {
+  const { t } = useTranslation();
   const enRetard = statut === "en_retard";
   const perimee = statut === "perimee";
 
@@ -45,11 +47,13 @@ export function LigneVaccin({
           <p className="text-base font-semibold text-texte">
             {vaccin}
             <span className="ml-1.5 text-sm font-normal text-texte-faible">
-              dose {rang}
+              {t("espace.dose", { rang })}
             </span>
           </p>
           {beneficiaire && (
-            <p className="text-sm text-texte-faible">pour {beneficiaire}</p>
+            <p className="text-sm text-texte-faible">
+              {t("espace.pour", { nom: beneficiaire })}
+            </p>
           )}
           <p className="tabulaire mt-0.5 text-sm">
             <Precision
@@ -67,50 +71,42 @@ export function LigneVaccin({
   );
 }
 
-function Precision({
-  statut,
-  dateCible,
-  dateAdministration,
-  retardJours,
-}: {
-  statut: string;
-  dateCible: string;
-  dateAdministration?: string | null;
-  retardJours: number;
-}) {
+function Precision({ statut, dateCible, dateAdministration, retardJours }) {
+  const { t } = useTranslation();
+
   switch (statut) {
     case "administree":
       return (
         <span className="font-medium text-baobab">
-          Reçu le {formatDate(dateAdministration ?? dateCible)}
+          {t("statut.recuLe", { date: formatDate(dateAdministration ?? dateCible) })}
         </span>
       );
     case "en_retard":
       return (
         <span className="font-medium text-retard">
-          Prévu le {formatDate(dateCible)}
           {retardJours > 0
-            ? ` — ${retardJours} jours de retard`
-            : " — à rattraper dès que possible"}
+            ? t("statut.enRetardDepuis", {
+                date: formatDate(dateCible),
+                jours: retardJours,
+              })
+            : t("statut.aRattraper", { date: formatDate(dateCible) })}
         </span>
       );
     case "due":
       return (
         <span className="font-medium text-cuivre">
-          À faire maintenant — prévu le {formatDate(dateCible)}
+          {t("statut.aFaireMaintenant", { date: formatDate(dateCible) })}
         </span>
       );
     case "perimee":
-      return (
-        <span className="text-texte-faible">
-          Ne peut plus être administré : l'âge limite est dépassé
-        </span>
-      );
+      return <span className="text-texte-faible">{t("statut.perime")}</span>;
     case "annulee":
-      return <span className="text-texte-faible">Annulé</span>;
+      return <span className="text-texte-faible">{t("statut.annule")}</span>;
     default:
       return (
-        <span className="text-texte-faible">Prévu le {formatDate(dateCible)}</span>
+        <span className="text-texte-faible">
+          {t("statut.prevuLe", { date: formatDate(dateCible) })}
+        </span>
       );
   }
 }

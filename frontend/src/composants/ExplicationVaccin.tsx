@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { FicheVaccin } from "@/api/requetes";
+import { useTranslation } from "react-i18next";
 
 /**
  * Explication dépliable, placée sous chaque vaccin du carnet et de chaque
@@ -16,6 +17,8 @@ export function ExplicationVaccin({
   fiche?: FicheVaccin;
   ouvert?: boolean;
 }) {
+  const { t } = useTranslation();
+
   if (!fiche?.description) return null;
 
   return (
@@ -24,7 +27,7 @@ export function ExplicationVaccin({
       className="group mt-2 rounded-md border border-bordure bg-surface-basse"
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-sm font-medium text-cuivre [&::-webkit-details-marker]:hidden">
-        <span>Pourquoi ce vaccin ?</span>
+        <span>{t("vaccins.pourquoiCeVaccin")}</span>
         <svg
           viewBox="0 0 24 24"
           className="size-4 shrink-0 transition-transform duration-[120ms] group-open:rotate-180"
@@ -40,7 +43,7 @@ export function ExplicationVaccin({
       <div className="border-t border-bordure px-3 py-3 text-sm leading-relaxed text-texte">
         {fiche.protege_contre && (
           <p className="mb-2 font-semibold text-baobab">
-            Protège contre {fiche.protege_contre}.
+            {t("vaccins.protegeContre2", { maladie: fiche.protege_contre })}
           </p>
         )}
         {fiche.description.split("\n\n").map((paragraphe, index) => (
@@ -52,7 +55,7 @@ export function ExplicationVaccin({
           to={`/vaccins?code=${fiche.code}`}
           className="mt-3 inline-block text-sm font-medium text-cuivre underline-offset-2 hover:underline"
         >
-          Voir la fiche complète
+          {t("vaccins.ficheComplete")}
         </Link>
       </div>
     </details>

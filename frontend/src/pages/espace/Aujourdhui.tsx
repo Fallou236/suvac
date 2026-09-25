@@ -9,6 +9,7 @@ import { indexerFiches, useFichesVaccins } from "@/etat/vaccins";
 import { useMesCarnets } from "@/etat/espace";
 import { LigneVaccin } from "./LigneVaccin";
 import { formatDate } from "./format";
+import { useTranslation } from "react-i18next";
 
 type EcheanceAffichee = {
   id: string;
@@ -29,6 +30,7 @@ export default function Aujourdhui() {
   const { liste, carnets, chargement } = useMesCarnets();
   const { data: fiches } = useFichesVaccins();
   const index = indexerFiches(fiches);
+  const { t } = useTranslation();
 
   if (rappels.isPending || chargement) {
     return (
@@ -88,7 +90,7 @@ export default function Aujourdhui() {
   const nonLus = (rappels.data ?? []).filter((r) => !r.lu).length;
 
   return (
-    <Coquille titre="Aujourd'hui">
+    <Coquille titre={t("navigation.aujourdhui")}>
       <div className="defilement h-full overflow-y-auto">
         <div className="mx-auto flex max-w-3xl flex-col gap-7 p-5 lg:p-8">
           <header>
@@ -99,18 +101,24 @@ export default function Aujourdhui() {
                 month: "long",
               })}
             </p>
-            <h2 className="mt-1 text-2xl font-bold text-texte">Bonjour {prenom}</h2>
+            <h2 className="mt-1 text-2xl font-bold text-texte">
+              {t("espace.bonjour", { prenom })}
+            </h2>
 
             <div className="mt-4 grid grid-cols-3 gap-3">
-              <Chiffre valeur={aFaire.length} libelle="À faire" ton="accent" />
+              <Chiffre
+                valeur={aFaire.length}
+                libelle={t("espace.aFaire")}
+                ton="accent"
+              />
               <Chiffre
                 valeur={retards.length}
-                libelle="En retard"
+                libelle={t("espace.enRetard")}
                 ton={retards.length > 0 ? "alerte" : "neutre"}
               />
               <Chiffre
                 valeur={`${recues}/${comptables}`}
-                libelle="Doses reçues"
+                libelle={t("espace.dosesRecues")}
                 ton="succes"
               />
             </div>
@@ -119,20 +127,22 @@ export default function Aujourdhui() {
           {retards.length === 0 && aFaire.length === 0 && (
             <div className="rounded-lg border border-baobab/20 bg-baobab-clair px-5 py-6 text-center">
               <p className="text-lg font-semibold text-baobab">
-                {toutes.length > 0 ? "Tout est à jour" : "Aucun suivi en cours"}
+                {toutes.length > 0
+                  ? t("espace.toutEstAJour")
+                  : t("espace.aucunSuivi")}
               </p>
               <p className="mt-1 text-sm text-texte-faible">
                 {toutes.length > 0
-                  ? "Aucun vaccin à faire pour le moment. Vous recevrez un message avant le prochain rendez-vous."
-                  : "Aucun carnet n'est encore rattaché à votre compte. Adressez-vous à votre poste de santé."}
+                  ? t("espace.toutEstAJourDetail")
+                  : t("espace.aucunSuiviDetail")}
               </p>
             </div>
           )}
 
           {retards.length > 0 && (
             <Section
-              titre="À rattraper"
-              description="Ces vaccins sont en retard, mais il est encore temps. Rendez-vous au poste de santé dès que possible."
+              titre={t("espace.aRattraper")}
+              description={t("espace.aRattraperDetail")}
               ton="alerte"
             >
               <ParBeneficiaire echeances={retards} index={index} />
@@ -141,8 +151,8 @@ export default function Aujourdhui() {
 
           {aFaire.length > 0 && (
             <Section
-              titre="À faire maintenant"
-              description="Présentez-vous au poste de santé avec le carnet."
+              titre={t("espace.aFaireMaintenant")}
+              description={t("espace.aFaireMaintenantDetail")}
             >
               <ParBeneficiaire echeances={aFaire} index={index} />
             </Section>
@@ -151,15 +161,14 @@ export default function Aujourdhui() {
           {nonLus > 0 && (
               <Link
                 to="/mon-espace/messages"
-                className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-cuivre underline-offset-2 hover:underline"
+                className="mt-3 inline-block text-sm font-medium text-cuivre underline-offset-2 hover:underline"
               >
-                {nonLus} message{nonLus > 1 ? "s" : ""} non lu
-                {nonLus > 1 ? "s" : ""}
+                {t("espace.messagesNonLus", { count: nonLus })}
               </Link>
           )}
 
           {prochains.length > 0 && (
-            <Section titre="Prochains rendez-vous">
+            <Section titre={t("espace.prochainsRendezVous")}>
               <ol className="relative flex flex-col gap-4 border-l-2 border-bordure pl-5">
                 {prochains.map(({ beneficiaire, echeance }) => (
                   <li key={echeance.id} className="relative">
@@ -173,10 +182,12 @@ export default function Aujourdhui() {
                     <p className="text-base font-medium text-texte">
                       {echeance.vaccin}
                       <span className="ml-1.5 text-sm font-normal text-texte-faible">
-                        dose {echeance.rang}
+                        {t("espace.dose", { rang: echeance.rang })}
                       </span>
                     </p>
-                    <p className="text-sm text-texte-faible">pour {beneficiaire}</p>
+                    <p className="text-sm text-texte-faible">
+                      {t("espace.pour", { nom: beneficiaire })}
+                    </p>
                   </li>
                 ))}
               </ol>
@@ -187,7 +198,7 @@ export default function Aujourdhui() {
             to="/mon-espace/carnets"
             className="self-start text-sm font-medium text-cuivre underline-offset-2 hover:underline"
           >
-            Voir tous les carnets
+            {t("espace.voirTousLesCarnets")}
           </Link>
         </div>
       </div>
