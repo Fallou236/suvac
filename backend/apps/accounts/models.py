@@ -11,6 +11,8 @@ from apps.commun.models import (
     ModeleSuppressionLogique,
 )
 
+from .audit import ActeAdministration, JournalAudit  # noqa: E402,F401
+
 validateur_telephone = RegexValidator(
     regex=r"^\+?[0-9]{7,15}$",
     message=_("Numéro invalide. Format attendu : +221771234567."),
@@ -94,6 +96,15 @@ class Utilisateur(AbstractUser, ModeleHorodate, ModeleIdentifiantPublic):
     )
     langue = models.CharField(
         _("langue"), max_length=2, choices=Langue.choices, default=Langue.FRANCAIS
+    )
+
+    doit_changer_mot_de_passe = models.BooleanField(
+        _("doit changer son mot de passe"),
+        default=False,
+        help_text=_(
+            "Vrai après une création ou une réinitialisation par un tiers : "
+            "un mot de passe transmis par autrui n'est pas un secret."
+        ),
     )
 
     objects = GestionnaireUtilisateur()

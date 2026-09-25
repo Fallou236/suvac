@@ -5,8 +5,10 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
 from apps.accounts.api import (
+    AgentViewSet,
     ChangementMotDePasseView,
     ConnexionView,
+    JournalAuditView,
     PosteSanteViewSet,
     ProfilView,
 )
@@ -40,6 +42,7 @@ routeur.register("echeances", EcheanceViewSet, basename="echeance")
 routeur.register("doses", DoseViewSet, basename="dose")
 routeur.register("vaccins", VaccinViewSet, basename="vaccin")
 routeur.register("rappels", RappelViewSet, basename="rappel")
+routeur.register("agents", AgentViewSet, basename="agent")
 
 
 urlpatterns = [
@@ -75,4 +78,5 @@ urlpatterns = [
     path("api/mon-dossier/rappels/", MesRappelsView.as_view(), name="mes-rappels"),
     path("webhooks/whatsapp/", webhook_whatsapp, name="webhook-whatsapp"),
     path("api/mon-dossier/rappels/<uuid:id>/", MonRappelView.as_view(), name="mon-rappel"),
+    path("api/audit/", JournalAuditView.as_view(), name="journal-audit"),
 ]

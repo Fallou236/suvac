@@ -10,7 +10,11 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.commun.permissions import EstPersonnelSoignant, LectureSeulePourSuperviseur
+from apps.commun.permissions import (
+    EstPersonnelSoignant,
+    LectureSeulePourSuperviseur,
+    MotDePasseAJour,
+)
 
 from .models import DoseAdministree, Echeance, StatutEcheance
 from .serializers import (
@@ -85,6 +89,7 @@ class EcheanceViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [
         IsAuthenticated,
         EstPersonnelSoignant,
+        MotDePasseAJour,
         LectureSeulePourSuperviseur,
     ]
     lookup_field = "identifiant_public"
@@ -252,6 +257,7 @@ class DoseViewSet(viewsets.GenericViewSet):
     permission_classes = [
         IsAuthenticated,
         EstPersonnelSoignant,
+        MotDePasseAJour,
         LectureSeulePourSuperviseur,
     ]
 

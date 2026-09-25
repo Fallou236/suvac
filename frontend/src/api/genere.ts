@@ -4,6 +4,131 @@
  */
 
 export interface paths {
+    "/api/agents/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Gestion du personnel du poste par le superviseur (EF-06).
+         *
+         *     Un superviseur gère les comptes de son poste ; un administrateur, tous.
+         *     Aucun ne peut se supprimer soi-même, ni créer un administrateur.
+         */
+        get: operations["agents_list"];
+        put?: never;
+        /** @description Crée un compte pour le personnel. Le mot de passe est choisi par le superviseur et transmis oralement ; l'agent devra le changer à sa première connexion. */
+        post: operations["agents_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agents/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Gestion du personnel du poste par le superviseur (EF-06).
+         *
+         *     Un superviseur gère les comptes de son poste ; un administrateur, tous.
+         *     Aucun ne peut se supprimer soi-même, ni créer un administrateur.
+         */
+        get: operations["agents_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * @description Gestion du personnel du poste par le superviseur (EF-06).
+         *
+         *     Un superviseur gère les comptes de son poste ; un administrateur, tous.
+         *     Aucun ne peut se supprimer soi-même, ni créer un administrateur.
+         */
+        patch: operations["agents_partial_update"];
+        trace?: never;
+    };
+    "/api/agents/{id}/basculer-activation/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Désactive ou réactive un compte. Le compte n'est jamais supprimé : les actes qu'il a enregistrés gardent leur auteur (RG-10). */
+        post: operations["agents_basculer_activation_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agents/{id}/reinitialiser/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Réinitialise le mot de passe d'un agent qui l'a oublié. L'agent devra en choisir un nouveau à sa prochaine connexion. */
+        post: operations["agents_reinitialiser_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agents/{id}/transferer/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Transfère un agent vers un autre poste. Son historique reste rattaché aux actes qu'il a enregistrés. */
+        post: operations["agents_transferer_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/audit/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Actes d'administration sur les comptes.
+         *
+         *     Réservé aux administrateurs : un superviseur ne doit pas pouvoir
+         *     vérifier ce que ses pairs ont fait, ni effacer ses propres traces en
+         *     les consultant.
+         */
+        get: operations["audit_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/connexion/": {
         parameters: {
             query?: never;
@@ -401,7 +526,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Ouvre un accès à la mère pour qu'elle consulte le carnet de ses enfants. L'identifiant et le mot de passe sont transmis oralement par l'agent. */
+        /** @description Ouvre un accès à la mère pour qu'elle consulte le carnet de ses enfants. Si un accès a déjà existé, le compte est réactivé plutôt qu'un second créé : la mère garde ses identifiants. */
         post: operations["meres_ouvrir_acces_create"];
         delete?: never;
         options?: never;
@@ -741,6 +866,70 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * @description * `creation` - Création d'un compte
+         *     * `desactivation` - Désactivation d'un compte
+         *     * `reactivation` - Réactivation d'un compte
+         *     * `reinitialisation` - Réinitialisation du mot de passe
+         *     * `transfert` - Transfert vers un autre poste
+         *     * `changement_role` - Changement de rôle
+         * @enum {string}
+         */
+        ActeEnum: "creation" | "desactivation" | "reactivation" | "reinitialisation" | "transfert" | "changement_role";
+        Agent: {
+            /** Format: uuid */
+            readonly id: string;
+            /**
+             * Nom d’utilisateur
+             * @description Requis. 150 caractères maximum. Uniquement des lettres, nombres et les caractères « @ », « . », « + », « - » et « _ ».
+             */
+            readonly username: string;
+            /** Prénom */
+            first_name?: string;
+            /** Nom */
+            last_name?: string;
+            readonly nom_complet: string;
+            /** Téléphone */
+            telephone?: string;
+            langue?: components["schemas"]["LangueEnum"];
+            /** Rôle */
+            role?: components["schemas"]["RoleDaeEnum"];
+            readonly role_libelle: string;
+            readonly poste: components["schemas"]["PosteSante"];
+            /**
+             * Actif
+             * @description Précise si l’utilisateur doit être considéré comme actif. Décochez ceci plutôt que de supprimer le compte.
+             */
+            is_active?: boolean;
+            /**
+             * Doit changer son mot de passe
+             * @description Vrai après une création ou une réinitialisation par un tiers : un mot de passe transmis par autrui n'est pas un secret.
+             */
+            readonly doit_changer_mot_de_passe: boolean;
+            /** Format: date-time */
+            readonly derniere_connexion: string;
+            /**
+             * Date d’inscription
+             * Format: date-time
+             */
+            readonly date_joined: string;
+        };
+        AgentRequest: {
+            /** Prénom */
+            first_name?: string;
+            /** Nom */
+            last_name?: string;
+            /** Téléphone */
+            telephone?: string;
+            langue?: components["schemas"]["LangueEnum"];
+            /** Rôle */
+            role?: components["schemas"]["RoleDaeEnum"];
+            /**
+             * Actif
+             * @description Précise si l’utilisateur doit être considéré comme actif. Décochez ceci plutôt que de supprimer le compte.
+             */
+            is_active?: boolean;
+        };
         AnnulationRequest: {
             motif: components["schemas"]["MotifEnum"];
             /** @default  */
@@ -789,6 +978,28 @@ export interface components {
             /** Canal accepté */
             canal?: components["schemas"]["Canal97cEnum"];
         };
+        /**
+         * @description Création d'un compte pour le personnel du poste.
+         *
+         *     Le superviseur choisit le mot de passe initial et le transmet
+         *     oralement ; l'agent devra le changer à sa première connexion.
+         */
+        CreationAgentRequest: {
+            username: string;
+            first_name: string;
+            last_name: string;
+            telephone?: string;
+            role: components["schemas"]["CreationAgentRoleEnum"];
+            mot_de_passe: string;
+            /** Format: uuid */
+            poste_id?: string | null;
+        };
+        /**
+         * @description * `agent` - agent
+         *     * `superviseur` - superviseur
+         * @enum {string}
+         */
+        CreationAgentRoleEnum: "agent" | "superviseur";
         /**
          * @description Ouverture d'un accès pour une mère.
          *
@@ -1033,6 +1244,19 @@ export interface components {
          * @enum {string}
          */
         GrossesseStatutEnum: "en_cours" | "terminee" | "interrompue";
+        JournalAudit: {
+            readonly id: number;
+            readonly acte: components["schemas"]["ActeEnum"];
+            readonly acte_libelle: string;
+            /** Auteur */
+            readonly auteur_identifiant: string;
+            /** Cible */
+            readonly cible_identifiant: string;
+            /** Détail */
+            readonly detail: string;
+            /** Format: date-time */
+            readonly horodatage: string;
+        };
         /**
          * @description * `fr` - Français
          *     * `wo` - Wolof
@@ -1133,6 +1357,21 @@ export interface components {
          * @enum {string}
          */
         MotifEnum: "contre_indication" | "deces" | "demenagement" | "refus" | "autre";
+        PaginatedAgentList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["Agent"][];
+        };
         PaginatedEcheanceFileList: {
             /** @example 123 */
             count: number;
@@ -1237,6 +1476,22 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["Rappel"][];
+        };
+        PatchedAgentRequest: {
+            /** Prénom */
+            first_name?: string;
+            /** Nom */
+            last_name?: string;
+            /** Téléphone */
+            telephone?: string;
+            langue?: components["schemas"]["LangueEnum"];
+            /** Rôle */
+            role?: components["schemas"]["RoleDaeEnum"];
+            /**
+             * Actif
+             * @description Précise si l’utilisateur doit être considéré comme actif. Décochez ceci plutôt que de supprimer le compte.
+             */
+            is_active?: boolean;
         };
         PatchedEnfantRequest: {
             /** Format: uuid */
@@ -1364,6 +1619,9 @@ export interface components {
          * @enum {string}
          */
         RappelStatutEnum: "en_attente" | "envoye" | "remis" | "lu" | "echec" | "abandonne";
+        ReinitialisationRequest: {
+            mot_de_passe: string;
+        };
         /**
          * @description * `agent` - Agent de santé
          *     * `superviseur` - Superviseur de district
@@ -1371,7 +1629,7 @@ export interface components {
          *     * `beneficiaire` - Bénéficiaire
          * @enum {string}
          */
-        RoleEnum: "agent" | "superviseur" | "admin" | "beneficiaire";
+        RoleDaeEnum: "agent" | "superviseur" | "admin" | "beneficiaire";
         /**
          * @description * `F` - Féminin
          *     * `M` - Masculin
@@ -1398,6 +1656,10 @@ export interface components {
         TokenVerifyRequest: {
             token: string;
         };
+        TransfertRequest: {
+            /** Format: uuid */
+            poste_id: string;
+        };
         /**
          * @description * `avant` - Avant l'échéance
          *     * `jour` - Le jour même
@@ -1423,11 +1685,16 @@ export interface components {
             /** Adresse électronique */
             email?: string;
             /** Rôle */
-            readonly role: components["schemas"]["RoleEnum"];
+            readonly role: components["schemas"]["RoleDaeEnum"];
             readonly poste: components["schemas"]["PosteSante"];
             /** Téléphone */
             telephone?: string;
             langue?: components["schemas"]["LangueEnum"];
+            /**
+             * Doit changer son mot de passe
+             * @description Vrai après une création ou une réinitialisation par un tiers : un mot de passe transmis par autrui n'est pas un secret.
+             */
+            readonly doit_changer_mot_de_passe: boolean;
         };
         Vaccin: {
             code: string;
@@ -1458,6 +1725,200 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    agents_list: {
+        parameters: {
+            query?: {
+                /** @description Un numéro de page de l'ensemble des résultats. */
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedAgentList"];
+                };
+            };
+        };
+    };
+    agents_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreationAgentRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CreationAgentRequest"];
+                "multipart/form-data": components["schemas"]["CreationAgentRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Agent"];
+                };
+            };
+        };
+    };
+    agents_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Agent"];
+                };
+            };
+        };
+    };
+    agents_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedAgentRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedAgentRequest"];
+                "multipart/form-data": components["schemas"]["PatchedAgentRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Agent"];
+                };
+            };
+        };
+    };
+    agents_basculer_activation_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AgentRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AgentRequest"];
+                "multipart/form-data": components["schemas"]["AgentRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Agent"];
+                };
+            };
+        };
+    };
+    agents_reinitialiser_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReinitialisationRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ReinitialisationRequest"];
+                "multipart/form-data": components["schemas"]["ReinitialisationRequest"];
+            };
+        };
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    agents_transferer_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransfertRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["TransfertRequest"];
+                "multipart/form-data": components["schemas"]["TransfertRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Agent"];
+                };
+            };
+        };
+    };
+    audit_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalAudit"][];
+                };
+            };
+        };
+    };
     auth_connexion_create: {
         parameters: {
             query?: never;

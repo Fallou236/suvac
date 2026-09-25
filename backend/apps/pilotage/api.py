@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.beneficiaires.models import Enfant
-from apps.commun.permissions import EstSuperviseurOuAdministrateur
+from apps.commun.permissions import EstSuperviseurOuAdministrateur, MotDePasseAJour
 from apps.suivi.models import DoseAdministree, Echeance
 
 from .services import (
@@ -29,7 +29,11 @@ class BasePilotage(APIView):
     n'accède pas à ces indicateurs : son écran est la file du jour.
     """
 
-    permission_classes = [IsAuthenticated, EstSuperviseurOuAdministrateur]
+    permission_classes = [
+        IsAuthenticated,
+        EstSuperviseurOuAdministrateur,
+        MotDePasseAJour,
+    ]
 
     def perimetre(self, request):
         utilisateur = request.user

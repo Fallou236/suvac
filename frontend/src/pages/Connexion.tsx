@@ -23,9 +23,14 @@ export default function Connexion() {
 
     try {
       await connexion(identifiant, motDePasse);
-      const role = useAuthentification.getState().utilisateur?.role;
+      const profil = useAuthentification.getState().utilisateur;
+      if (profil?.doit_changer_mot_de_passe) {
+        naviguer("/changer-mot-de-passe", { replace: true });
+        return;
+      }
+
       const depuis = (emplacement.state as { depuis?: string } | null)?.depuis;
-      naviguer(depuis ?? accueilPour(role), { replace: true });
+      naviguer(depuis ?? accueilPour(profil?.role), { replace: true });
     } catch (e) {
       setErreur(messageDErreur(e));
     } finally {

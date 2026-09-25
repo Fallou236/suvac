@@ -133,7 +133,10 @@ describe("Parametres", () => {
 
     serveur.use(
       http.post("/api/auth/mot-de-passe/", () =>
-        new HttpResponse(null, { status: 204 }),
+        HttpResponse.json({
+          access: "nouveau-jeton-acces",
+          refresh: "nouveau-jeton-rafraichissement",
+        }),
       ),
     );
 
