@@ -30,7 +30,7 @@ from apps.pilotage.api import (
 from apps.rappels.api import RappelViewSet
 from apps.rappels.webhooks import webhook_whatsapp
 from apps.suivi.api import DoseViewSet, EcheanceViewSet
-from apps.vaccination.api import VaccinViewSet
+from apps.vaccination.api import SchemaVaccinalView, VaccinViewSet
 from config.health import healthz
 
 routeur = DefaultRouter()
@@ -79,4 +79,5 @@ urlpatterns = [
     path("webhooks/whatsapp/", webhook_whatsapp, name="webhook-whatsapp"),
     path("api/mon-dossier/rappels/<uuid:id>/", MonRappelView.as_view(), name="mon-rappel"),
     path("api/audit/", JournalAuditView.as_view(), name="journal-audit"),
+    path("api/schema-vaccinal/", SchemaVaccinalView.as_view(), name="schema-vaccinal"),
 ]

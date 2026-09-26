@@ -38,9 +38,21 @@ const ENTREES: Entree[] = [
     roles: ["superviseur", "admin"],
   },
   {
+    vers: "/audit",
+    cle: "navigation.audit",
+    icone: <IconeJournal />,
+    roles: ["admin"],
+  },
+  {
     vers: "/rappels",
     cle: "navigation.rappels",
     icone: <IconeEnvoi />,
+    roles: ["superviseur", "admin"],
+  },
+  {
+    vers: "/schema-vaccinal",
+    cle: "navigation.schema",
+    icone: <IconeCalendrierVaccinal />,
     roles: ["superviseur", "admin"],
   },
   {
@@ -189,7 +201,10 @@ export function BarreLaterale({
               <p className="truncate text-xs text-white/55">
                 {estBeneficiaire
                   ? "Espace personnel"
-                  : utilisateur?.poste?.nom ?? t("navigation.aucunPoste")}
+                  : utilisateur?.poste?.nom ??
+                    (utilisateur?.role === "admin"
+                      ? "Tous les postes"
+                      : t("navigation.aucunPoste"))}
               </p>
 
               {/* L'interface professionnelle reste en français : c'est la
@@ -314,6 +329,25 @@ function IconeEquipe() {
       <circle cx="9" cy="7" r="4" />
       <path d="M22 21v-2a4 4 0 0 0-3-3.87" strokeLinecap="round" />
       <path d="M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconeCalendrierVaccinal() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="17" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" strokeLinecap="round" />
+      <path d="M8 15h2M14 15h2M8 18h2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconeJournal() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" strokeLinejoin="round" />
+      <path d="M14 2v6h6M9 13h6M9 17h4" strokeLinecap="round" />
     </svg>
   );
 }

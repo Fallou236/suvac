@@ -6,7 +6,10 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("accounts", "0004_remove_utilisateur_agent_et_superviseur_ont_un_poste_and_more"),
+        (
+            "accounts",
+            "0004_remove_utilisateur_agent_et_superviseur_ont_un_poste_and_more",
+        ),
     ]
 
     operations = [

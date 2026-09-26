@@ -21,7 +21,9 @@ const JournalRappels = lazy(() => import("@/pages/JournalRappels"));
 const ChangementObligatoire = lazy(
   () => import("@/pages/ChangementObligatoire"),
 );
+const SchemaVaccinal = lazy(() => import("@/pages/SchemaVaccinal"));
 const Personnel = lazy(() => import("@/pages/Personnel"));
+const Audit = lazy(() => import("@/pages/Audit"));
 
 export const routeur = createBrowserRouter([
   {
@@ -120,6 +122,22 @@ export const routeur = createBrowserRouter([
         element: (
           <Protege roles={["superviseur", "admin"]}>
             <Personnel />
+          </Protege>
+        ),
+      },
+      {
+        path: "/audit",
+        element: (
+          <Protege roles={["admin"]}>
+            <Audit />
+          </Protege>
+        ),
+      },
+      {
+        path: "/schema-vaccinal",
+        element: (
+          <Protege roles={["superviseur", "admin"]}>
+            <SchemaVaccinal />
           </Protege>
         ),
       },

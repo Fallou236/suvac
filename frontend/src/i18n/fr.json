@@ -14,7 +14,9 @@
     "fermerMenu": "Fermer le menu",
     "espacePersonnel": "Espace personnel",
     "aucunPoste": "Aucun poste",
-    "personnel": "Personnel"
+    "personnel": "Personnel",
+    "audit": "Journal d'audit",
+    "schema": "Schéma vaccinal"
   },
   "espace": {
     "bonjour": "Bonjour {{prenom}}",
