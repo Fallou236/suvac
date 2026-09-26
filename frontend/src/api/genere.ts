@@ -818,6 +818,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/schema-vaccinal/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Règles du calendrier vaccinal, groupées par cible. */
+        get: operations["schema_vaccinal_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/vaccins/": {
         parameters: {
             query?: never;
@@ -826,10 +843,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Fiches des vaccins (EF-70 côté bénéficiaire).
+         * @description Fiches des vaccins, accessibles à tous les utilisateurs connectés.
          *
-         *     Accessible à tous : l'agent y trouve la voie d'administration, la mère
-         *     y trouve l'explication de ce contre quoi le vaccin protège.
+         *     L'agent y trouve la voie d'administration, la mère l'explication de ce
+         *     contre quoi le vaccin protège.
          */
         get: operations["vaccins_list"];
         put?: never;
@@ -848,10 +865,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Fiches des vaccins (EF-70 côté bénéficiaire).
+         * @description Fiches des vaccins, accessibles à tous les utilisateurs connectés.
          *
-         *     Accessible à tous : l'agent y trouve la voie d'administration, la mère
-         *     y trouve l'explication de ce contre quoi le vaccin protège.
+         *     L'agent y trouve la voie d'administration, la mère l'explication de ce
+         *     contre quoi le vaccin protège.
          */
         get: operations["vaccins_retrieve"];
         put?: never;
@@ -3134,6 +3151,24 @@ export interface operations {
                 /** @description Période. Défaut : 30. */
                 jours?: number;
             };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    schema_vaccinal_retrieve: {
+        parameters: {
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;

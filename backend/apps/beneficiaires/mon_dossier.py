@@ -218,7 +218,11 @@ class MesRappelsView(BaseMonDossier):
             return self.refus()
 
         for rappel in mere.rappels.filter(
-            statut__in=[StatutRappel.EN_ATTENTE, StatutRappel.ENVOYE, StatutRappel.REMIS]
+            statut__in=[
+                StatutRappel.EN_ATTENTE,
+                StatutRappel.ENVOYE,
+                StatutRappel.REMIS,
+            ]
         ):
             rappel.marquer_lu()
 

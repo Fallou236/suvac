@@ -1,5 +1,6 @@
 """Sérialiseurs des comptes et des postes de santé."""
 
+from django.contrib.auth.models import update_last_login
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -39,7 +40,13 @@ class UtilisateurSerializer(serializers.ModelSerializer):
             "langue",
             "doit_changer_mot_de_passe",
         ]
-        read_only_fields = ["id", "username", "role", "poste", "doit_changer_mot_de_passe"]
+        read_only_fields = [
+            "id",
+            "username",
+            "role",
+            "poste",
+            "doit_changer_mot_de_passe",
+        ]
 
     def get_nom_complet(self, obj: Utilisateur) -> str:
         return obj.get_full_name().strip() or obj.username
@@ -62,6 +69,12 @@ class ConnexionSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         donnees = super().validate(attrs)
+
+        # simplejwt ne met pas `last_login` à jour, contrairement à
+        # l'authentification par session. Sans cela, un superviseur ne
+        # pourrait jamais savoir qui utilise réellement l'application.
+        update_last_login(None, self.user)
+
         donnees["utilisateur"] = UtilisateurSerializer(self.user).data
         return donnees
 

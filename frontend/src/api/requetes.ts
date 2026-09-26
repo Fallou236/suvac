@@ -216,6 +216,28 @@ export type ActeAudit = {
   horodatage: string;
 };
 
+export type RegleVaccinale = {
+  id: number;
+  vaccin_code: string;
+  vaccin_libelle: string;
+  voie: string;
+  cible: string;
+  rang: number;
+  age_min_jours: number;
+  age_cible_jours: number;
+  age_limite_jours: number | null;
+  intervalle_min_jours: number | null;
+  actif: boolean;
+};
+
+export type SchemaVaccinal = {
+  enfant: RegleVaccinale[];
+  mere: RegleVaccinale[];
+  vaccins: number;
+  regles: number;
+  avertissement: string;
+};
+
 export const requetes = {
   fileDuJour: (date?: string) =>
     api.get<EcheanceFile[]>("/echeances/file-du-jour/", { date }),
@@ -330,4 +352,6 @@ export const requetes = {
   postes: () => api.get<Page<PosteSante>>("/postes/"),
 
   audit: () => api.get<ActeAudit[]>("/audit/"),
+
+  schemaVaccinal: () => api.get<SchemaVaccinal>("/schema-vaccinal/"),
 };
