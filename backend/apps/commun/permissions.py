@@ -102,3 +102,26 @@ class MotDePasseAJour(permissions.BasePermission):
         if not utilisateur.is_authenticated:
             return False
         return not getattr(utilisateur, "doit_changer_mot_de_passe", False)
+
+
+class PeutModifierCePoste(permissions.BasePermission):
+    """L'administrateur modifie tout poste ; le superviseur, seulement le sien.
+
+    Un superviseur qui constate une faute de frappe dans le nom de son poste
+    ne devrait pas avoir à solliciter le district ; mais il n'a rien à faire
+    dans les postes voisins.
+    """
+
+    message = "Vous ne pouvez modifier que votre propre poste."
+
+    def has_permission(self, request, view) -> bool:
+        utilisateur = request.user
+        return bool(
+            utilisateur.is_authenticated
+            and utilisateur.role in {Role.SUPERVISEUR, Role.ADMINISTRATEUR}
+        )
+
+    def has_object_permission(self, request, view, obj) -> bool:
+        if request.user.est_administrateur:
+            return True
+        return obj.pk == request.user.poste_id

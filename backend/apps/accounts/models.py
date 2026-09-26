@@ -37,6 +37,12 @@ class PosteSante(ModeleHorodate, ModeleSuppressionLogique, ModeleIdentifiantPubl
     nom = models.CharField(_("nom"), max_length=150)
     district = models.CharField(_("district"), max_length=100)
     region = models.CharField(_("région"), max_length=100)
+    telephone = models.CharField(
+        _("téléphone"),
+        max_length=20,
+        blank=True,
+        help_text=_("Numéro du poste, communiqué aux bénéficiaires."),
+    )
     latitude = models.DecimalField(
         _("latitude"), max_digits=9, decimal_places=6, null=True, blank=True
     )
