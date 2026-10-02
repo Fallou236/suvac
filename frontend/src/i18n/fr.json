@@ -16,7 +16,8 @@
     "aucunPoste": "Aucun poste",
     "personnel": "Personnel",
     "audit": "Journal d'audit",
-    "schema": "Schéma vaccinal"
+    "schema": "Schéma vaccinal",
+    "postes": "Postes de santé"
   },
   "espace": {
     "bonjour": "Bonjour {{prenom}}",

@@ -38,6 +38,12 @@ const ENTREES: Entree[] = [
     roles: ["superviseur", "admin"],
   },
   {
+    vers: "/postes",
+    cle: "navigation.postes",
+    icone: <IconePoste />,
+    roles: ["superviseur", "admin"],
+  },
+  {
     vers: "/audit",
     cle: "navigation.audit",
     icone: <IconeJournal />,
@@ -348,6 +354,15 @@ function IconeJournal() {
     <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" strokeLinejoin="round" />
       <path d="M14 2v6h6M9 13h6M9 17h4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconePoste() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+      <path d="M3 21h18M5 21V7l7-4 7 4v14" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 9v6M9 12h6" strokeLinecap="round" />
     </svg>
   );
 }

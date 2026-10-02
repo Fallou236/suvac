@@ -730,10 +730,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Référentiel des postes, en lecture seule hors administration. */
+        /**
+         * @description Postes de santé (EF-07).
+         *
+         *     L'administrateur crée et modifie ; le superviseur corrige le sien — un
+         *     nom mal saisi ou un téléphone qui change ne devraient pas demander une
+         *     sollicitation du district. Personne ne supprime : un poste fermé est
+         *     désactivé, ses bénéficiaires et son historique restant rattachés.
+         */
         get: operations["postes_list"];
         put?: never;
-        post?: never;
+        /**
+         * @description Postes de santé (EF-07).
+         *
+         *     L'administrateur crée et modifie ; le superviseur corrige le sien — un
+         *     nom mal saisi ou un téléphone qui change ne devraient pas demander une
+         *     sollicitation du district. Personne ne supprime : un poste fermé est
+         *     désactivé, ses bénéficiaires et son historique restant rattachés.
+         */
+        post: operations["postes_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -747,10 +762,42 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Référentiel des postes, en lecture seule hors administration. */
+        /**
+         * @description Postes de santé (EF-07).
+         *
+         *     L'administrateur crée et modifie ; le superviseur corrige le sien — un
+         *     nom mal saisi ou un téléphone qui change ne devraient pas demander une
+         *     sollicitation du district. Personne ne supprime : un poste fermé est
+         *     désactivé, ses bénéficiaires et son historique restant rattachés.
+         */
         get: operations["postes_retrieve"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * @description Postes de santé (EF-07).
+         *
+         *     L'administrateur crée et modifie ; le superviseur corrige le sien — un
+         *     nom mal saisi ou un téléphone qui change ne devraient pas demander une
+         *     sollicitation du district. Personne ne supprime : un poste fermé est
+         *     désactivé, ses bénéficiaires et son historique restant rattachés.
+         */
+        patch: operations["postes_partial_update"];
+        trace?: never;
+    };
+    "/api/postes/{id}/basculer-activation/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Ferme ou rouvre un poste. Un poste fermé n'accepte plus de nouveaux bénéficiaires ; son historique est conservé. */
+        post: operations["postes_basculer_activation_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -890,9 +937,11 @@ export interface components {
          *     * `reinitialisation` - Réinitialisation du mot de passe
          *     * `transfert` - Transfert vers un autre poste
          *     * `changement_role` - Changement de rôle
+         *     * `creation_poste` - Création d'un poste
+         *     * `modification_poste` - Modification d'un poste
          * @enum {string}
          */
-        ActeEnum: "creation" | "desactivation" | "reactivation" | "reinitialisation" | "transfert" | "changement_role";
+        ActeEnum: "creation" | "desactivation" | "reactivation" | "reinitialisation" | "transfert" | "changement_role" | "creation_poste" | "modification_poste";
         Agent: {
             /** Format: uuid */
             readonly id: string;
@@ -1564,6 +1613,22 @@ export interface components {
             /** Village ou quartier */
             village?: string;
         };
+        PatchedPosteSanteRequest: {
+            nom?: string;
+            district?: string;
+            /** Région */
+            region?: string;
+            /**
+             * Téléphone
+             * @description Numéro du poste, communiqué aux bénéficiaires.
+             */
+            telephone?: string;
+            /** Format: decimal */
+            latitude?: string | null;
+            /** Format: decimal */
+            longitude?: string | null;
+            actif?: boolean;
+        };
         /** @description Profil de l'utilisateur connecté. */
         PatchedUtilisateurRequest: {
             /** Prénom */
@@ -1579,11 +1644,40 @@ export interface components {
         PosteSante: {
             /** Format: uuid */
             readonly id: string;
-            readonly nom: string;
-            readonly district: string;
+            nom: string;
+            district: string;
             /** Région */
-            readonly region: string;
-            readonly actif: boolean;
+            region: string;
+            /**
+             * Téléphone
+             * @description Numéro du poste, communiqué aux bénéficiaires.
+             */
+            telephone?: string;
+            /** Format: decimal */
+            latitude?: string | null;
+            /** Format: decimal */
+            longitude?: string | null;
+            actif?: boolean;
+            readonly nombre_agents: number;
+            readonly nombre_beneficiaires: number;
+            /** Format: date-time */
+            readonly cree_le: string;
+        };
+        PosteSanteRequest: {
+            nom: string;
+            district: string;
+            /** Région */
+            region: string;
+            /**
+             * Téléphone
+             * @description Numéro du poste, communiqué aux bénéficiaires.
+             */
+            telephone?: string;
+            /** Format: decimal */
+            latitude?: string | null;
+            /** Format: decimal */
+            longitude?: string | null;
+            actif?: boolean;
         };
         Rappel: {
             /** Format: uuid */
@@ -3069,6 +3163,31 @@ export interface operations {
             };
         };
     };
+    postes_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PosteSanteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PosteSanteRequest"];
+                "multipart/form-data": components["schemas"]["PosteSanteRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosteSante"];
+                };
+            };
+        };
+    };
     postes_retrieve: {
         parameters: {
             query?: never;
@@ -3079,6 +3198,60 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosteSante"];
+                };
+            };
+        };
+    };
+    postes_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedPosteSanteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedPosteSanteRequest"];
+                "multipart/form-data": components["schemas"]["PatchedPosteSanteRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosteSante"];
+                };
+            };
+        };
+    };
+    postes_basculer_activation_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PosteSanteRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PosteSanteRequest"];
+                "multipart/form-data": components["schemas"]["PosteSanteRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {

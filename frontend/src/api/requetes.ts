@@ -238,6 +238,15 @@ export type SchemaVaccinal = {
   avertissement: string;
 };
 
+export type SaisiePoste = {
+  nom: string;
+  district: string;
+  region: string;
+  telephone?: string;
+  latitude?: string | null;
+  longitude?: string | null;
+};
+
 export const requetes = {
   fileDuJour: (date?: string) =>
     api.get<EcheanceFile[]>("/echeances/file-du-jour/", { date }),
@@ -354,4 +363,12 @@ export const requetes = {
   audit: () => api.get<ActeAudit[]>("/audit/"),
 
   schemaVaccinal: () => api.get<SchemaVaccinal>("/schema-vaccinal/"),
+
+    creerPoste: (saisie: SaisiePoste) => api.post<PosteSante>("/postes/", saisie),
+
+  modifierPoste: (id: string, saisie: Partial<SaisiePoste>) =>
+    api.patch<PosteSante>(`/postes/${id}/`, saisie),
+
+  basculerPoste: (id: string) =>
+    api.post<PosteSante>(`/postes/${id}/basculer-activation/`),
 };
