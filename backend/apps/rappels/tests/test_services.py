@@ -120,6 +120,7 @@ def test_deux_enfants_de_la_meme_mere_ne_font_qu_un_message(schema, poste, agent
     mere = creer_mere(poste, agent=agent)
     creer_enfant(mere, poste, AUJOURDHUI - timedelta(days=42), prenom="Moussa")
     creer_enfant(mere, poste, AUJOURDHUI - timedelta(days=42), prenom="Fatou")
+    rafraichir_statuts(AUJOURDHUI)
 
     planifier_les_rappels(AUJOURDHUI)
 
@@ -295,6 +296,7 @@ def test_un_preavis_et_un_rappel_du_jour_coexistent(schema, poste, agent):
     entre eux."""
     mere = creer_mere(poste, agent=agent)
     creer_enfant(mere, poste, AUJOURDHUI - timedelta(days=42))
+    rafraichir_statuts(AUJOURDHUI)
 
     planifier_les_rappels(AUJOURDHUI)
 
