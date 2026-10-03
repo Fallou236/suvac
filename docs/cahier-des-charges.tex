@@ -108,7 +108,7 @@
 \renewcommand{\footrule}{\hbox to\headwidth{\color{rulegray}\leaders\hrule height \footrulewidth\hfill}}
 \fancyhead[L]{\sffamily\footnotesize\color{primary}\textbf{SUVAC} \textcolor{rulegray}{|} Cahier des charges}
 \fancyhead[R]{\sffamily\footnotesize\color{neutral}\nouppercase{\leftmark}}
-\fancyfoot[L]{\sffamily\scriptsize\color{neutral}Version 1.1 — Septembre 2026}
+\fancyfoot[L]{\sffamily\scriptsize\color{neutral}Version 1.4 — Octobre 2026}
 \fancyfoot[R]{\sffamily\scriptsize\color{neutral}\thepage\,/\,\pageref{LastPage}}
 \renewcommand{\sectionmark}[1]{\markboth{#1}{}}
 
@@ -262,9 +262,9 @@
   Chef de projet   & Fallou Diouck \\
   Équipe           & \textit{à compléter en réunion de lancement} \\
   Encadrant        & Professeur Michel Seck \\
-  Version          & 1.1 \\
-  Date             & Septembre 2026 \\
-  Statut           & \textcolor{amber}{\sffamily\bfseries À valider} par l'équipe et l'encadrant \\
+  Version          & 1.4 \\
+  Date             & Octobre 2026 \\
+  Statut           & \textcolor{amber}{\sffamily\bfseries valider} par Moi \\
 \end{tabular}\endgroup
 
 \vspace{1.4cm}
@@ -496,9 +496,9 @@ Prédiction du risque d'abandon & Réservé à une évolution ultérieure \\
 \textbf{Agent de santé} & Infirmier, sage-femme ou matrone du poste de santé. Enregistre les bénéficiaires et administre les doses. Utilisateur principal, souvent en connectivité dégradée.  Ouvre et ferme l'accès des mères à leur espace personnel. & PWA, mode hors ligne \\
 \rowcolor{softbg}
 \textbf{Mère ou tuteur} & Bénéficiaire finale. Consulte le carnet de ses enfants et de ses grossesses, reçoit les rappels accompagnés de l'explication de chaque vaccin. Peut être non alphabétisée. N'enregistre aucun acte vaccinal. & Rappels vocaux par WhatsApp ; espace personnel en consultation, si l'agent lui ouvre un accès \\
-\textbf{Superviseur de district} & Responsable du suivi de la couverture sur plusieurs postes. Consulte, n'administre pas de doses. & Web, tableau de bord \\
+\textbf{Superviseur de district} & Responsable du suivi de la couverture sur son poste. Consulte les indicateurs et le journal des rappels, gère le personnel de son poste et corrige les informations de celui-ci. N'administre pas de doses. & Web, tableau de bord \\
 \rowcolor{softbg}
-\textbf{Administrateur} & Membre de l'équipe technique. Gère les référentiels, les comptes et le schéma vaccinal. & Interface d'administration \\
+\textbf{Administrateur} & Membre de l'équipe technique. Crée les postes de santé, gère les comptes de tous les postes, consulte le journal d'audit et paramètre le schéma vaccinal. & Web ; interface d'administration pour le schéma \\
 \bottomrule
 \end{tabularx}
 
@@ -613,11 +613,11 @@ Seules les exigences \pM{} conditionnent l'acceptation du projet (section~16).
 \midrule \endhead
 \rid{EF-40} & Le système exécute quotidiennement un balayage des échéances et génère les rappels dus. & \pM \\
 \rowcolor{softbg}
-\rid{EF-41} & Le système émet un rappel à J-3, à J-0 et à J+7 en cas de non-présentation. & \pM \\
+\rid{EF-41} & Le système émet un rappel trois jours avant l'échéance, le jour même, puis relance tant que la dose reste due et rattrapable. & \pM \\
 \rid{EF-42} & Le système affiche à l'agent la file des bénéficiaires attendus et en retard pour la journée. & \pM \\
 \rowcolor{softbg}
 \rid{EF-43} & Le système envoie un rappel WhatsApp contenant un message vocal en wolof. & \pM \\
-\rid{EF-44} & Le contenu vocal est composé à partir du prénom de l'enfant, du vaccin concerné et de la date. & \pM \\
+\rid{EF-44} & Le contenu vocal est assemblé à partir de segments pré-enregistrés : vaccin, date et désignation du bénéficiaire. Les prénoms, non enregistrables, sont remplacés par une périphrase que la mère comprend. & \pM \\
 \rowcolor{softbg}
 \rid{EF-45} & Le système bascule automatiquement sur le canal SMS en cas d'échec de remise WhatsApp. & \pS \\
 \rid{EF-46} & Le système enregistre le statut de chaque notification via webhook : envoyé, remis, lu, échoué. & \pM \\
@@ -625,7 +625,11 @@ Seules les exigences \pM{} conditionnent l'acceptation du projet (section~16).
 \rid{EF-47} & Le système n'envoie aucun rappel à un bénéficiaire n'ayant pas consenti. & \pM \\
 \rid{EF-48} & La mère peut confirmer sa venue via un bouton de réponse rapide WhatsApp. & \pC \\
 \rowcolor{softbg}
-\rid{EF-49} & Le système met en cache les fichiers audio générés et les réutilise pour un contenu identique. & \pS \\
+\rid{EF-49} & Les messages vocaux sont mis en cache par empreinte de leur contenu : deux messages identiques réutilisent le même fichier. & \pS \\
+\rid{EF-100} & Les échéances d'un même bénéficiaire pour un même moment tiennent en un seul message. & \pM \\
+\rowcolor{softbg}
+\rid{EF-101} & Le message vocal est encapsulé dans une vidéo : WhatsApp n'accepte pas l'audio en en-tête de modèle. & \pM \\
+\rid{EF-102} & Le superviseur consulte le journal des rappels émis : destinataire, canal, texte envoyé, statut d'acheminement et motif d'échec. & \pM \\
 \bottomrule
 \end{xltabular}
 
@@ -698,6 +702,28 @@ Seules les exigences \pM{} conditionnent l'acceptation du projet (section~16).
 \rowcolor{softbg}
 \rid{EF-85} & Les fiches des vaccins sont consultables par tous les utilisateurs connectés. & \pS \\
 \rid{EF-86} & La mère peut corriger son téléphone et son village, jamais son identité. & \pS \\
+\bottomrule
+\end{xltabular}
+
+\subsection{Administration du dispositif}
+
+\begin{xltabular}{\textwidth}{@{}C{1.5cm} L C{1.3cm}@{}}
+\toprule
+\rowhead \hd{Réf.} & \hd{Exigence} & \hd{Prio.} \\
+\midrule \endhead
+\rid{EF-90} & Le superviseur crée les comptes du personnel de son poste et choisit leur mot de passe initial. & \pM \\
+\rowcolor{softbg}
+\rid{EF-91} & Un compte créé ou réinitialisé ne peut rien faire tant que son détenteur n'a pas choisi un mot de passe personnel. & \pM \\
+\rid{EF-92} & Le superviseur réinitialise le mot de passe d'un agent qui l'a oublié. & \pM \\
+\rowcolor{softbg}
+\rid{EF-93} & Le superviseur transfère un agent vers un autre poste ; les actes enregistrés lui restent rattachés. & \pS \\
+\rid{EF-94} & Un compte est désactivé, jamais supprimé. Nul ne peut désactiver le sien. & \pM \\
+\rowcolor{softbg}
+\rid{EF-95} & L'administrateur crée les postes de santé et les ferme ; un poste comptant du personnel actif ne peut être fermé. & \pM \\
+\rid{EF-96} & Le superviseur corrige le nom, le téléphone et la localisation de son propre poste, jamais son rattachement administratif. & \pS \\
+\rowcolor{softbg}
+\rid{EF-97} & L'administrateur consulte le journal des actes d'administration sur les comptes et les postes. & \pM \\
+\rid{EF-98} & Le superviseur consulte le schéma vaccinal appliqué par le moteur ; sa modification reste réservée à l'administrateur. & \pS \\
 \bottomrule
 \end{xltabular}
 
@@ -834,7 +860,10 @@ les jeux de données de démonstration doivent être entièrement fictifs.
 \rid{ENF-24} & Les données de démonstration et de test sont entièrement fictives ou anonymisées. \\
 \rid{ENF-25} & Une bénéficiaire n'accède qu'à son propre dossier. Un identifiant valide mais rattaché à une autre bénéficiaire reçoit la même réponse qu'un identifiant inconnu. \\
 \rowcolor{softbg}
-\rid{ENF-25} & Le système journalise les accès aux données de santé. \\
+\rid{ENF-26} & Le système journalise les accès aux données de santé. \\
+\rid{ENF-27} & Un changement ou une réinitialisation de mot de passe invalide les sessions ouvertes du compte. \\
+\rowcolor{softbg}
+\rid{ENF-28} & Les actes d'administration sur les comptes et les postes sont journalisés en écriture seule : auteur, cible, horodatage. \\
 \bottomrule
 \end{xltabular}
 
@@ -1440,12 +1469,24 @@ de garant, non des périmètres exclusifs.
 \rid{S-1} & Backend métier et API & Modèle de données, moteur de calendrier et sa suite de tests, référentiel vaccinal, API REST complète \\
 \rowcolor{softbg}
 \rid{S-2} & Frontend React & Socle, authentification, écrans bénéficiaires, consultation des calendriers, saisie des doses \\
-\rid{S-3} & Communication & Celery Beat, génération audio wolof, intégration WhatsApp, internationalisation complète \\
-\rid{S-4} & Hors ligne et pilotage & PWA, file de synchronisation, tableau de bord superviseur, gestion du stock \\
+\rid{S-3} & Communication et administration & Celery Beat, génération audio wolof, intégration WhatsApp, journal des rappels, gestion du personnel et des postes, journal d'audit \\
+\rid{S-4} & Hors ligne & PWA, file de synchronisation, gestion du stock \\
 \rowcolor{softbg}
 \rid{S-5} & Consolidation & Tests de bout en bout, dette technique, sécurité, déploiement, documentation, soutenance \\
 \bottomrule
 \end{tabularx}
+Le découpage initial a été amendé en cours de route. Le tableau de bord du
+superviseur, prévu au sprint 4, a été livré au sprint 2 : les indicateurs
+reposaient sur des données déjà en place, et les produire tôt a permis de
+vérifier la cohérence du moteur de calendrier sur un volume réel.
+
+À l'inverse, le sprint 3 a absorbé la gestion du personnel et des postes,
+qui ne figurait dans aucun sprint. Ce besoin est apparu à l'usage :
+l'application ne pouvait être confiée à un poste de santé tant que
+l'ouverture d'un compte passait par l'interface d'administration Django.
+
+L'internationalisation, prévue complète au sprint 3, a été restreinte à
+l'espace de la bénéficiaire (ADR 0005).
 
 \begin{vigilance}[Calendrier indicatif]
 Le découpage ci-dessus suppose douze semaines. Le calendrier réel sera arrêté en réunion
@@ -1780,6 +1821,8 @@ Td-5 & 1 an après Td-4 \\
  &  &  &  \\
 \rowcolor{softbg}
 1.3 & Septembre 2026 & Fallou Diouck & Espace bénéficiaire (EF-80 à EF-86, ENF-25, ADR 0006) ; fiches vaccins ; tableau de bord superviseur livré ; écran de paramètres \\
+\rowcolor{softbg}
+1.4 & Octobre 2026 & Fallou Diouck & Rappels et canal WhatsApp (EF-100 à EF-102, ADR 0009) ; administration du dispositif (EF-90 à EF-98, ADR 0007 et 0008) ; sessions invalidées au changement de mot de passe (ENF-27, ENF-28) ; acteurs révisés \\
 \bottomrule
 \end{tabularx}
 
