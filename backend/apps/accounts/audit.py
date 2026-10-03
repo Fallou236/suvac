@@ -19,6 +19,8 @@ class ActeAdministration(models.TextChoices):
     REINITIALISATION = "reinitialisation", _("Réinitialisation du mot de passe")
     TRANSFERT = "transfert", _("Transfert vers un autre poste")
     CHANGEMENT_ROLE = "changement_role", _("Changement de rôle")
+    CREATION_POSTE = "creation_poste", _("Création d'un poste")
+    MODIFICATION_POSTE = "modification_poste", _("Modification d'un poste")
 
 
 class JournalAudit(models.Model):

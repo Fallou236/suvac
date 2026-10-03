@@ -1,7 +1,8 @@
 """Points d'accès des comptes et des postes."""
 
+from django.db.models import Count, Q
 from drf_spectacular.utils import extend_schema
-from rest_framework import generics, mixins, status, viewsets
+from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -12,6 +13,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from apps.commun.permissions import (
     EstAdministrateur,
     EstSuperviseurOuAdministrateur,
+    PeutModifierCePoste,
 )
 
 from .audit import ActeAdministration, JournalAudit, journaliser
@@ -106,23 +108,115 @@ def _invalider_les_sessions(utilisateur) -> int:
     return invalides
 
 
-class PosteSanteViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    """Référentiel des postes, en lecture seule hors administration."""
+class PosteSanteViewSet(viewsets.ModelViewSet):
+    """Postes de santé (EF-07).
+
+    L'administrateur crée et modifie ; le superviseur corrige le sien — un
+    nom mal saisi ou un téléphone qui change ne devraient pas demander une
+    sollicitation du district. Personne ne supprime : un poste fermé est
+    désactivé, ses bénéficiaires et son historique restant rattachés.
+    """
 
     serializer_class = PosteSanteSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = "identifiant_public"
     lookup_url_kwarg = "id"
+    http_method_names = ["get", "post", "patch", "head", "options"]
 
     def get_queryset(self):
-        queryset = PosteSante.objects.filter(actif=True)
+        queryset = PosteSante.objects.annotate(
+            agents_actifs=Count(
+                "utilisateurs",
+                filter=Q(utilisateurs__is_active=True) & ~Q(utilisateurs__role=Role.BENEFICIAIRE),
+                distinct=True,
+            ),
+            meres_suivies=Count(
+                "meres",
+                filter=Q(meres__supprime_le__isnull=True),
+                distinct=True,
+            ),
+        )
+
         utilisateur = self.request.user
 
-        if utilisateur.est_administrateur or utilisateur.est_superviseur:
-            return queryset
-        if utilisateur.poste_id is None:
-            return queryset.none()
-        return queryset.filter(pk=utilisateur.poste_id)
+        # Superviseurs et administrateurs ont besoin de la liste complète
+        # pour transférer du personnel ; l'agent n'a rien à connaître des
+        # autres postes.
+        if not (utilisateur.est_administrateur or utilisateur.est_superviseur):
+            if utilisateur.poste_id is None:
+                return queryset.none()
+            return queryset.filter(pk=utilisateur.poste_id, actif=True)
+
+        # Un poste fermé reste visible à l'administration : il faut pouvoir
+        # le rouvrir.
+        if self.request.query_params.get("actifs") == "true":
+            queryset = queryset.filter(actif=True)
+
+        return queryset
+
+    def get_permissions(self):
+        """Créer relève du district ; corriger, du poste lui-même."""
+        if self.action == "create":
+            return [IsAuthenticated(), EstAdministrateur()]
+        if self.action in {"update", "partial_update", "basculer_activation"}:
+            return [IsAuthenticated(), PeutModifierCePoste()]
+        return [IsAuthenticated()]
+
+    def perform_create(self, serializer):
+        poste = serializer.save()
+        journaliser(
+            ActeAdministration.CREATION_POSTE,
+            self.request.user,
+            None,
+            f"{poste.nom} — {poste.district}, {poste.region}",
+        )
+
+    def perform_update(self, serializer):
+        avant = self.get_object()
+        ancien_nom = avant.nom
+        poste = serializer.save()
+
+        if poste.nom != ancien_nom:
+            journaliser(
+                ActeAdministration.MODIFICATION_POSTE,
+                self.request.user,
+                None,
+                f"{ancien_nom} → {poste.nom}",
+            )
+
+    @extend_schema(
+        responses={200: PosteSanteSerializer},
+        description=(
+            "Ferme ou rouvre un poste. Un poste fermé n'accepte plus de "
+            "nouveaux bénéficiaires ; son historique est conservé."
+        ),
+    )
+    @action(detail=True, methods=["post"], url_path="basculer-activation")
+    def basculer_activation(self, request, id=None):
+        poste = self.get_object()
+
+        if poste.actif and poste.utilisateurs.filter(is_active=True).exists():
+            return Response(
+                {
+                    "detail": (
+                        "Ce poste compte encore du personnel actif. "
+                        "Transférez-le avant de fermer le poste."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        poste.actif = not poste.actif
+        poste.save(update_fields=["actif", "modifie_le"])
+
+        journaliser(
+            ActeAdministration.MODIFICATION_POSTE,
+            request.user,
+            None,
+            f"{poste.nom} — {'rouvert' if poste.actif else 'fermé'}",
+        )
+
+        return Response(PosteSanteSerializer(poste).data)
 
 
 class AgentViewSet(viewsets.ModelViewSet):

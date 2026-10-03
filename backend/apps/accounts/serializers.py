@@ -11,11 +11,55 @@ from .models import PosteSante, Role, Utilisateur
 
 class PosteSanteSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(source="identifiant_public", read_only=True)
+    nombre_agents = serializers.SerializerMethodField()
+    nombre_beneficiaires = serializers.SerializerMethodField()
 
     class Meta:
         model = PosteSante
-        fields = ["id", "nom", "district", "region", "actif"]
-        read_only_fields = fields
+        fields = [
+            "id",
+            "nom",
+            "district",
+            "region",
+            "telephone",
+            "latitude",
+            "longitude",
+            "actif",
+            "nombre_agents",
+            "nombre_beneficiaires",
+            "cree_le",
+        ]
+        read_only_fields = ["id", "nombre_agents", "nombre_beneficiaires", "cree_le"]
+
+    def get_nombre_agents(self, obj: PosteSante) -> int:
+        return getattr(obj, "agents_actifs", 0)
+
+    def get_nombre_beneficiaires(self, obj: PosteSante) -> int:
+        return getattr(obj, "meres_suivies", 0)
+
+    def validate_nom(self, valeur: str) -> str:
+        return valeur.strip()
+
+    def validate(self, attrs):
+        """La contrainte de base existe, mais elle remonte une erreur 500.
+
+        Vérifier ici permet de rendre un message compréhensible.
+        """
+        nom = attrs.get("nom", getattr(self.instance, "nom", ""))
+        district = attrs.get("district", getattr(self.instance, "district", ""))
+
+        doublons = PosteSante.objects.filter(
+            nom__iexact=nom.strip(), district__iexact=district.strip()
+        )
+        if self.instance:
+            doublons = doublons.exclude(pk=self.instance.pk)
+
+        if doublons.exists():
+            raise serializers.ValidationError(
+                {"nom": "Un poste porte déjà ce nom dans ce district."}
+            )
+
+        return attrs
 
 
 class UtilisateurSerializer(serializers.ModelSerializer):
