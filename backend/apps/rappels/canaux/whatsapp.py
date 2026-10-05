@@ -29,6 +29,7 @@ DELAI = 30
 # destinataire ou de la configuration, pas du réseau.
 ERREURS_DEFINITIVES = {
     131026,  # destinataire injoignable sur WhatsApp
+    131030,  # numéro hors de la liste autorisée du compte de test
     131047,  # hors fenêtre de vingt-quatre heures, message libre refusé
     132000,  # nombre de variables incompatible avec le modèle
     132001,  # modèle introuvable

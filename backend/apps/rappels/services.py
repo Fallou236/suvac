@@ -220,18 +220,29 @@ def envoyer_les_rappels(jour: date | None = None, limite: int = 500) -> dict[str
 
 
 def envoyer_un_rappel(rappel: Rappel) -> bool:
-    """Tente l'envoi d'un rappel et enregistre ce qui s'est passé."""
+    """Tente l'envoi d'un rappel et enregistre ce qui s'est passé.
+
+    Le message vocal est assemblé puis encapsulé en vidéo avant l'envoi :
+    hors de la fenêtre de vingt-quatre heures, WhatsApp n'accepte qu'un
+    modèle, et un modèle n'accepte pas l'audio seul en en-tête.
+    """
     canal = canal_pour(rappel.canal)
 
     if not canal.disponible():
         rappel.marquer_echec(f"Canal {rappel.canal} indisponible.")
         return False
 
+    chemin_video = None
+    if rappel.canal == CanalRappel.WHATSAPP:
+        chemin_video = _preparer_la_video(rappel)
+
     resultat = canal.envoyer(
         MessageSortant(
             destinataire=rappel.mere.telephone,
             texte=rappel.texte,
             langue=rappel.langue,
+            chemin_audio=chemin_video,
+            variables=(_designation(rappel),),
         )
     )
 
@@ -241,6 +252,46 @@ def envoyer_un_rappel(rappel: Rappel) -> bool:
 
     rappel.marquer_echec(resultat.erreur, definitif=resultat.definitif)
     return False
+
+
+def _preparer_la_video(rappel: Rappel) -> str | None:
+    """Assemble le message vocal et l'encapsule.
+
+    Un échec ici n'empêche pas l'envoi : mieux vaut un message texte qu'une
+    mère non prévenue. Le défaut est journalisé.
+    """
+    from .audio import assembler, segments_du_message
+    from .video import encapsuler
+
+    echeances = list(rappel.echeances.select_related("vaccin", "enfant", "grossesse"))
+    if not echeances:
+        return None
+
+    premiere = echeances[0]
+    pour_elle_meme = premiere.grossesse_id is not None
+
+    if pour_elle_meme:
+        poste = rappel.mere.poste.nom if rappel.mere.poste else ""
+        plusieurs = False
+    else:
+        poste = premiere.enfant.poste.nom if premiere.enfant.poste else ""
+        plusieurs = rappel.mere.enfants.filter(supprime_le__isnull=True).count() > 1
+
+    try:
+        segments = segments_du_message(echeances, rappel.type, poste, pour_elle_meme, plusieurs)
+        assemblage = assembler(segments, rappel.langue)
+        return str(encapsuler(assemblage.chemin).chemin)
+    except Exception as erreur:  # noqa: BLE001
+        journal.warning("Message vocal indisponible pour %s : %s", rappel.mere, erreur)
+        return None
+
+
+def _designation(rappel: Rappel) -> str:
+    """Le nom affiché dans le corps du modèle WhatsApp."""
+    premiere = rappel.echeances.select_related("enfant").first()
+    if premiere and premiere.enfant_id:
+        return premiere.enfant.nom_complet
+    return rappel.mere.nom_complet
 
 
 def rappels_en_attente(mere: Mere) -> list[Rappel]:
