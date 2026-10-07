@@ -220,18 +220,29 @@ def envoyer_les_rappels(jour: date | None = None, limite: int = 500) -> dict[str
 
 
 def envoyer_un_rappel(rappel: Rappel) -> bool:
-    """Tente l'envoi d'un rappel et enregistre ce qui s'est passé."""
+    """Tente l'envoi d'un rappel et enregistre ce qui s'est passé.
+
+    Le message vocal est assemblé puis encapsulé en vidéo avant l'envoi :
+    hors de la fenêtre de vingt-quatre heures, WhatsApp n'accepte qu'un
+    modèle, et un modèle n'accepte pas l'audio seul en en-tête.
+    """
     canal = canal_pour(rappel.canal)
 
     if not canal.disponible():
         rappel.marquer_echec(f"Canal {rappel.canal} indisponible.")
         return False
 
+    chemin_video = None
+    if rappel.canal == CanalRappel.WHATSAPP:
+        chemin_video = _preparer_la_video(rappel)
+
     resultat = canal.envoyer(
         MessageSortant(
             destinataire=rappel.mere.telephone,
             texte=rappel.texte,
             langue=rappel.langue,
+            chemin_audio=chemin_video,
+            variables=(_designation(rappel),),
         )
     )
 
@@ -241,6 +252,77 @@ def envoyer_un_rappel(rappel: Rappel) -> bool:
 
     rappel.marquer_echec(resultat.erreur, definitif=resultat.definitif)
     return False
+
+
+def _preparer_la_video(rappel: Rappel) -> str | None:
+    """Produit le message vocal et l'encapsule en vidéo.
+
+    Deux voies : la synthèse vocale, qui prononce le texte tel qu'il a été
+    composé, et l'assemblage de segments pré-enregistrés, qui ne sait dire
+    que ce qui a été enregistré.
+
+    La synthèse est préférée quand elle est disponible ; l'assemblage reste
+    le repli, car mieux vaut un message imparfait qu'une mère non prévenue.
+    """
+    from .video import encapsuler
+
+    chemin_audio = _par_synthese(rappel) or _par_segments(rappel)
+    if chemin_audio is None:
+        return None
+
+    try:
+        return str(encapsuler(chemin_audio).chemin)
+    except Exception as erreur:  # noqa: BLE001
+        journal.warning("Encapsulation impossible : %s", erreur)
+        return None
+
+
+def _par_synthese(rappel: Rappel):
+    """Fait prononcer le texte du rappel par le service de synthèse."""
+    from .synthese import SyntheseIndisponible, synthetiser
+
+    try:
+        return synthetiser(rappel.texte)
+    except SyntheseIndisponible as erreur:
+        journal.info("Synthèse indisponible, repli sur les segments : %s", erreur)
+        return None
+    except Exception as erreur:  # noqa: BLE001
+        journal.warning("Synthèse échouée : %s", erreur)
+        return None
+
+
+def _par_segments(rappel: Rappel):
+    """Assemble le message à partir des segments pré-enregistrés."""
+    from .audio import assembler, segments_du_message
+
+    echeances = list(rappel.echeances.select_related("vaccin", "enfant", "grossesse"))
+    if not echeances:
+        return None
+
+    premiere = echeances[0]
+    pour_elle_meme = premiere.grossesse_id is not None
+
+    if pour_elle_meme:
+        poste = rappel.mere.poste.nom if rappel.mere.poste else ""
+        plusieurs = False
+    else:
+        poste = premiere.enfant.poste.nom if premiere.enfant.poste else ""
+        plusieurs = rappel.mere.enfants.filter(supprime_le__isnull=True).count() > 1
+
+    try:
+        segments = segments_du_message(echeances, rappel.type, poste, pour_elle_meme, plusieurs)
+        return assembler(segments, rappel.langue).chemin
+    except Exception as erreur:  # noqa: BLE001
+        journal.warning("Assemblage impossible : %s", erreur)
+        return None
+
+
+def _designation(rappel: Rappel) -> str:
+    """Le nom affiché dans le corps du modèle WhatsApp."""
+    premiere = rappel.echeances.select_related("enfant").first()
+    if premiere and premiere.enfant_id:
+        return premiere.enfant.nom_complet
+    return rappel.mere.nom_complet
 
 
 def rappels_en_attente(mere: Mere) -> list[Rappel]:
