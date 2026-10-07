@@ -255,13 +255,45 @@ def envoyer_un_rappel(rappel: Rappel) -> bool:
 
 
 def _preparer_la_video(rappel: Rappel) -> str | None:
-    """Assemble le message vocal et l'encapsule.
+    """Produit le message vocal et l'encapsule en vidéo.
 
-    Un échec ici n'empêche pas l'envoi : mieux vaut un message texte qu'une
-    mère non prévenue. Le défaut est journalisé.
+    Deux voies : la synthèse vocale, qui prononce le texte tel qu'il a été
+    composé, et l'assemblage de segments pré-enregistrés, qui ne sait dire
+    que ce qui a été enregistré.
+
+    La synthèse est préférée quand elle est disponible ; l'assemblage reste
+    le repli, car mieux vaut un message imparfait qu'une mère non prévenue.
     """
-    from .audio import assembler, segments_du_message
     from .video import encapsuler
+
+    chemin_audio = _par_synthese(rappel) or _par_segments(rappel)
+    if chemin_audio is None:
+        return None
+
+    try:
+        return str(encapsuler(chemin_audio).chemin)
+    except Exception as erreur:  # noqa: BLE001
+        journal.warning("Encapsulation impossible : %s", erreur)
+        return None
+
+
+def _par_synthese(rappel: Rappel):
+    """Fait prononcer le texte du rappel par le service de synthèse."""
+    from .synthese import SyntheseIndisponible, synthetiser
+
+    try:
+        return synthetiser(rappel.texte)
+    except SyntheseIndisponible as erreur:
+        journal.info("Synthèse indisponible, repli sur les segments : %s", erreur)
+        return None
+    except Exception as erreur:  # noqa: BLE001
+        journal.warning("Synthèse échouée : %s", erreur)
+        return None
+
+
+def _par_segments(rappel: Rappel):
+    """Assemble le message à partir des segments pré-enregistrés."""
+    from .audio import assembler, segments_du_message
 
     echeances = list(rappel.echeances.select_related("vaccin", "enfant", "grossesse"))
     if not echeances:
@@ -279,10 +311,9 @@ def _preparer_la_video(rappel: Rappel) -> str | None:
 
     try:
         segments = segments_du_message(echeances, rappel.type, poste, pour_elle_meme, plusieurs)
-        assemblage = assembler(segments, rappel.langue)
-        return str(encapsuler(assemblage.chemin).chemin)
+        return assembler(segments, rappel.langue).chemin
     except Exception as erreur:  # noqa: BLE001
-        journal.warning("Message vocal indisponible pour %s : %s", rappel.mere, erreur)
+        journal.warning("Assemblage impossible : %s", erreur)
         return None
 
 

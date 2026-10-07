@@ -200,6 +200,12 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TIME_LIMIT = 300
 CELERY_TASK_SOFT_TIME_LIMIT = 240
 
+# --- Synthèse vocale ------------------------------------------------------
+# Service séparé ; vide désactive la synthèse et laisse l'assemblage de
+# segments pré-enregistrés faire le travail.
+SYNTHESE_URL = os.getenv("SYNTHESE_URL", "")
+SYNTHESE_JETON = os.getenv("SYNTHESE_JETON", "")
+
 # --- Journalisation ---------------------------------------------------------
 LOGGING = {
     "version": 1,
