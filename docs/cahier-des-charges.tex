@@ -617,7 +617,7 @@ Seules les exigences \pM{} conditionnent l'acceptation du projet (section~16).
 \rid{EF-42} & Le système affiche à l'agent la file des bénéficiaires attendus et en retard pour la journée. & \pM \\
 \rowcolor{softbg}
 \rid{EF-43} & Le système envoie un rappel WhatsApp contenant un message vocal en wolof. & \pM \\
-\rid{EF-44} & Le contenu vocal est assemblé à partir de segments pré-enregistrés : vaccin, date et désignation du bénéficiaire. Les prénoms, non enregistrables, sont remplacés par une périphrase que la mère comprend. & \pM \\
+\rid{EF-44} & Le contenu vocal est produit par synthèse vocale wolof à partir du texte composé ; l'assemblage de segments pré-enregistrés sert de repli si le service est indisponible. & \pM \\
 \rowcolor{softbg}
 \rid{EF-45} & Le système bascule automatiquement sur le canal SMS en cas d'échec de remise WhatsApp. & \pS \\
 \rid{EF-46} & Le système enregistre le statut de chaque notification via webhook : envoyé, remis, lu, échoué. & \pM \\
@@ -630,6 +630,8 @@ Seules les exigences \pM{} conditionnent l'acceptation du projet (section~16).
 \rowcolor{softbg}
 \rid{EF-101} & Le message vocal est encapsulé dans une vidéo : WhatsApp n'accepte pas l'audio en en-tête de modèle. & \pM \\
 \rid{EF-102} & Le superviseur consulte le journal des rappels émis : destinataire, canal, texte envoyé, statut d'acheminement et motif d'échec. & \pM \\
+\rowcolor{softbg}
+\rid{EF-103} & Les messages vocaux sont produits avant l'envoi, non pendant : la synthèse coûte plusieurs secondes par message. & \pM \\
 \bottomrule
 \end{xltabular}
 
@@ -951,7 +953,7 @@ les jeux de données de démonstration doivent être entièrement fictifs.
     {\textbf{Celery + Celery Beat}\\[1pt]\footnotesize balayage quotidien, envois, reprises};
 
   \node[bloce, text width=3.9cm, below=13mm of celery] (wa) {\textbf{WhatsApp}\\ Cloud API};
-  \node[bloce, text width=3.9cm, left=6mm of wa] (tts) {\textbf{Synthèse}\\ vocale wolof};
+  \node[bloce, text width=3.9cm, left=6mm of wa] (tts) {\textbf{Synthèse}\\ vocale wolof\\[1pt]\footnotesize service séparé};
   \node[bloce, text width=3.9cm, right=6mm of wa] (sms) {\textbf{Passerelle}\\ SMS};
 
   \draw[fleche] (client) -- node[etiq, right]{HTTPS / JSON} (nginx);
@@ -984,11 +986,13 @@ Frontend & React 18 + TypeScript + Vite & Exigence du module ; le typage sert di
 État serveur & TanStack Query & Cache, reprise sur erreur, gestion de l'état de synchronisation \\
 État local & Zustand & Volume d'état global faible, Redux surdimensionné \\
 \rowcolor{softbg}
-Interface & Tailwind CSS + shadcn/ui & Composants prêts à l'emploi, temps de développement réduit \\
+Interface & Tailwind CSS & Jetons de conception propres au projet ; composants écrits sur mesure plutôt qu'empruntés à une bibliothèque \\
 Hors ligne & Workbox + Dexie & Service worker et base locale structurée \\
 \rowcolor{softbg}
 Internationalisation & \texttt{react-i18next} et \texttt{django.utils.translation} & Séparation nette entre libellés d'interface et contenu métier \\
 Conteneurisation & Docker + Compose & Parité entre environnements \\
+\rowcolor{softbg}
+Synthèse vocale & Kiriku-Wolof-TTS (VITS, Coqui) & Seul modèle wolof disponible ; exécuté par un service séparé, ses dépendances étant incompatibles avec le backend \\
 \rowcolor{softbg}
 Intégration continue & GitHub Actions & Intégration native au dépôt \\
 \bottomrule
@@ -1149,14 +1153,18 @@ un échange interactif, notamment la confirmation de venue (\rid{EF-48}).
         gratuit, sans vérification d'entreprise, limité à un petit nombre de destinataires
         déclarés.
   \item Le wolof ne figure pas dans la liste des langues de modèles supportées. Les
-        modèles seront déclarés sous le code \texttt{fr} avec un corps rédigé en wolof.
+        modèles sont déclarés sous le code \texttt{fr}, avec un corps en français qui
+        accompagne le message vocal wolof : le texte ne s'adresse qu'à qui sait lire.
   \item Le consentement préalable du destinataire est exigé par la plateforme comme par
         la réglementation (\rid{ENF-21}).
 \end{itemize}
 
 \subsection{Synthèse vocale wolof}
 
-Deux mécanismes complémentaires sont retenus.
+Deux mécanismes complémentaires sont retenus. Le positionnement initial les
+inversait : les segments pré-enregistrés devaient porter la démonstration et
+la synthèse rester un démonstrateur. L'arrivée d'un modèle wolof utilisable a
+conduit à les échanger (ADR~0009, révisée).
 
 \vspace{2mm}
 \noindent
@@ -1164,23 +1172,31 @@ Deux mécanismes complémentaires sont retenus.
 \toprule
 \rowhead \hd{Mécanisme} & \hd{Description et positionnement} \\
 \midrule
-\textbf{Segments pré-enregistrés}\newline\textit{mécanisme principal}
-  & Un corpus de segments est enregistré avec une voix humaine : formules d'accueil, noms de vaccins, chiffres, jours, formules de relance. Le système les concatène selon les variables du message. Voix naturelle, résultat déterministe, aucun coût d'inférence. C'est le mécanisme retenu pour la démonstration. \\
+\textbf{Synthèse neuronale}\newline\textit{mécanisme principal}
+  & Modèle Kiriku-Wolof-TTS, architecture VITS, publié par AI~Hub~Sénégal. Il prononce le texte composé, quel qu'il soit : aucun enregistrement n'est à produire quand un poste s'ajoute ou qu'une formulation change. Exécuté par un service séparé, le modèle exigeant des versions de bibliothèques incompatibles avec le backend. \\
 \rowcolor{softbg}
-\textbf{Synthèse neuronale}\newline\textit{démonstrateur}
-  & Modèle de synthèse vocale wolof issu de l'écosystème sénégalais, notamment les travaux publiés par GalsenAI. Démontre l'extensibilité du système à des messages non prévus au catalogue. \\
+\textbf{Segments pré-enregistrés}\newline\textit{repli}
+  & Un corpus de segments enregistrés avec une voix humaine : formules d'accueil, noms de vaccins, chiffres, mois, formules de relance. Le système les concatène selon les variables du message. Sert quand le service de synthèse est indisponible : mieux vaut un message assemblé qu'une mère non prévenue. \\
 \bottomrule
 \end{tabularx}
 
-\begin{vigilance}[Licence des modèles de synthèse]
-Les modèles dérivés de xTTS v2 sont soumis à une licence non commerciale, restreinte à la
-recherche, l'éducation et les usages à but non lucratif. Le cadre académique du projet est
-conforme, mais la restriction doit être mentionnée dans le rapport et tout usage commercial
-exclu. Des alternatives à licence plus permissive existent et seront évaluées au sprint~3.
+\begin{vigilance}[Licence et qualité du modèle de synthèse]
+La fiche du modèle ne documente ni la licence du jeu d'entraînement, ni aucune
+métrique de qualité. Le cadre académique du projet s'en accommode, mais tout
+usage réel supposerait de clarifier ce point auprès de ses auteurs.
+
+La fiche signale par ailleurs que les mots français insérés dans un texte wolof
+sont prononcés de façon peu fiable. Les noms de vaccins en font partie. Le rendu
+a été jugé acceptable à l'écoute, sans évaluation formelle de compréhension
+auprès de locutrices.
 \end{vigilance}
 
-Les fichiers audio sont indexés par empreinte du contenu textuel et réutilisés
-(\rid{EF-49}), les messages étant très répétitifs d'un bénéficiaire à l'autre.
+La synthèse coûte entre cinq et vingt secondes par message sur une machine sans
+accélérateur graphique. Elle est donc produite avant l'envoi et non pendant
+(\rid{EF-103}), et les fichiers sont indexés par empreinte du contenu textuel
+puis réutilisés (\rid{EF-49}) : les messages étant très répétitifs d'un
+bénéficiaire à l'autre, un balayage produit une vingtaine de fichiers distincts
+plutôt qu'un par destinataire.
 
 \subsection{Abstraction des canaux de notification}
 
