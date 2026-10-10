@@ -36,16 +36,15 @@ from apps.beneficiaires.models import (
     Mere,
     Sexe,
 )
+from apps.rappels.models import CanalRappel as CanalEnvoi
+from apps.rappels.models import Rappel, StatutRappel
+from apps.rappels.services import planifier_les_rappels
 from apps.suivi.models import (
     DoseAdministree,
     Echeance,
     MotifAnnulation,
     StatutEcheance,
 )
-from apps.rappels.models import CanalRappel as CanalEnvoi
-from apps.rappels.models import Rappel, StatutRappel
-from apps.rappels.services import planifier_les_rappels
-from apps.suivi.models import Echeance, MotifAnnulation, StatutEcheance
 from apps.suivi.services import enregistrer_dose, rafraichir_statuts
 
 MOT_DE_PASSE = "suvac-demo-2026"
@@ -105,16 +104,13 @@ class Command(BaseCommand):
             )
         )
         self.stdout.write(
-            self.style.WARNING(
-                "Données entièrement fictives. Ne jamais charger en production."
-            )
+            self.style.WARNING("Données entièrement fictives. Ne jamais charger en production.")
         )
 
     # ------------------------------------------------------------------ #
 
     def _vider(self):
         from apps.rappels.models import Rappel
-        from apps.suivi.models import DoseAdministree
 
         Rappel.objects.all().delete()
         JournalAudit.objects.all().delete()
@@ -283,9 +279,7 @@ class Command(BaseCommand):
         # ---- Cas 6 : nouveau-né sans prénom ---------------------------
         mere = self._mere("Adama", "Cissé", "+221771000006", ndondol, "Ndondol")
         self._consentir(mere, awa, CanalRappel.WHATSAPP)
-        self._enfant(
-            mere, "", "Cissé", aujourdhui - timedelta(days=2), Sexe.MASCULIN, ndondol
-        )
+        self._enfant(mere, "", "Cissé", aujourdhui - timedelta(days=2), Sexe.MASCULIN, ndondol)
 
         # ---- Cas 7 : rappels dans l'application seulement -------------
         mere = self._mere("Coumba", "Faye", "+221771000007", ndondol, "Thiakhar")
@@ -323,9 +317,7 @@ class Command(BaseCommand):
             Sexe.FEMININ,
             ndondol,
         )
-        echeance = Echeance.objects.filter(
-            enfant=enfant, vaccin__code="ROTA", rang=1
-        ).first()
+        echeance = Echeance.objects.filter(enfant=enfant, vaccin__code="ROTA", rang=1).first()
         if echeance and echeance.statut != StatutEcheance.ADMINISTREE:
             echeance.annuler(
                 MotifAnnulation.CONTRE_INDICATION,
@@ -382,9 +374,7 @@ class Command(BaseCommand):
 
         # ---- Cas 13 : sans téléphone ----------------------------------
         mere = self._mere("Penda", "Wade", "", ndondol, "Keur Samba")
-        self._enfant(
-            mere, "Awa", "Wade", aujourdhui - timedelta(days=50), Sexe.FEMININ, ndondol
-        )
+        self._enfant(mere, "Awa", "Wade", aujourdhui - timedelta(days=50), Sexe.FEMININ, ndondol)
 
         # ---- Cas 14 : homonymes dans le même poste --------------------
         # Deux mères portent le même nom. Rien dans le système ne repose
@@ -614,9 +604,7 @@ class Command(BaseCommand):
         )
         return consentement
 
-    def _enfant(
-        self, mere, prenom, nom, naissance, sexe, poste, gestation=None, poids=None
-    ):
+    def _enfant(self, mere, prenom, nom, naissance, sexe, poste, gestation=None, poids=None):
         enfant, _ = Enfant.objects.get_or_create(
             mere=mere,
             prenom=prenom,
@@ -635,9 +623,7 @@ class Command(BaseCommand):
         """doses : liste de (code, rang, jours écoulés depuis l'administration)."""
         aujourdhui = timezone.localdate()
         for code, rang, il_y_a in doses:
-            echeance = Echeance.objects.filter(
-                enfant=enfant, vaccin__code=code, rang=rang
-            ).first()
+            echeance = Echeance.objects.filter(enfant=enfant, vaccin__code=code, rang=rang).first()
             if echeance is None or echeance.statut == StatutEcheance.ADMINISTREE:
                 continue
             try:
@@ -649,7 +635,5 @@ class Command(BaseCommand):
                 )
             except Exception as erreur:  # noqa: BLE001
                 self.stdout.write(
-                    self.style.WARNING(
-                        f"  {enfant} — {code}-{rang} non administrée : {erreur}"
-                    )
+                    self.style.WARNING(f"  {enfant} — {code}-{rang} non administrée : {erreur}")
                 )
