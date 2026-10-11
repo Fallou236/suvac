@@ -25,5 +25,33 @@ services:
       timeout: 3s
       retries: 10
 
+  synthese:
+    build: ./services/synthese
+    volumes:
+      - modele_synthese:/modele
+      - audio_synthese:/audio
+    ports:
+      - "8800:8800"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8800/sante')"]
+      interval: 30s
+      timeout: 10s
+      # Le modèle met plusieurs secondes à charger au démarrage.
+      start_period: 90s
+
+  # Service à usage unique : télécharge le modèle dans le volume.
+  #   HF_TOKEN=hf_xxx docker compose run --rm synthese-modele
+  synthese-modele:
+    build: ./services/synthese
+    volumes:
+      - modele_synthese:/modele
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+    command: python telecharger_modele.py
+    profiles: ["outils"]
+
 volumes:
   donnees_postgres:
+  modele_synthese:
+  audio_synthese:
