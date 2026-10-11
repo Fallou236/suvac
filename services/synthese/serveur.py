@@ -117,4 +117,6 @@ def synthetiser():
 
 if __name__ == "__main__":
     charger()
-    application.run(host="127.0.0.1", port=8800)
+    # 0.0.0.0 dans un conteneur : 127.0.0.1 n'accepterait aucune connexion
+    # venant de l'extérieur.
+    application.run(host="0.0.0.0", port=8800)
