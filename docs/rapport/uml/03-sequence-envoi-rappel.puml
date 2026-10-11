@@ -1,0 +1,80 @@
+@startuml
+' Diagramme de séquence — envoi d'un rappel vocal
+' Vue boîte blanche : les composants internes apparaissent.
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam monochrome true
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 11
+
+participant "Celery Beat" as Beat
+participant "Planificateur" as Plan
+participant "Compositeur" as Comp
+participant "Service de\nsynthèse" as TTS
+participant "Encapsuleur\nvidéo" as Video
+participant "Canal\nWhatsApp" as Canal
+participant "WhatsApp\nCloud API" as WA
+actor "Mère" as Mere
+
+Beat -> Plan : balayageQuotidien()
+activate Plan
+
+Plan -> Plan : echeancesDues(aujourdhui)
+
+loop pour chaque bénéficiaire consentante
+    Plan -> Comp : composer(echeances, langue)
+    activate Comp
+    Comp --> Plan : texte wolof
+    deactivate Comp
+    Plan -> Plan : creerRappel(statut=en_attente)
+end
+
+Plan --> Beat : rappels planifiés
+deactivate Plan
+
+Beat -> Canal : envoyerLesRappels()
+activate Canal
+
+loop pour chaque rappel en attente
+    Canal -> TTS : synthetiser(texte)
+    activate TTS
+
+    alt service disponible
+        TTS --> Canal : fichier audio
+    else indisponible
+        TTS --> Canal : erreur
+        Canal -> Canal : assemblerSegments()
+    end
+    deactivate TTS
+
+    Canal -> Video : encapsuler(audio)
+    activate Video
+    Video --> Canal : fichier vidéo
+    deactivate Video
+
+    Canal -> WA : televerserVideo()
+    activate WA
+    WA --> Canal : identifiant média
+    Canal -> WA : envoyerModele(destinataire, media)
+    WA --> Canal : identifiant message
+    deactivate WA
+
+    WA -> Mere : rappel vocal
+    Canal -> Canal : marquerEnvoye()
+end
+
+deactivate Canal
+
+WA -> Canal : webhook(statut=remis)
+activate Canal
+Canal -> Canal : marquerRemis()
+deactivate Canal
+
+note over TTS, Video
+  Le message vocal est encapsulé
+  en vidéo : WhatsApp n'accepte pas
+  l'audio en en-tête de modèle
+end note
+
+@enduml

@@ -1,0 +1,91 @@
+@startuml
+' Modèle du domaine — cœur du suivi vaccinal.
+' Scindé en deux vues : les associations transversales rendaient un
+' diagramme unique illisible.
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam monochrome true
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+skinparam classAttributeIconSize 0
+skinparam nodesep 60
+skinparam ranksep 70
+hide methods
+
+class Mere {
+  # prenom : string
+  # nom : string
+  # telephone : string
+  # village : string
+  # langue : string
+}
+
+class Enfant {
+  # prenom : string
+  # nom : string
+  # date_naissance : date
+  # sexe : string
+  # semaines_gestation : entier
+  # poids_naissance : entier
+}
+
+class Grossesse {
+  # rang : entier
+  # date_reference : date
+  # terme_estime : date
+}
+
+class Echeance {
+  # date_prevue : date
+  # date_limite : date
+  # statut : string
+  # rang : entier
+  # motif_annulation : string
+}
+
+class DoseAdministree {
+  # date_administration : date
+  # numero_lot : string
+  # version : entier
+}
+
+class Vaccin {
+  # code : string
+  # libelle : string
+  # voie : string
+  # protege_contre : string
+  # explication_mere : string
+}
+
+class RegleVaccinale {
+  # cible : string
+  # rang : entier
+  # age_min_jours : entier
+  # age_cible_jours : entier
+  # age_limite_jours : entier
+  # intervalle_min_jours : entier
+}
+
+Mere "1" -- "0..*" Enfant : mère de >
+Mere "1" -- "0..*" Grossesse : porte >
+
+Enfant "1" -- "0..*" Echeance : doit recevoir >
+Grossesse "1" -- "0..*" Echeance : donne lieu à >
+
+Echeance "0..*" -- "1" Vaccin : concerne >
+Echeance "1" -- "0..1" DoseAdministree : satisfaite par >
+Vaccin "1" -- "0..*" RegleVaccinale : < régit
+
+note right of Echeance
+  Persistée et non recalculée :
+  le calendrier passé doit rester
+  lisible tel qu'il était (ADR 0003)
+end note
+
+note bottom of DoseAdministree
+  Immuable : une correction crée
+  une version nouvelle (RG-10)
+end note
+
+@enduml

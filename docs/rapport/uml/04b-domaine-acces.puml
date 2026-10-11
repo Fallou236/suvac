@@ -1,0 +1,89 @@
+@startuml
+' Modèle du domaine — accès, rattachement et communication.
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam monochrome true
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+skinparam classAttributeIconSize 0
+skinparam nodesep 60
+skinparam ranksep 70
+hide methods
+
+class PosteSante {
+  # nom : string
+  # district : string
+  # region : string
+  # telephone : string
+  # latitude : decimal
+  # longitude : decimal
+  # actif : boolean
+}
+
+class Utilisateur {
+  # identifiant : string
+  # prenom : string
+  # nom : string
+  # role : string
+  # actif : boolean
+}
+
+class ActeAdministration {
+  # acte : string
+  # detail : string
+  # horodatage : datetime
+}
+
+class Mere {
+  # prenom : string
+  # nom : string
+  # telephone : string
+}
+
+class Consentement {
+  # canal : string
+  # recueilli_le : datetime
+  # revoque_le : datetime
+}
+
+class Rappel {
+  # type : string
+  # canal : string
+  # langue : string
+  # texte : string
+  # statut : string
+  # planifie_pour : date
+  # envoye_le : datetime
+  # remis_le : datetime
+  # erreur : string
+  # tentatives : entier
+}
+
+class Echeance
+
+Utilisateur "0..*" -- "0..1" PosteSante : affecté à >
+Mere "0..*" -- "1" PosteSante : suivie à >
+Mere "0..1" -- "0..1" Utilisateur : accède par >
+
+Mere "1" -- "0..*" Consentement : accorde >
+Consentement "0..*" -- "1" Utilisateur : recueilli par >
+
+Rappel "0..*" -- "1" Mere : destiné à >
+Rappel "0..*" -- "0..*" Echeance : regroupe >
+
+ActeAdministration "0..*" -- "0..1" Utilisateur : auteur >
+
+note bottom of Rappel
+  Le texte envoyé est conservé :
+  en cas de contestation, il faut
+  pouvoir dire ce que la mère a reçu
+end note
+
+note right of Utilisateur
+  Table unique, discriminée par le
+  rôle : agent, superviseur,
+  administrateur, bénéficiaire
+end note
+
+@enduml

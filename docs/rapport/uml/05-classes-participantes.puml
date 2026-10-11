@@ -1,0 +1,77 @@
+@startuml
+' Diagramme des classes participantes — cas « administrer une dose ».
+' Trois stéréotypes : dialogue, contrôle, métier.
+' Les dialogues ne parlent qu'aux contrôles ; les classes métier
+' aussi. Les contrôles font le lien.
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam monochrome true
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 11
+skinparam classAttributeIconSize 0
+
+package "Dialogue" <<Frame>> {
+  class "FileDuJour" as D1 <<boundary>> {
+    + consulterFileDuJour()
+    + selectionnerBeneficiaire()
+  }
+  class "FicheMere" as D2 <<boundary>> {
+    + consulterCarnet()
+    + ouvrirSaisieDose()
+  }
+  class "FormulaireDose" as D3 <<boundary>> {
+    + administrerDose()
+  }
+}
+
+package "Contrôle" <<Frame>> {
+  class "GestionnaireFile" as C1 <<control>> {
+    + beneficiairesAttendus(date)
+    + beneficiairesEnRetard(date)
+  }
+  class "MoteurCalendrier" as C2 <<control>> {
+    + genererEcheances(beneficiaire)
+    + rafraichirStatuts(date)
+    + administrabiliteDe(echeance)
+  }
+  class "GestionnaireDose" as C3 <<control>> {
+    + enregistrerDose(echeance, date, lot)
+    + verifierIntervalle(echeance, date)
+  }
+}
+
+package "Métier" <<Frame>> {
+  class "Mere" as M1 <<entity>>
+  class "Enfant" as M2 <<entity>>
+  class "Echeance" as M3 <<entity>>
+  class "DoseAdministree" as M4 <<entity>>
+  class "Vaccin" as M5 <<entity>>
+  class "RegleVaccinale" as M6 <<entity>>
+}
+
+D1 --> C1
+D2 --> C2
+D3 --> C3
+
+C1 --> M1
+C1 --> M3
+C2 --> M3
+C2 --> M6
+C3 --> M3
+C3 --> M4
+C3 --> C2
+
+M1 -- M2
+M2 -- M3
+M3 -- M4
+M3 -- M5
+M6 -- M5
+
+note right of C2
+  Le moteur est écrit en Python pur,
+  sans dépendance à l'ORM : il se teste
+  sans base de données
+end note
+
+@enduml
