@@ -3,7 +3,7 @@
 Plateforme de suivi de la vaccination pré et post natale, avec rappels
 vocaux en wolof envoyés par WhatsApp.
 
-Projet final du module Développement Backend — École Polytechnique de Thiès.
+Projet final du module Développement Web Backend — École Polytechnique de Thiès.
 Encadrant : Professeur Michel Seck.
 
 ## Ce que fait l'application
@@ -19,7 +19,7 @@ accès, consulte le carnet de ses enfants et ses messages.
 
 ## Architecture
 
-![Architecture du système](docs/images/architecture.svg)
+![Architecture du système](docs/images/architecture.png)
 
 Le navigateur parle à Django, qui tient le moteur de calendrier, l'API et
 l'abstraction des canaux. PostgreSQL conserve les données, Redis sert de
@@ -58,11 +58,11 @@ Docker et Docker Compose, Python 3.13, Node 22.
 ```bash
 git clone https://github.com/Fallou236/suvac.git
 cd suvac
-docker compose up -d
+docker compose up -d db
 ```
 
-Si le port 6379 est déjà pris par un Redis local, lancez seulement la base :
-`docker compose up -d db`.
+Si un PostgreSQL tourne déjà sur le port 5432, arrêtez-le ou changez le port
+dans `docker-compose.yml`.
 
 ### Le backend
 
@@ -107,16 +107,16 @@ L'application est sur `http://localhost:5173`.
 
 Mot de passe commun : `suvac-demo-2026`
 
-| Identifiant | Rôle | À voir |
+| Identifiant | Rôle | À observer |
 |---|---|---|
 | `awa.ndiaye` | Agent, Ndondol | File du jour, saisie d'une dose |
 | `fatou.gueye` | Superviseur, Ndondol | Pilotage, journal des rappels, personnel |
 | `omar.diallo` | Superviseur, Ngaparou | Les mêmes écrans, d'autres chiffres : le cloisonnement |
 | `admin.suvac` | Administrateur | Postes, journal d'audit |
-| `rokhaya.ba` | Bénéficiaire | L'espace de la mère |
+| `rokhaya.ba` | Bénéficiaire | L'espace de la mère, en wolof |
 | `yacine.seck` | Bénéficiaire | Deux enfants suivis |
 
-Toutes les données sont fictives.
+Toutes les données sont fictives (ENF-24).
 
 ### Déclencher un balayage
 
@@ -129,63 +129,53 @@ Les rappels sont composés, journalisés, et consultables dans l'écran
 
 ---
 
-## 2. Les messages vocaux — une heure
+## 2. Les messages vocaux
 
-Ajoute la voix wolof aux messages. Les fichiers sont produits localement ;
-aucun envoi n'a lieu.
+Ajoute la voix wolof aux rappels. Le service de synthèse tourne dans son
+propre conteneur : le modèle exige Python 3.11 et PyTorch, incompatibles
+avec le backend.
 
-### Ce qu'il faut
+### Le modèle
 
-Python 3.11 en plus de 3.13, ffmpeg, et sous Windows les outils de
-compilation Microsoft C++ — le paquet `TTS` contient des extensions en C.
+Il pèse 952 Mo, n'est pas inclus dans l'image, et son dépôt est protégé.
+Il faut un compte Hugging Face, accepter les conditions sur
+`huggingface.co/AIHubSN/Kiriku-Wolof-TTS`, et créer un jeton de type *Read*
+dans Settings puis Access Tokens.
 
 ```bash
-# Linux
-sudo apt install ffmpeg python3.11-venv
-
-# Windows
-winget install ffmpeg
-winget install Python.Python.3.11
-winget install Microsoft.VisualStudio.2022.BuildTools
+HF_TOKEN=hf_votre_jeton docker compose run --rm synthese-modele
 ```
 
-Sous Windows, ouvrez ensuite Visual Studio Installer, modifiez Build Tools
-et cochez « Développement Desktop en C++ ». Travaillez depuis l'invite
-**x64 Native Tools Command Prompt** : l'invite ordinaire compile en 32 bits
-et l'édition de liens échoue.
+Le modèle est stocké dans un volume Docker et ne sera téléchargé qu'une
+fois. Comptez une à deux minutes.
 
 ### Le service
 
 ```bash
-cd services/synthese
-python3.11 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+docker compose up -d synthese
+docker compose logs -f synthese
 ```
 
-### Le modèle
-
-Il pèse 952 Mo et demande d'accepter les conditions sur Hugging Face.
+Le modèle met une vingtaine de secondes à charger au démarrage. Vérifiez :
 
 ```bash
-pip install huggingface_hub
-hf auth login
-python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='AIHubSN/Kiriku-Wolof-TTS', local_dir='checkpoints')"
+curl http://localhost:8800/sante
 ```
 
-### Lancer
+### L'activer côté backend
 
-```bash
-python serveur.py
+Dans `backend/.env` :
+
 ```
-
-Puis, dans `backend/.env` : SYNTHESE_URL=http://127.0.0.1:8800
-
+SYNTHESE_URL=http://127.0.0.1:8800
+```
 
 Au prochain balayage, les messages seront prononcés. Comptez cinq à vingt
-secondes par message distinct ; les suivants sont servis par le cache.
+secondes par message. Les fichiers produits sont dans
+`backend/media/synthese/` et les vidéos dans `backend/media/videos/`.
 
-Les fichiers produits sont dans `backend/media/synthese/`.
+Si le service est arrêté, le backend bascule sur l'assemblage de segments
+pré-enregistrés : les rappels partent quand même.
 
 ---
 
@@ -220,12 +210,13 @@ L'approbation prend de quelques minutes à quelques heures.
 
 Dans `backend/.env` :
 
+```
 WHATSAPP_NUMERO_ID=l-identifiant-du-numero-de-test
 WHATSAPP_COMPTE_ID=l-identifiant-du-compte-business
 WHATSAPP_JETON=le-jeton
 WHATSAPP_VERSION_API=v25.0
 WHATSAPP_MODELE_RAPPEL=rappel_vaccinal
-
+```
 
 Le jeton temporaire expire en vingt-quatre heures. Pour un jeton permanent,
 créez un utilisateur système dans les paramètres d'entreprise, affectez-lui
@@ -247,6 +238,9 @@ Ou directement :
 python manage.py essayer_whatsapp 221771234567
 ```
 
+Le numéro doit avoir été déclaré au préalable dans la liste des
+destinataires autorisés du compte de test.
+
 ---
 
 # Vérifier
@@ -256,31 +250,39 @@ cd backend && pytest -q
 cd frontend && npm run verifier
 ```
 
-Environ trois cents tests côté serveur, cent cinquante côté client.
+286 tests côté serveur à 87 % de couverture, 168 côté client à 85 %.
 
 # Documentation
 
+- `docs/rapport/rapport.pdf` — le rapport de projet
 - `docs/cahier-des-charges.pdf` — périmètre, exigences, architecture
 - `docs/adr/` — décisions d'architecture et leurs justifications
 - `docs/sprints/` — planifications et rétrospectives
 - `docs/libelles-wolof.md` — formulations validées par un locuteur natif
 - `docs/identite-visuelle/` — palette, logo, jetons de conception
-- `services/synthese/README.md` — le service de synthèse vocale
+- `services/synthese/LISEZMOI.md` — le service de synthèse vocale
 
 # Dépannage
 
-**La base refuse la connexion.** Les conteneurs ne tournent pas :
+**La base refuse la connexion.** Le conteneur ne tourne pas :
 `docker compose ps`.
 
-**Le port 6379 est occupé.** Un Redis local tourne déjà. Lancez seulement
-la base : `docker compose up -d db`.
+**Le port 6379 ou 5432 est déjà pris.** Un Redis ou un PostgreSQL tourne
+déjà sur la machine. Lancez seulement ce qui manque :
+`docker compose up -d db synthese`.
+
+**Le téléchargement du modèle renvoie 401.** Les conditions du dépôt n'ont
+pas été acceptées avec le compte du jeton, ou le jeton n'a pas la portée
+nécessaire. Un jeton à portée fine doit inclure l'accès en lecture aux
+dépôts protégés.
+
+**Sous Linux, `docker` demande sudo.** Ajoutez votre utilisateur au groupe :
+`sudo usermod -aG docker $USER`, puis reconnectez-vous. Avec `sudo`, pensez
+à placer les variables après : `sudo HF_TOKEN=... docker compose ...`.
 
 **Les rappels ne partent pas.** Vérifiez le consentement de la mère : aucun
 rappel n'est émis sans consentement actif (EF-47). Vérifiez aussi que son
 numéro figure dans la liste autorisée chez Meta.
-
-**Le service de synthèse refuse de s'installer sous Windows.** Les outils de
-compilation C++ manquent, ou vous n'êtes pas dans l'invite x64.
 
 **Un message est accepté par Meta mais n'arrive pas.** Le numéro n'est
 probablement pas déclaré, ou sa validation n'a pas été faite. Cherchez la
