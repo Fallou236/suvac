@@ -1,0 +1,101 @@
+@startuml
+' Diagramme de cas d'utilisation — SUVAC
+' Les cas sont regroupés par domaine fonctionnel plutôt que par acteur :
+' plusieurs rôles partagent les mêmes fonctions à des niveaux différents.
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam monochrome true
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+left to right direction
+
+actor "Agent de santé" as Agent
+actor "Superviseur" as Superviseur
+actor "Administrateur" as Admin
+actor "Mère" as Mere
+actor "WhatsApp\nCloud API" as WA <<secondary>>
+actor "Service de\nsynthèse vocale" as TTS <<secondary>>
+
+Superviseur --|> Agent
+
+rectangle "SUVAC — Kaay Ñakku" {
+
+  package "Suivi vaccinal" {
+    usecase "Enregistrer une mère" as UC1
+    usecase "Enregistrer un enfant" as UC2
+    usecase "Déclarer une grossesse" as UC3
+    usecase "Consulter la file du jour" as UC4
+    usecase "Administrer une dose" as UC5
+    usecase "Annuler une échéance" as UC6
+    usecase "Consulter un carnet" as UC7
+  }
+
+  package "Communication" {
+    usecase "Recueillir le consentement" as UC10
+    usecase "Planifier les rappels" as UC11
+    usecase "Composer le message wolof" as UC12
+    usecase "Produire le message vocal" as UC13
+    usecase "Envoyer un rappel" as UC14
+    usecase "Consulter le journal\ndes rappels" as UC15
+  }
+
+  package "Espace bénéficiaire" {
+    usecase "Ouvrir un accès" as UC20
+    usecase "Consulter ses rappels" as UC21
+    usecase "Corriger ses coordonnées" as UC22
+  }
+
+  package "Pilotage et administration" {
+    usecase "Consulter les indicateurs\nde couverture" as UC30
+    usecase "Gérer le personnel" as UC31
+    usecase "Gérer les postes de santé" as UC32
+    usecase "Consulter le journal d'audit" as UC33
+    usecase "Consulter le schéma vaccinal" as UC34
+  }
+}
+
+Agent --> UC1
+Agent --> UC2
+Agent --> UC3
+Agent --> UC4
+Agent --> UC5
+Agent --> UC6
+Agent --> UC7
+Agent --> UC10
+Agent --> UC20
+
+Superviseur --> UC15
+Superviseur --> UC30
+Superviseur --> UC31
+Superviseur --> UC34
+
+Admin --> UC31
+Admin --> UC32
+Admin --> UC33
+
+Mere --> UC7
+Mere --> UC21
+Mere --> UC22
+
+UC2 ..> UC12 : <<include>>
+UC5 ..> UC12 : <<include>>
+UC11 ..> UC12 : <<include>>
+UC14 ..> UC13 : <<include>>
+UC14 ..> UC10 : <<include>>
+UC13 ..> TTS
+UC14 --> WA
+
+note bottom of UC12
+  Le calendrier est recalculé
+  à chaque dose administrée
+  (RG-03)
+end note
+
+note right of UC10
+  Aucun rappel n'est émis
+  sans consentement actif
+  (EF-47)
+end note
+
+@enduml

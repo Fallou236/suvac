@@ -1,0 +1,66 @@
+@startuml
+' Diagramme de composants — vue boîte blanche avec interfaces
+' requises et fournies.
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam monochrome true
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 11
+
+component "Client web\n(React + TypeScript)" as Client
+
+component "API REST\n(Django REST Framework)" as API
+component "Moteur de calendrier\n(Python pur)" as Moteur
+component "Composition des messages\n(wolof)" as Compo
+component "Abstraction des canaux" as Canaux
+component "Ordonnanceur\n(Celery + Beat)" as Celery
+
+component "Service de synthèse vocale\n(Python 3.11, VITS)" as TTS
+component "Assembleur de segments\n(ffmpeg)" as Segments
+component "Encapsulation vidéo\n(ffmpeg)" as Video
+
+database "PostgreSQL" as PG
+database "Redis" as Redis
+
+interface "HTTP / JSON" as IHttp
+interface "Synthèse" as ITts
+interface "Envoi" as IEnvoi
+
+cloud "WhatsApp Cloud API" as WA
+cloud "Passerelle SMS" as SMS
+
+Client --( IHttp
+IHttp -- API
+
+API --> Moteur
+API --> PG
+API --> Redis
+
+Celery --> Compo
+Celery --> Canaux
+Celery --> Moteur
+Celery --> Redis
+
+Compo --> PG
+
+Canaux --( ITts
+ITts -- TTS
+Canaux --> Segments : repli
+Canaux --> Video
+Canaux --( IEnvoi
+IEnvoi -- WA
+IEnvoi -- SMS
+
+note bottom of TTS
+  Service séparé : le modèle exige
+  Python 3.11 et PyTorch, incompatibles
+  avec le backend en 3.13 (ADR 0009)
+end note
+
+note right of Segments
+  Repli quand la synthèse
+  est indisponible
+end note
+
+@enduml

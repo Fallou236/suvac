@@ -1,0 +1,68 @@
+@startuml
+' Diagramme de déploiement — architecture physique.
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam monochrome true
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 11
+
+node "Terminal de l'agent" <<device>> as Poste {
+  artifact "Navigateur\n(PWA)" as Nav
+}
+
+node "Téléphone de la mère" <<device>> as Tel {
+  artifact "WhatsApp" as AppWA
+}
+
+node "Serveur d'application" <<device>> as Serveur {
+
+  node "Conteneur web" <<container>> {
+    artifact "Gunicorn + Django" as Django
+    artifact "Fichiers statiques\n(React compilé)" as Static
+  }
+
+  node "Conteneur tâches" <<container>> {
+    artifact "Celery worker" as Worker
+    artifact "Celery Beat" as Beat
+  }
+
+  node "Conteneur synthèse" <<container>> {
+    artifact "Flask + VITS" as Flask
+    artifact "Modèle wolof\n(952 Mo)" as Modele
+  }
+
+  node "Conteneur base" <<container>> {
+    database "PostgreSQL 16" as PG
+  }
+
+  node "Conteneur cache" <<container>> {
+    database "Redis" as Redis
+  }
+}
+
+cloud "Meta WhatsApp\nCloud API" <<external>> as WA
+
+Poste -- Serveur : <<HTTPS>>
+Serveur -- WA : <<HTTPS>>
+WA -- Tel : <<réseau mobile>>
+
+Django -- PG
+Django -- Redis
+Worker -- Redis
+Worker -- PG
+Worker -- Flask : <<HTTP local>>
+Beat -- Redis
+
+note right of Flask
+  Isolé dans son propre conteneur :
+  ses dépendances ne peuvent cohabiter
+  avec celles du backend
+end note
+
+note bottom of WA
+  Les accusés de réception reviennent
+  par webhook vers Django
+end note
+
+@enduml

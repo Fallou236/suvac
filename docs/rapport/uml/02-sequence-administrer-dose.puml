@@ -1,0 +1,45 @@
+@startuml
+' Diagramme de séquence système — administration d'une dose
+' Le système est vu comme une boîte noire : seules les interactions
+' avec les acteurs apparaissent.
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam monochrome true
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+
+actor "Agent de santé" as Agent
+participant "Système" as Sys
+
+Agent -> Sys : consulterFileDuJour(date)
+activate Sys
+Sys --> Agent : bénéficiaires attendus et en retard
+deactivate Sys
+
+Agent -> Sys : selectionnerBeneficiaire(identifiant)
+activate Sys
+Sys --> Agent : carnet et échéances
+deactivate Sys
+
+Agent -> Sys : administrerDose(echeance, date, lot)
+activate Sys
+
+alt dose administrable
+    Sys -> Sys : verifierIntervalleMinimal()
+    Sys -> Sys : enregistrerDose()
+    Sys -> Sys : recalculerCalendrier()
+    Sys --> Agent : échéances mises à jour
+else intervalle non respecté
+    Sys --> Agent : refus motivé
+end
+
+deactivate Sys
+
+note right of Sys
+  L'enregistrement est immuable :
+  une correction crée une nouvelle
+  version (RG-10)
+end note
+
+@enduml
